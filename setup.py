@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name='skipper',
-    version='0.0.4',
+    version='0.0.1',
     url='http://github.com/Stratoscale/skipper',
     author='Adir Gabai',
     author_mail='adir@stratoscale.com',
@@ -13,4 +13,7 @@ setup(
               'skipper = skipper.main:main',
           ],
       },
+    install_requires=[
+            'PyYAML>=3.11'
+        ]
 )
