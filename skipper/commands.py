@@ -11,11 +11,13 @@ import yaml
 USER = os.environ["USER"]
 GROUP = "docker"
 
+
 def build(registry, image, dockerfile):
     workspace = os.getcwd()
-    git_hash = git.get_hash(True) 
+    git_hash = git.get_hash(True)
     fqdn_image = _generate_fqdn_image(registry, image, git_hash)
     docker.build(workspace, dockerfile, fqdn_image)
+
 
 def run(registry, image, tag, command):
     fqdn_image = _generate_fqdn_image(registry, image, tag)
@@ -32,17 +34,21 @@ def run(registry, image, tag, command):
     else:
         return docker.run(workspace, project, uid, gid, fqdn_image, command)
 
+
 def make(registry, image, tag, makefile, target):
     command = ['make', '-f', makefile, target]
     run(registry, image, tag, command)
+
 
 def depscheck(registry, image, tag, manifesto_path):
     installed_pips = _get_installed_pips(registry, image, tag)
     official_pips = _get_official_pips(manifesto_path)
     _compare_pips(installed_pips, official_pips)
 
+
 def _generate_fqdn_image(registry, image, tag='latest'):
     return registry + '/' + image + ':' + tag
+
 
 def _get_installed_pips(registry, image, tag):
     command = ['pip', 'freeze', '--disable-pip-version-check']
@@ -54,6 +60,7 @@ def _get_installed_pips(registry, image, tag):
         installed_pips[pip] = version
 
     return installed_pips
+
 
 def _get_official_pips(manifesto_path):
     with open(manifesto_path) as f:
@@ -74,6 +81,5 @@ def _compare_pips(installed_pips, official_pips):
         if official_version is None:
             continue
         if installed_version != official_version:
-            logging.error('Version mismatch for package %(pip)s: %(installed_version)s != %(official_version)s' % 
+            logging.error('Version mismatch for package %(pip)s: %(installed_version)s != %(official_version)s' %
                           dict(pip=installed_pip, installed_version=installed_version, official_version=official_version))
-

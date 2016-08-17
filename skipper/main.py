@@ -8,6 +8,7 @@ DEFAULT_IMAGE = 'dev-base'
 DEFAULT_TAG = 'latest'
 DEFAULT_CONFIG_FILE = 'skipper.yaml'
 
+
 def parse_args():
     parser = argparse.ArgumentParser(prog='skipper',
                                      description='Easily dockerize your Git repository',
@@ -35,8 +36,10 @@ def parse_args():
     parser_make.add_argument('-f', '--file', help='path to the manifesto')
 
     return parser.parse_args()
+
+
 def main():
-    args = parse_args() 
+    args = parse_args()
 
     logging_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(format='%(message)s', level=logging_level)

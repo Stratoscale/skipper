@@ -15,6 +15,7 @@ def _run_command(cmd):
 
     return output
 
+
 def build(path, dockerfile, tag='latest'):
     docker_cmd = [
         "docker",
@@ -25,6 +26,7 @@ def build(path, dockerfile, tag='latest'):
     ]
 
     _run_command(docker_cmd)
+
 
 def run(workspace, project, uid, gid, fqdn_image, command):
     docker_cmd = [

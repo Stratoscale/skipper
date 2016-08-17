@@ -1,5 +1,6 @@
 import subprocess
 
+
 def get_hash(short=False):
     git_command = ['git', 'rev-parse']
     if short:
