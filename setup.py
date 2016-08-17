@@ -1,13 +1,16 @@
 from setuptools import find_packages
-from setuptools import setup
-import os
-import subprocess
+from distutils.core import setup
 
 setup(
     name='skipper',
-    version='0.0.1',
+    version='0.0.4',
     url='http://github.com/Stratoscale/skipper',
     author='Adir Gabai',
     author_mail='adir@stratoscale.com',
-    packages=find_packages(include=['skipper*'])
+    packages=find_packages(include=['skipper*']),
+    entry_points={
+          'console_scripts': [
+              'skipper = skipper.main:main',
+          ],
+      },
 )
