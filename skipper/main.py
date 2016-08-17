@@ -1,6 +1,6 @@
-from skipper import commands
 import argparse
 import logging
+from skipper import commands
 
 
 DEFAULT_REGISTRY = 'rackattack-nas.dc1:5000'
@@ -54,7 +54,7 @@ def main():
         commands.make(args.registry, args.image, args.tag, args.file, args.target[0])
 
     elif args.subparser_name == 'depscheck':
-        output = commands.depscheck(args.registry, args.image, args.tag, args.file)
+        commands.depscheck(args.registry, args.image, args.tag, args.file)
 
 
 if __name__ == '__main__':

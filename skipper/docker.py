@@ -5,13 +5,13 @@ import subprocess
 
 def _run_command(cmd):
     logging.debug(" ".join(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
     output = []
-    while p.poll() is None:
-        l = p.stdout.readline()
-        output.append(l.rstrip())
-        logging.debug(l.rstrip())
+    while proc.poll() is None:
+        line = proc.stdout.readline()
+        output.append(line.rstrip())
+        logging.debug(line.rstrip())
 
     return output
 
@@ -34,7 +34,7 @@ def run(workspace, project, uid, gid, fqdn_image, command):
         "run",
         "--rm",
         "--net", "host",
-        "-v",  "%(workspace)s:/workspace:rw,Z" % dict(workspace=workspace),
+        "-v", "%(workspace)s:/workspace:rw,Z" % dict(workspace=workspace),
         "-v", "/var/lib/osmosis:/var/lib/osmosis:rw,Z" % dict(workspace=workspace),
         "-v", "/var/run/docker.sock:/var/run/docker.sock:Z",
         "-u", "%(uid)d:%(gid)d" % dict(uid=uid, gid=gid),

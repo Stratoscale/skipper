@@ -6,6 +6,9 @@ build:
 pep8:
 	pep8 skipper tests
 
+pylint:
+	pylint skipper
+
 tests:
 	py.test tests
 

@@ -1,11 +1,11 @@
-from skipper import docker
-from skipper import git
 import grp
 import logging
 import os
 import pwd
 import re
 import yaml
+from skipper import docker
+from skipper import git
 
 
 USER = os.environ["USER"]
@@ -63,8 +63,8 @@ def _get_installed_pips(registry, image, tag):
 
 
 def _get_official_pips(manifesto_path):
-    with open(manifesto_path) as f:
-        manifesto = yaml.load(f)
+    with open(manifesto_path) as manifesto_file:
+        manifesto = yaml.load(manifesto_file)
 
     official_pips = {}
     for req in manifesto['requirements']:
@@ -81,5 +81,5 @@ def _compare_pips(installed_pips, official_pips):
         if official_version is None:
             continue
         if installed_version != official_version:
-            logging.error('Version mismatch for package %(pip)s: %(installed_version)s != %(official_version)s' %
+            logging.error('Version mismatch for package %(pip)s: %(installed_version)s != %(official_version)s',
                           dict(pip=installed_pip, installed_version=installed_version, official_version=official_version))
