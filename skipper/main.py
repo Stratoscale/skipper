@@ -35,9 +35,7 @@ def parse_args():
     parser_make.add_argument('-f', '--file', help='path to the manifesto')
 
     return parser.parse_args()
-
-if __name__ == '__main__':
-
+def main():
     args = parse_args() 
 
     logging_level = logging.DEBUG if args.verbose else logging.INFO
@@ -54,3 +52,7 @@ if __name__ == '__main__':
 
     elif args.subparser_name == 'depscheck':
         output = commands.depscheck(args.registry, args.image, args.tag, args.file)
+
+
+if __name__ == '__main__':
+    main()
