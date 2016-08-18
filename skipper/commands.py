@@ -12,10 +12,10 @@ USER = os.environ["USER"]
 GROUP = "docker"
 
 
-def build(registry, image, dockerfile):
+def build(registry, image, dockerfile, tag=None):
     workspace = os.getcwd()
-    git_hash = git.get_hash(True)
-    fqdn_image = _generate_fqdn_image(registry, image, git_hash)
+    tag = tag or git.get_hash(True)
+    fqdn_image = _generate_fqdn_image(registry, image, tag)
     docker.build(workspace, dockerfile, fqdn_image)
 
 
