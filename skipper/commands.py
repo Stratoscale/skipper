@@ -1,15 +1,10 @@
 import grp
 import logging
 import os
-import pwd
 import re
 import yaml
 from skipper import docker
 from skipper import git
-
-
-USER = os.environ["USER"]
-GROUP = "docker"
 
 
 def build(registry, image, dockerfile, tag=None):
@@ -26,8 +21,8 @@ def run(registry, image, tag, command):
     workspace = os.path.dirname(cwd)
     project = os.path.basename(cwd)
 
-    uid = pwd.getpwnam(USER).pw_uid
-    gid = grp.getgrnam(GROUP).gr_gid
+    uid = os.getuid()
+    gid = grp.getgrnam('docker').gr_gid
 
     if len(command) == 0:
         logging.error('Command was not provided')
