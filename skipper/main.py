@@ -18,7 +18,7 @@ def parse_args():
     parser.add_argument('--registry', default=DEFAULT_REGISTRY, help='url of the docker registry')
     parser.add_argument('--image', default=DEFAULT_IMAGE, help='image to use for running commands')
     parser.add_argument('--tag', default=DEFAULT_TAG, help='tag of the image to use')
-    parser.add_argument('-v', '--verbose', action='store_true', help='increase verbosity')
+    parser.add_argument('-q', '--quiet', action='store_true', help='silence output')
 
     subparsers = parser.add_subparsers(dest='subparser_name')
 
@@ -44,7 +44,7 @@ def parse_args():
 def main():
     args = parse_args()
 
-    logging_level = logging.DEBUG if args.verbose else logging.INFO
+    logging_level = logging.INFO if args.quiet else logging.DEBUG
     logging.basicConfig(format='%(message)s', level=logging_level)
 
     if args.subparser_name == 'run':
