@@ -14,7 +14,7 @@ GROUP = "docker"
 
 def build(registry, image, dockerfile, tag=None):
     workspace = os.getcwd()
-    tag = tag or git.get_hash(True)
+    tag = tag or git.get_hash()
     fqdn_image = _generate_fqdn_image(registry, image, tag)
     docker.build(workspace, dockerfile, fqdn_image)
 
