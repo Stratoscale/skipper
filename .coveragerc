@@ -1,6 +1,7 @@
 [report]
 exclude_lines =
     def __repr__
+    if __name__
     import
 
 omit = tests/*
