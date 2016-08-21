@@ -1,41 +1,56 @@
-# Introduction
+# Skipper
 
-Skipper - Easily dockerize your Git repository
+## Introduction
 
-Define your workflow in the `skipper.yaml` and use skipper to your Continuous Delivery service to create containers for each commit, test them and push them to your registry only when tests passes.
-
-* Use `skipper build` to build your Dockerfile(s) of your repository. If your repository has local changes the containers will only be tagged as *latest*, otherwise the containers will be tagged as *latest*, *COMMIT_ID* & *BRANCH_NAME*. Now your Git commit tree is reproduced in your local docker repository.
-* Use `skipper run` to run commands inside a container
-* Use `captain make` to execute makefile targets inside a container
-
-From the other side, you can now pull the feature branch you want to test, or create distribution channels (such as 'alpha', 'beta', 'stable') using git tags that are propagated to container tags.
+Use Skipper to build & test your project in an isolated environment using Docker containers with pre-defined sane configuration.
+Skipper allows you to execute makefile targets inside a container (or just run arbitrary commands). You can also use Skipper to build your development and production containers.
 
 ## Installation
 
 To install Skipper, run:
-```
+``` bash 
 git clone http://github.com/Stratoscale/skipper
-pip install .
+python setup.py install
 ```
 
-## skipper.yml Format
+## Usage
 
-TBD
+Use Skipper as your primary tool for your daily development tasks:
+* Use `skipper build` to build your Dockerfile(s) of your repository. If your repository has local changes the containers will only be tagged as *latest*, otherwise the containers will be tagged as *latest*, *COMMIT_ID* & *BRANCH_NAME*. Now your Git commit tree is reproduced in your local docker repository.
+* Use `skipper make` to execute makefile targets inside a container.
+* Use `skipper run` to run arbitrary commands inside a container.
 
-## Global CLI Flags
+### Global CLI Flags
 
 ```
--v, --verbose: Increase verbosity
--h, --help: help for skipper
+--registry      url of the docker registry
+--image         docker image to use for running commands
+--tag           tag of the docker image
+-q, --quiet     silence the output
+-h, --help      show help
 ```
 
-## Docker Tags Lifecycle
+### Build Command CLI Flags
 
-The following is the workflow of tagging Docker images according to git state.
+```
+positional argument:
+target          the target to execute
 
-- If you're in non-git repository, skipper will tag the built images with `latest`.
-- If you're in dirty-git repository, skipper will tag the built images with `latest`.
-- If you're in pristine-git repository, skipper will tag the built images with `latest`, `commit-id`, `branch-name`, `tag-name`. A maximum of one tag per commit id is supported.
+optional arguments:
+-f, --file      path to the dockerfile
+--image         docker image to use (for build / run commands)
+--tag           tag of the docker image
+```
 
-## Roadmap
-TBD
+### Make Command CLI Flags
+
+```
+-f, --file      path to the makefile
+```
+
+### Run Command CLI Flags
+
+```
+positional argument:
+command         the command to run
+```
