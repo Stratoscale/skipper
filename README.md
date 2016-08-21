@@ -33,9 +33,6 @@ Use Skipper as your primary tool for your daily development tasks:
 ### Build Command CLI Flags
 
 ```
-positional argument:
-target          the target to execute
-
 optional arguments:
 -f, --file      path to the dockerfile
 --image         docker image to use (for build / run commands)
@@ -45,6 +42,9 @@ optional arguments:
 ### Make Command CLI Flags
 
 ```
+positional argument:
+target          the target to execute
+
 -f, --file      path to the makefile
 ```
 
