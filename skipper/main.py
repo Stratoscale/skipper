@@ -18,6 +18,7 @@ def parse_args():
     parser.add_argument('--registry', default=DEFAULT_REGISTRY, help='url of the docker registry')
     parser.add_argument('--image', default=DEFAULT_IMAGE, help='image to use for running commands')
     parser.add_argument('--tag', default=DEFAULT_TAG, help='tag of the image to use')
+    parser.add_argument('-e', '--env', action='append', help='set environment variables')
     parser.add_argument('-q', '--quiet', action='store_true', help='silence output')
 
     subparsers = parser.add_subparsers(dest='subparser_name')
@@ -47,13 +48,13 @@ def main():
     logging.basicConfig(format='%(message)s', level=logging_level)
 
     if args.subparser_name == 'run':
-        commands.run(args.registry, args.image, args.tag, args.command)
+        commands.run(args.registry, args.image, args.tag, args.env, args.command)
 
     elif args.subparser_name == 'build':
         commands.build(args.registry, args.image, args.file, args.tag)
 
     elif args.subparser_name == 'make':
-        commands.make(args.registry, args.image, args.tag, args.file, args.target[0])
+        commands.make(args.registry, args.image, args.tag, args.env, args.file, args.target[0])
 
     elif args.subparser_name == 'depscheck':
         commands.depscheck(args.registry, args.image, args.tag, args.file)

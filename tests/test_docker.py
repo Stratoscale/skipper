@@ -17,6 +17,8 @@ WORKDIR = '/home/adir/work'
 PROJECT = 'proj'
 PROJECT_DIR = os.path.join(WORKDIR, PROJECT)
 
+ENV = ["KEY1=VAL1", "KEY2=VAL2"]
+
 
 @mock.patch('subprocess.Popen', autospec=False)
 class TestDocker(unittest.TestCase):
@@ -40,7 +42,7 @@ class TestDocker(unittest.TestCase):
 
     def test_run_simple_command(self, popen_mock):
         command = ['pwd']
-        docker.run(WORKDIR, PROJECT, USER_ID, GROUP_ID, FQDN_IMAGE, command)
+        docker.run(WORKDIR, PROJECT, USER_ID, GROUP_ID, FQDN_IMAGE, None, command)
         expected_docker_command = [
             'docker', 'run',
             '--rm',
@@ -58,9 +60,31 @@ class TestDocker(unittest.TestCase):
             stdout=subprocess.PIPE
         )
 
+    def test_run_simple_command_with_env(self, popen_mock):
+        command = ['pwd']
+        docker.run(WORKDIR, PROJECT, USER_ID, GROUP_ID, FQDN_IMAGE, ENV, command)
+        expected_docker_command = [
+            'docker', 'run',
+            '--rm',
+            '--net', 'host',
+            '-e', 'KEY1=VAL1',
+            '-e', 'KEY2=VAL2',
+            '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
+            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
+            '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
+            '-u', '%(uid)s:%(gid)s' % dict(uid=USER_ID, gid=GROUP_ID),
+            '-w', '/workspace/proj',
+            '--entrypoint', command[0],
+            FQDN_IMAGE
+        ]
+        popen_mock.assert_called_once_with(
+            expected_docker_command,
+            stdout=subprocess.PIPE
+        )
+
     def test_run_complex_command(self, popen_mock):
         command = ['ls', '-l']
-        docker.run(WORKDIR, PROJECT, USER_ID, GROUP_ID, FQDN_IMAGE, command)
+        docker.run(WORKDIR, PROJECT, USER_ID, GROUP_ID, FQDN_IMAGE, None, command)
         expected_docker_command = [
             'docker', 'run',
             '--rm',

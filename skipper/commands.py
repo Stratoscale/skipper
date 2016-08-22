@@ -14,7 +14,7 @@ def build(registry, image, dockerfile, tag=None):
     docker.build(workspace, dockerfile, fqdn_image)
 
 
-def run(registry, image, tag, command):
+def run(registry, image, tag, env, command):
     fqdn_image = _generate_fqdn_image(registry, image, tag)
 
     cwd = os.getcwd()
@@ -27,12 +27,12 @@ def run(registry, image, tag, command):
     if len(command) == 0:
         logging.error('Command was not provided')
     else:
-        return docker.run(workspace, project, uid, gid, fqdn_image, command)
+        return docker.run(workspace, project, uid, gid, fqdn_image, env, command)
 
 
-def make(registry, image, tag, makefile, target):
+def make(registry, image, tag, env, makefile, target):
     command = ['make', '-f', makefile, target]
-    run(registry, image, tag, command)
+    run(registry, image, tag, env, command)
 
 
 def depscheck(registry, image, tag, manifesto_path):
@@ -47,7 +47,7 @@ def _generate_fqdn_image(registry, image, tag='latest'):
 
 def _get_installed_pips(registry, image, tag):
     command = ['pip', 'freeze', '--disable-pip-version-check']
-    output = run(registry, image, tag, command)
+    output = run(registry, image, tag, None, command)
     installed_pips = {}
     for line in output:
         if len(line) > 0:
