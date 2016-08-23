@@ -1,22 +1,30 @@
 import argparse
 import logging
+import os
+import yaml
 from skipper import commands
 
 
 DEFAULT_REGISTRY = 'rackattack-nas.dc1:5000'
-DEFAULT_IMAGE = 'dev-base'
 DEFAULT_TAG = 'latest'
 DEFAULT_CONFIG_FILE = 'skipper.yaml'
 
 
-def parse_args():
+def load_config():
+    config = {}
+    if os.path.exists(DEFAULT_CONFIG_FILE):
+        config = yaml.load(open(DEFAULT_CONFIG_FILE))
+
+    return config
+
+
+def parse_args(config):
     parser = argparse.ArgumentParser(prog='skipper',
                                      description='Easily dockerize your Git repository',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('--config-file', default=DEFAULT_CONFIG_FILE, help='path to the configuration file')
     parser.add_argument('--registry', default=DEFAULT_REGISTRY, help='url of the docker registry')
-    parser.add_argument('--image', default=DEFAULT_IMAGE, help='image to use for running commands')
+    parser.add_argument('--image', default=config.get('build-container'), help='image to use for running commands')
     parser.add_argument('--tag', default=DEFAULT_TAG, help='tag of the image to use')
     parser.add_argument('-e', '--env', action='append', help='set environment variables')
     parser.add_argument('-q', '--quiet', action='store_true', help='silence output')
@@ -31,7 +39,7 @@ def parse_args():
     parser_run.add_argument('command', nargs=argparse.REMAINDER)
 
     parser_make = subparsers.add_parser('make', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser_make.add_argument('-f', '--file', default='Makefile', help='path to the makefile')
+    parser_make.add_argument('-f', '--file', default=config.get('makefile', 'Makefile'), help='path to the makefile')
     parser_make.add_argument('target', nargs=argparse.REMAINDER)
 
     parser_make = subparsers.add_parser('depscheck', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -41,7 +49,8 @@ def parse_args():
 
 
 def main():
-    args = parse_args()
+    config = load_config()
+    args = parse_args(config)
 
     logging_level = logging.INFO if args.quiet else logging.DEBUG
     logging.basicConfig(format='%(message)s', level=logging_level)
