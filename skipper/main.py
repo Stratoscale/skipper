@@ -23,19 +23,19 @@ def parse_args():
 
     subparsers = parser.add_subparsers(dest='subparser_name')
 
-    parser_build = subparsers.add_parser('build')
+    parser_build = subparsers.add_parser('build', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_build.add_argument('-f', '--file', default='Dockerfile', help='path to the dockerfile')
     parser_build.add_argument('--image', default=DEFAULT_IMAGE, help='image name')
     parser_build.add_argument('--tag', default=None, help='image tag')
 
-    parser_run = subparsers.add_parser('run')
+    parser_run = subparsers.add_parser('run', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_run.add_argument('command', nargs=argparse.REMAINDER)
 
-    parser_make = subparsers.add_parser('make')
+    parser_make = subparsers.add_parser('make', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_make.add_argument('-f', '--file', default='Makefile', help='path to the makefile')
     parser_make.add_argument('target', nargs=argparse.REMAINDER)
 
-    parser_make = subparsers.add_parser('depscheck')
+    parser_make = subparsers.add_parser('depscheck', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_make.add_argument('-f', '--file', help='path to the manifesto')
 
     return parser.parse_args()
