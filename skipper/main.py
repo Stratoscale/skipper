@@ -24,9 +24,8 @@ def parse_args():
     subparsers = parser.add_subparsers(dest='subparser_name')
 
     parser_build = subparsers.add_parser('build', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser_build.add_argument('-f', '--file', default='Dockerfile', help='path to the dockerfile')
-    parser_build.add_argument('--image', default=DEFAULT_IMAGE, help='image name')
-    parser_build.add_argument('--tag', default=None, help='image tag')
+    parser_build.add_argument('--image', required=True, help='image name')
+    parser_build.add_argument('--tag', default=DEFAULT_TAG, help='image tag')
 
     parser_run = subparsers.add_parser('run', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_run.add_argument('command', nargs=argparse.REMAINDER)
@@ -51,7 +50,8 @@ def main():
         commands.run(args.registry, args.image, args.tag, args.env, args.command)
 
     elif args.subparser_name == 'build':
-        commands.build(args.registry, args.image, args.file, args.tag)
+        dockerfile = args.image + '.Dockerfile'
+        commands.build(args.registry, args.image, dockerfile, args.tag)
 
     elif args.subparser_name == 'make':
         commands.make(args.registry, args.image, args.tag, args.env, args.file, args.target[0])
