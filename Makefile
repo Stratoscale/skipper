@@ -16,7 +16,7 @@ install: build
 	python setup.py install
 
 clean:
-	rm -rf dist *egg-info .tox tests/__pycache__
+	rm -rf build dist *egg-info .tox tests/__pycache__
 	find -name *.pyc -delete
 
 .PHONY: build pep8 pylint tests install clean
