@@ -62,7 +62,7 @@ def run(registry, image, tag, env, command):
 @click.option('--image', help='Image to build')
 @click.option('--tag', help='Tag of the image')
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
-@click.argument('makefile')
+@click.option('-f', 'makefile', help='Tag of the image')
 @click.argument('target')
 def make(registry, image, tag, env, makefile, target):
     '''

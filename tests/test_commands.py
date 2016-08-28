@@ -85,7 +85,7 @@ class TestCommands(unittest.TestCase):
         makefile = 'Makefile'
         target = 'all'
         getgrnam_mock.return_value.gr_gid = GROUP_ID
-        self._invoke_cli_command('make', makefile, target)
+        self._invoke_cli_command('make', '-f', makefile, target)
         skipper_docker_run_mock.assert_called_once_with(
             WORKDIR,
             PROJECT,
