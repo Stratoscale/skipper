@@ -14,6 +14,7 @@ setup(
           ],
       },
     install_requires=[
-            'PyYAML>=3.11'
+            'PyYAML>=3.11',
+            'click>=6.6',
         ]
 )

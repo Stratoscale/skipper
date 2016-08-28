@@ -1,6 +1,7 @@
 import mock
 import os
 import unittest
+from click import testing
 from skipper import commands
 
 
@@ -20,12 +21,15 @@ ENV = ["KEY1=VAL1", "KEY2=VAL2"]
 
 
 class TestCommands(unittest.TestCase):
+    def setUp(self):
+        self._runner = testing.CliRunner()
+
     @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
     @mock.patch('skipper.docker.build', autospec=True)
     def test_build(self, skipper_docker_build_mock, *args):
-        dockerfile = 'proj.Dockerfile'
-        commands.build(REGISTRY, IMAGE, dockerfile)
+        dockerfile = IMAGE + '.Dockerfile'
+        self._invoke_cli_command('build')
         skipper_docker_build_mock.assert_called_once_with(PROJECT_DIR, dockerfile, FQDN_IMAGE)
 
     @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
@@ -35,14 +39,14 @@ class TestCommands(unittest.TestCase):
     def test_run(self, skipper_docker_run_mock, getgrnam_mock, *args):
         command = ['ls', '-l']
         getgrnam_mock.return_value.gr_gid = GROUP_ID
-        commands.run(REGISTRY, IMAGE, TAG, None, command)
+        self._invoke_cli_command('run', *command)
         skipper_docker_run_mock.assert_called_once_with(
             WORKDIR,
             PROJECT,
             USER_ID,
             GROUP_ID,
             FQDN_IMAGE,
-            None,
+            [],
             command
         )
 
@@ -53,7 +57,7 @@ class TestCommands(unittest.TestCase):
     def test_run_with_env(self, skipper_docker_run_mock, getgrnam_mock, *args):
         command = ['ls', '-l']
         getgrnam_mock.return_value.gr_gid = GROUP_ID
-        commands.run(REGISTRY, IMAGE, TAG, ENV, command)
+        self._invoke_cli_command('run', '-e', ENV[0], '-e', ENV[1], *command)
         skipper_docker_run_mock.assert_called_once_with(
             WORKDIR,
             PROJECT,
@@ -68,9 +72,9 @@ class TestCommands(unittest.TestCase):
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
     @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('skipper.docker.run', autospec=True)
-    def test_run_with_no_command(self, skipper_docker_run_mock, getgrnam_mock, *args):
+    def test_run_without_command(self, skipper_docker_run_mock, getgrnam_mock, *args):
         getgrnam_mock.return_value.gr_gid = GROUP_ID
-        commands.run(REGISTRY, IMAGE, TAG, None, [])
+        self._invoke_cli_command('run')
         self.assertFalse(skipper_docker_run_mock.called)
 
     @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
@@ -81,38 +85,17 @@ class TestCommands(unittest.TestCase):
         makefile = 'Makefile'
         target = 'all'
         getgrnam_mock.return_value.gr_gid = GROUP_ID
-        commands.make(REGISTRY, IMAGE, TAG, None, makefile, target)
+        self._invoke_cli_command('make', makefile, target)
         skipper_docker_run_mock.assert_called_once_with(
             WORKDIR,
             PROJECT,
             USER_ID,
             GROUP_ID,
             FQDN_IMAGE,
-            None,
+            [],
             ['make', '-f', makefile, target]
         )
 
-    @mock.patch('__builtin__.open', create=True)
-    @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
-    @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
-    @mock.patch('yaml.load', autospec=True)
-    @mock.patch('grp.getgrnam', autospec=True,)
-    @mock.patch('skipper.docker.run', autospec=True)
-    def test_depscheck(self, skipper_docker_run_mock, getgrnam_mock, yaml_load_mock, *args):
-        getgrnam_mock.return_value.gr_gid = GROUP_ID
-        installed_pips = [
-            'pkg1===a43e12d',
-            'pkg2===b360f75',
-            'pkg3==0.0.1',
-            '',
-        ]
-        manifesto = {
-            'requirements': [
-                dict(revision='b34a12b', pips=['pkg1']),
-                dict(revision='b360f75', pips=['pkg2']),
-                dict(revision='21e76c1', pips=None),
-            ]
-        }
-        skipper_docker_run_mock.return_value = installed_pips
-        yaml_load_mock.return_value = manifesto
-        commands.depscheck(REGISTRY, IMAGE, TAG, '/tmp/manifesto.yaml')
+    def _invoke_cli_command(self, cmd, *params):
+        subcommand = [cmd, '--registry', REGISTRY, '--image', IMAGE, '--tag', TAG] + list(params)
+        self._runner.invoke(commands.cli, subcommand)
