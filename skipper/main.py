@@ -22,7 +22,7 @@ def _load_defaults():
     return defaults
 
 
-if __name__ == '__main__':
+def main():
     # pylint: disable=unexpected-keyword-arg
     # pylint: disable=no-value-for-parameter
     commands.cli(
@@ -30,3 +30,7 @@ if __name__ == '__main__':
         default_map=_load_defaults(),
         obj={}
     )
+
+
+if __name__ == '__main__':
+    main()
