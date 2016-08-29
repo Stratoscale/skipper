@@ -29,7 +29,9 @@ class TestRunner(unittest.TestCase):
         runner.run(command)
         popen_mock.assert_called_once_with(
             command,
-            stdout=subprocess.PIPE
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+
         )
 
     @mock.patch('subprocess.Popen', autospec=False)
@@ -40,7 +42,9 @@ class TestRunner(unittest.TestCase):
         runner.run(command)
         popen_mock.assert_called_once_with(
             command,
-            stdout=subprocess.PIPE
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+
         )
 
     @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
@@ -67,7 +71,9 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(
             expected_nested_command,
-            stdout=subprocess.PIPE
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+
         )
 
     @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
@@ -96,7 +102,9 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(
             expected_docker_command,
-            stdout=subprocess.PIPE
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+
         )
 
     @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
@@ -124,7 +132,8 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(
             expected_nested_command,
-            stdout=subprocess.PIPE
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
         )
 
     @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
@@ -154,5 +163,7 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(
             expected_nested_command,
-            stdout=subprocess.PIPE
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+
         )
