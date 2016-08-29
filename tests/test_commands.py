@@ -31,6 +31,18 @@ class TestCommands(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=FQDN_IMAGE)
 
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_push(self, skipper_runner_run_mock, *args):
+        dockerfile = IMAGE + '.Dockerfile'
+        self._invoke_cli_command('push', IMAGE)
+        expected_command = [
+            'docker',
+            'push',
+            FQDN_IMAGE
+        ]
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=FQDN_IMAGE)
+
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run(self, skipper_runner_run_mock):
         command = ['ls', '-l']

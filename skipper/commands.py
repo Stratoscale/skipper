@@ -47,6 +47,25 @@ def build(ctx, image):
     runner.run(command, fqdn_image=ctx.obj['fqdn_image'])
 
 
+@cli.command()
+@click.argument('image')
+@click.pass_context
+def push(ctx, image):
+    '''
+    Pushes a container
+    '''
+    tag = git.get_hash()
+    fqdn_image = _generate_fqdn_image(ctx.obj['registry'], image, tag)
+
+    command = [
+        'docker',
+        'push',
+        fqdn_image
+    ]
+
+    runner.run(command, fqdn_image=ctx.obj['fqdn_image'])
+
+
 @cli.command(context_settings=dict(ignore_unknown_options=True))
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.argument('command', nargs=-1, type=click.UNPROCESSED, required=True)
