@@ -23,7 +23,8 @@ ENV = ["KEY1=VAL1", "KEY2=VAL2"]
 class TestRunner(unittest.TestCase):
     @mock.patch('subprocess.Popen', autospec=False)
     def test_run_simple_command_not_nested(self, popen_mock):
-        popen_mock.return_value.poll.side_effect = [None, None, None, -1]
+        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
+        popen_mock.return_value.poll.return_value = -1
         command = ['pwd']
         runner.run(command)
         popen_mock.assert_called_once_with(
@@ -33,6 +34,8 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('subprocess.Popen', autospec=False)
     def test_run_complex_command_not_nested(self, popen_mock):
+        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
+        popen_mock.return_value.poll.return_value = -1
         command = ['ls -l']
         runner.run(command)
         popen_mock.assert_called_once_with(
@@ -45,7 +48,8 @@ class TestRunner(unittest.TestCase):
     @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
     def test_run_simple_command_nested(self, popen_mock, getgrnam_mock, *args):
-        popen_mock.return_value.poll.side_effect = [None, None, None, -1]
+        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
+        popen_mock.return_value.poll.return_value = -1
         command = ['pwd']
         getgrnam_mock.return_value.gr_gid = GROUP_ID
         runner.run(command, FQDN_IMAGE)
@@ -71,7 +75,8 @@ class TestRunner(unittest.TestCase):
     @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
     def test_run_simple_command_nested_with_env(self, popen_mock, getgrnam_mock, *args):
-        popen_mock.return_value.poll.side_effect = [None, None, None, -1]
+        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
+        popen_mock.return_value.poll.return_value = -1
         command = ['pwd']
         getgrnam_mock.return_value.gr_gid = GROUP_ID
         runner.run(command, FQDN_IMAGE, ENV)
@@ -99,6 +104,8 @@ class TestRunner(unittest.TestCase):
     @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
     def test_run_complex_command_nested(self, popen_mock, getgrnam_mock, *args):
+        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
+        popen_mock.return_value.poll.return_value = -1
         command = ['ls', '-l']
         getgrnam_mock.return_value.gr_gid = GROUP_ID
         runner.run(command, FQDN_IMAGE)
@@ -125,6 +132,8 @@ class TestRunner(unittest.TestCase):
     @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
     def test_run_complex_command_nested_with_env(self, popen_mock, getgrnam_mock, *args):
+        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
+        popen_mock.return_value.poll.return_value = -1
         command = ['ls', '-l']
         getgrnam_mock.return_value.gr_gid = GROUP_ID
         runner.run(command, FQDN_IMAGE, ENV)

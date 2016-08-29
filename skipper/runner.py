@@ -22,8 +22,10 @@ def _run(cmd):
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
     output = []
-    while proc.poll() is None:
+    while True:
         line = proc.stdout.readline()
+        if line == '' and proc.poll() is not None:
+            break
         output.append(line.rstrip())
         logging.debug(line.rstrip())
 
