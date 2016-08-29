@@ -4,24 +4,17 @@ from skipper import commands
 
 
 def _load_defaults():
+    skipper_conf = 'skipper.yaml'
     defaults = {}
-    if os.path.exists('skipper.yaml'):
-        with open('skipper.yaml') as confile:
+    if os.path.exists(skipper_conf):
+        with open(skipper_conf) as confile:
             config = yaml.load(confile)
 
         defaults = {
-            'build': {
-                'registry': config['registry'],
-            },
-            'run': {
-                'registry': config['registry'],
-                'image': config['build-container'],
-                'tag': 'latest',
-            },
+            'registry': config['registry'],
+            'image': config['build-container'],
+            'tag': 'latest',
             'make': {
-                'registry': config['registry'],
-                'image': config['build-container'],
-                'tag': 'latest',
                 'makefile': config['makefile']
             },
         }
@@ -34,5 +27,6 @@ if __name__ == '__main__':
     # pylint: disable=no-value-for-parameter
     commands.cli(
         prog_name='skipper',
-        default_map=_load_defaults()
+        default_map=_load_defaults(),
+        obj={}
     )
