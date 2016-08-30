@@ -79,7 +79,7 @@ def run(ctx, env, command):
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
-@click.option('-f', 'makefile', help='Tag of the image')
+@click.option('-f', 'makefile', help='Makefile to use')
 @click.argument('target')
 @click.pass_context
 def make(ctx, env, makefile, target):
