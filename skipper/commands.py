@@ -6,23 +6,22 @@ from skipper import git
 
 @click.group()
 @click.option('-q', '--quiet', help='Silence the output', is_flag=True, default=False)
-@click.option('--nested/--no-nested', help='Run inside a contanier', default=True)
+@click.option('--nested/--no-nested', help='Run inside a build contanier', default=True)
 @click.option('--registry', help='URL of the docker registry')
-@click.option('--image', help='Image to use as build container')
-@click.option('--tag', help='Tag of the build container')
+@click.option('--build-container-image', help='Image to use as build container')
+@click.option('--build-container-tag', help='Tag of the build container')
 @click.pass_context
-def cli(ctx, registry, image, tag, quiet, nested):
+def cli(ctx, registry, build_container_image, build_container_tag, quiet, nested):
     '''
     Easily dockerize your Git repository
     '''
     logging_level = logging.INFO if quiet else logging.DEBUG
     logging.basicConfig(format='%(message)s', level=logging_level)
 
+    ctx.obj['nested'] = nested
     ctx.obj['registry'] = registry
-    if nested:
-        ctx.obj['fqdn_image'] = _generate_fqdn_image(registry, image, tag)
-    else:
-        ctx.obj['fqdn_image'] = None
+    ctx.obj['build_container_image'] = build_container_image
+    ctx.obj['build_container_tag'] = build_container_tag
 
 
 @cli.command()
@@ -32,6 +31,7 @@ def build(ctx, image):
     '''
     Builds a container
     '''
+    build_container = _get_build_container_from_ctx(ctx)
     dockerfile = image + '.Dockerfile'
     tag = git.get_hash()
     fqdn_image = _generate_fqdn_image(ctx.obj['registry'], image, tag)
@@ -44,7 +44,7 @@ def build(ctx, image):
         '.'
     ]
 
-    runner.run(command, fqdn_image=ctx.obj['fqdn_image'])
+    runner.run(command, fqdn_image=build_container)
 
 
 @cli.command()
@@ -54,6 +54,7 @@ def push(ctx, image):
     '''
     Pushes a container
     '''
+    build_container = _get_build_container_from_ctx(ctx)
     tag = git.get_hash()
     fqdn_image = _generate_fqdn_image(ctx.obj['registry'], image, tag)
 
@@ -63,7 +64,7 @@ def push(ctx, image):
         fqdn_image
     ]
 
-    runner.run(command, fqdn_image=ctx.obj['fqdn_image'])
+    runner.run(command, fqdn_image=build_container)
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
@@ -74,7 +75,8 @@ def run(ctx, env, command):
     '''
     Runs arbitrary commands
     '''
-    return runner.run(list(command), fqdn_image=ctx.obj['fqdn_image'], environment=list(env))
+    build_container = _get_build_container_from_ctx(ctx)
+    return runner.run(list(command), fqdn_image=build_container, environment=list(env))
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
@@ -86,13 +88,22 @@ def make(ctx, env, makefile, target):
     '''
     Executes makefile target
     '''
+    build_container = _get_build_container_from_ctx(ctx)
     command = [
         'make',
         '-f', makefile,
         target
     ]
-    return runner.run(command, fqdn_image=ctx.obj['fqdn_image'], environment=list(env))
+    return runner.run(command, fqdn_image=build_container, environment=list(env))
 
 
 def _generate_fqdn_image(registry, image, tag='latest'):
     return registry + '/' + image + ':' + tag
+
+
+def _get_build_container_from_ctx(ctx):
+    build_container = None
+    if ctx.obj['nested']:
+        build_container = _generate_fqdn_image(ctx.obj['registry'], ctx.obj['build_container_image'], ctx.obj['build_container_tag'])
+
+    return build_container

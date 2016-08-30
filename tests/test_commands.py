@@ -69,6 +69,6 @@ class TestCommands(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=FQDN_IMAGE, environment=[])
 
     def _invoke_cli_command(self, cmd, *params):
-        global_opts = ['--registry', REGISTRY, '--image', IMAGE, '--tag', TAG]
+        global_opts = ['--registry', REGISTRY, '--build-container-image', IMAGE, '--build-container-tag', TAG]
         subcommand = [cmd] + list(params)
         self._runner.invoke(commands.cli, global_opts + subcommand, obj={})

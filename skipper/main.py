@@ -12,8 +12,8 @@ def _load_defaults():
 
         defaults = {
             'registry': config['registry'],
-            'image': config['build-container'],
-            'tag': 'latest',
+            'build_container_image': config['build-container'],
+            'build_container_tag': 'latest',
             'make': {
                 'makefile': config['makefile']
             },
