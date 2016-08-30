@@ -10,47 +10,58 @@ Skipper allows you to execute makefile targets inside a container (or just run a
 To install Skipper, run:
 ``` bash 
 git clone http://github.com/Stratoscale/skipper
-python setup.py install
+sudo make install
 ```
 
 ## Usage
 
 Use Skipper as your primary tool for your daily development tasks:
-* Use `skipper build` to build your Dockerfile(s) of your repository. If your repository has local changes the containers will only be tagged as *latest*, otherwise the containers will be tagged as *latest*, *COMMIT_ID* & *BRANCH_NAME*. Now your Git commit tree is reproduced in your local docker repository.
+* Use `skipper build` to build the Dockerfile(s) of your repository. All the images will be automatically tagged with the *COMMIT_ID*.
+* Use `skipper push` to publish your containers.
 * Use `skipper make` to execute makefile targets inside a container.
 * Use `skipper run` to run arbitrary commands inside a container.
 
 ### Global CLI Flags
 
 ```
---registry      url of the docker registry
---image         docker image to use for running commands
---tag           tag of the docker image
--q, --quiet     silence the output
--h, --help      show help
+-q, --quiet                   Silence the output
+--nested / --no-nested        Run inside a build contanier
+--registry                    URL of the docker registry
+--build-container-image       Image to use as build container
+--build-container-tag         Tag of the build container
+--help                        Show this message and exit.
 ```
 
 ### Build Command CLI Flags
 
 ```
-optional arguments:
--f, --file      path to the dockerfile
---image         docker image to use (for build / run commands)
---tag           tag of the docker image
+Positional arguments:
+image       The image to build
 ```
 
+### Push Command CLI Flags
+
+```
+Positional arguments:
+image       The image to push
+```
 ### Make Command CLI Flags
 
 ```
-positional argument:
-target          the target to execute
+Positional arguments:
+target          The target to execute
 
--f, --file      path to the makefile
+Optional arguments:
+-f, --file      Path to the makefile
+-e, --env       Environement variables to pass to the build container
 ```
 
 ### Run Command CLI Flags
 
 ```
-positional argument:
-command         the command to run
+Positional arguments:
+target          The target to execute
+
+Optional arguments:
+-e, --env       Environement variables to pass to the build container
 ```
