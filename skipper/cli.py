@@ -44,7 +44,7 @@ def build(ctx, image):
         '.'
     ]
 
-    runner.run(command, fqdn_image=build_container)
+    return runner.run(command, fqdn_image=build_container)
 
 
 @cli.command()
@@ -64,7 +64,7 @@ def push(ctx, image):
         fqdn_image
     ]
 
-    runner.run(command, fqdn_image=build_container)
+    return runner.run(command, fqdn_image=build_container)
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))

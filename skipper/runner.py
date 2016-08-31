@@ -12,24 +12,24 @@ def run(command, fqdn_image=None, environment=None):
 
         uid = os.getuid()
         gid = grp.getgrnam('docker').gr_gid
-        _run_nested(workspace, project, uid, gid, fqdn_image, environment, command)
+        return _run_nested(workspace, project, uid, gid, fqdn_image, environment, command)
     else:
-        _run(command)
+        return _run(command)
 
 
 def _run(cmd):
     logging.debug(" ".join(cmd))
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
-    output = []
+    return_code = 0
     while True:
         line = proc.stdout.readline()
-        if line == '' and proc.poll() is not None:
+        return_code = proc.poll()
+        if line == '' and return_code is not None:
             break
-        output.append(line.rstrip())
         logging.debug(line.rstrip())
 
-    return output
+    return return_code
 
 
 def _run_nested(workspace, project, uid, gid, fqdn_image, environment, command):

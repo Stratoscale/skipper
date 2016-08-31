@@ -1,7 +1,7 @@
-import exceptions
 import mock
 import os
 import unittest
+import click
 from click import testing
 from skipper import cli
 
@@ -41,20 +41,20 @@ class TestCLI(unittest.TestCase):
 
     def test_nested_mode_without_global_parameters(self):
         result = self._invoke_cli(None, 'build', [IMAGE])
-        self.assertIsInstance(result.exception, exceptions.SystemExit)
-        self.assertEqual(result.exit_code, 2)
+        self.assertIsInstance(result.exception, click.BadParameter)
+        self.assertEqual(result.exit_code, -1)
 
         result = self._invoke_cli(None, 'push', [IMAGE])
-        self.assertIsInstance(result.exception, exceptions.SystemExit)
-        self.assertEqual(result.exit_code, 2)
+        self.assertIsInstance(result.exception, click.BadParameter)
+        self.assertEqual(result.exit_code, -1)
 
         result = self._invoke_cli(None, 'run', ['ls', '-l'])
-        self.assertIsInstance(result.exception, exceptions.SystemExit)
-        self.assertEqual(result.exit_code, 2)
+        self.assertIsInstance(result.exception, click.BadParameter)
+        self.assertEqual(result.exit_code, -1)
 
         result = self._invoke_cli(None, 'make', ['-f', 'Makefile', 'all'])
-        self.assertIsInstance(result.exception, exceptions.SystemExit)
-        self.assertEqual(result.exit_code, 2)
+        self.assertIsInstance(result.exception, click.BadParameter)
+        self.assertEqual(result.exit_code, -1)
 
     @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
     @mock.patch('skipper.runner.run', autospec=True)
@@ -126,4 +126,4 @@ class TestCLI(unittest.TestCase):
         if subcmd_params is not None:
             cli_params += subcmd_params
 
-        return self._runner.invoke(cli.cli, cli_params, obj={})
+        return self._runner.invoke(cli.cli, cli_params, obj={}, standalone_mode=False)
