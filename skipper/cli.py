@@ -104,6 +104,13 @@ def _generate_fqdn_image(registry, image, tag='latest'):
 def _get_build_container_from_ctx(ctx):
     build_container = None
     if ctx.obj['nested']:
-        build_container = _generate_fqdn_image(ctx.obj['registry'], ctx.obj['build_container_image'], ctx.obj['build_container_tag'])
+        try:
+            build_container = _generate_fqdn_image(
+                ctx.obj['registry'],
+                ctx.obj['build_container_image'],
+                ctx.obj['build_container_tag']
+            )
+        except:
+            raise click.BadParameter('At least one of the parameters: regitstry, build-container-image or build-container-tag is invalid')
 
     return build_container

@@ -1,3 +1,4 @@
+import exceptions
 import mock
 import os
 import unittest
@@ -37,6 +38,23 @@ class TestCLI(unittest.TestCase):
         for subcmd in ('build', 'push', 'make', 'run'):
             result = self._invoke_cli(None, subcmd, ['--help'])
             self.assertEqual(result.exit_code, 0)
+
+    def test_nested_mode_without_global_parameters(self):
+        result = self._invoke_cli(None, 'build', [IMAGE])
+        self.assertIsInstance(result.exception, exceptions.SystemExit)
+        self.assertEqual(result.exit_code, 2)
+
+        result = self._invoke_cli(None, 'push', [IMAGE])
+        self.assertIsInstance(result.exception, exceptions.SystemExit)
+        self.assertEqual(result.exit_code, 2)
+
+        result = self._invoke_cli(None, 'run', ['ls', '-l'])
+        self.assertIsInstance(result.exception, exceptions.SystemExit)
+        self.assertEqual(result.exit_code, 2)
+
+        result = self._invoke_cli(None, 'make', ['-f', 'Makefile', 'all'])
+        self.assertIsInstance(result.exception, exceptions.SystemExit)
+        self.assertEqual(result.exit_code, 2)
 
     @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
     @mock.patch('skipper.runner.run', autospec=True)
