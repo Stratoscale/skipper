@@ -1,6 +1,6 @@
 import os
 import yaml
-from skipper import commands
+from skipper import cli
 
 
 def _load_defaults():
@@ -25,7 +25,7 @@ def _load_defaults():
 def main():
     # pylint: disable=unexpected-keyword-arg
     # pylint: disable=no-value-for-parameter
-    commands.cli(
+    cli.cli(
         prog_name='skipper',
         default_map=_load_defaults(),
         obj={}
