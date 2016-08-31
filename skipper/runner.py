@@ -19,7 +19,7 @@ def run(command, fqdn_image=None, environment=None):
 
 def _run(cmd):
     logging.debug(" ".join(cmd))
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
     output = []
     while True:
