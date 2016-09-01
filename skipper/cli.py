@@ -29,7 +29,7 @@ def cli(ctx, registry, build_container_image, build_container_tag, quiet, nested
 @click.pass_context
 def build(ctx, image):
     '''
-    Builds a container
+    Build a container
     '''
     build_container = _get_build_container_from_ctx(ctx)
     dockerfile = image + '.Dockerfile'
@@ -52,7 +52,7 @@ def build(ctx, image):
 @click.pass_context
 def push(ctx, image):
     '''
-    Pushes a container
+    Push a container
     '''
     build_container = _get_build_container_from_ctx(ctx)
     tag = git.get_hash()
@@ -73,7 +73,7 @@ def push(ctx, image):
 @click.pass_context
 def run(ctx, env, command):
     '''
-    Runs arbitrary commands
+    Run arbitrary commands
     '''
     build_container = _get_build_container_from_ctx(ctx)
     return runner.run(list(command), fqdn_image=build_container, environment=list(env))
@@ -86,7 +86,7 @@ def run(ctx, env, command):
 @click.pass_context
 def make(ctx, env, makefile, target):
     '''
-    Executes makefile target
+    Execute makefile target
     '''
     build_container = _get_build_container_from_ctx(ctx)
     command = [
