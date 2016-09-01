@@ -1,18 +1,7 @@
-import os
 import sys
-import yaml
 import click
+from skipper import config
 from skipper import cli
-
-
-def _load_defaults():
-    skipper_conf = 'skipper.yaml'
-    defaults = {}
-    if os.path.exists(skipper_conf):
-        with open(skipper_conf) as confile:
-            defaults = yaml.load(confile)
-
-    return defaults
 
 
 def main():
@@ -22,7 +11,7 @@ def main():
     try:
         return_code = cli.cli(
             prog_name='skipper',
-            default_map=_load_defaults(),
+            default_map=config.load_defaults(),
             obj={},
             standalone_mode=False
         )
