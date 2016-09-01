@@ -8,16 +8,7 @@ def _load_defaults():
     defaults = {}
     if os.path.exists(skipper_conf):
         with open(skipper_conf) as confile:
-            config = yaml.load(confile)
-
-        defaults = {
-            'registry': config['registry'],
-            'build_container_image': config['build-container'],
-            'build_container_tag': 'latest',
-            'make': {
-                'makefile': config['makefile']
-            },
-        }
+            defaults = yaml.load(confile)
 
     return defaults
 
