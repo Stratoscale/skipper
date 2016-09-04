@@ -1,6 +1,7 @@
 import glob
+import json
 import logging
-import docker
+import subprocess
 import requests
 
 
@@ -24,11 +25,17 @@ def get_images_from_dockerfiles():
 
 
 def get_local_images_info(images, registry=None):
-    client = docker.Client()
+    command = [
+        'docker',
+        'images',
+        '--format', '{"name": "{{.Repository}}", "tag": "{{.Tag}}"}',
+    ]
     images_info = []
     for image in images:
         name = generate_fqdn_image(registry, image, None)
-        images_info += [['LOCAL'] + list(fqdn_image.rsplit(':', 1)) for fqdn_image in client.images(name=name)[0]['RepoTags']]
+        output = subprocess.check_output(command + [name])
+        info = json.loads(output)
+        images_info += [['LOCAL', info['name'], info['tag']]]
 
     return images_info
 

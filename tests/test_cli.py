@@ -160,28 +160,43 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('glob.glob', autospec=True, return_value=[IMAGE + '.Dockerfile'])
-    @mock.patch('docker.Client', autospec=True)
-    def test_images_only_local(self, docker_client_mock, *args):
+    @mock.patch('subprocess.check_output', autospec=True)
+    def test_images_only_local(self, subprocess_check_output_mock, *args):
+        name = REGISTRY + '/' + IMAGE
         self._invoke_cli(
             global_params=self.global_params,
             subcmd='images',
             subcmd_params=[]
         )
-        expected_name = REGISTRY + '/' + IMAGE
-        docker_client_mock.return_value.images.assert_called_once_with(name=expected_name)
+
+        expected_command = [
+            'docker',
+            'images',
+            '--format', '{"name": "{{.Repository}}", "tag": "{{.Tag}}"}',
+            name
+        ]
+        subprocess_check_output_mock.assert_called_once_with(expected_command)
 
     @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('glob.glob', autospec=True, return_value=[IMAGE + '.Dockerfile'])
     @mock.patch('requests.get', autospec=True)
-    @mock.patch('docker.Client', autospec=True)
-    def test_images_including_remote(self, docker_client_mock, requests_get_mock, *args):
+    @mock.patch('subprocess.check_output', autospec=True)
+    def test_images_including_remote(self, subprocess_check_output_mock, requests_get_mock, *args):
+        name = REGISTRY + '/' + IMAGE
+        subprocess_check_output_mock.return_value = '{"name": "%(name)s", "tag": "%(tag)s"}' % dict(name=name, tag=TAG)
         self._invoke_cli(
             global_params=self.global_params,
             subcmd='images',
             subcmd_params=['-r']
         )
-        expected_name = REGISTRY + '/' + IMAGE
-        docker_client_mock.return_value.images.assert_called_once_with(name=expected_name)
+
+        expected_command = [
+            'docker',
+            'images',
+            '--format', '{"name": "{{.Repository}}", "tag": "{{.Tag}}"}',
+            name
+        ]
+        subprocess_check_output_mock.assert_called_once_with(expected_command)
 
         expected_url = 'https://%(registry)s/v2/%(image)s/tags/list' % dict(registry=REGISTRY, image=IMAGE)
         requests_get_mock.assert_called_once_with(
