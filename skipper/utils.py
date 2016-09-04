@@ -12,3 +12,12 @@ def configure_logging(name, level):
 
     logger.setLevel(level)
     logger.addHandler(console_handler)
+
+
+def generate_fqdn_image(registry, image, tag='latest'):
+    fqdn_image = image
+    if registry is not None:
+        fqdn_image = registry + '/' + fqdn_image
+    if tag is not None:
+        fqdn_image = fqdn_image + ':' + tag
+    return fqdn_image

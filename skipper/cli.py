@@ -35,7 +35,7 @@ def build(ctx, image):
     build_container = _get_build_container_from_ctx(ctx)
     dockerfile = image + '.Dockerfile'
     tag = git.get_hash()
-    fqdn_image = _generate_fqdn_image(ctx.obj['registry'], image, tag)
+    fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
 
     command = [
         "docker",
@@ -57,7 +57,7 @@ def push(ctx, image):
     '''
     build_container = _get_build_container_from_ctx(ctx)
     tag = git.get_hash()
-    fqdn_image = _generate_fqdn_image(ctx.obj['registry'], image, tag)
+    fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
 
     command = [
         'docker',
@@ -98,20 +98,15 @@ def make(ctx, env, makefile, target):
     return runner.run(command, fqdn_image=build_container, environment=list(env))
 
 
-def _generate_fqdn_image(registry, image, tag='latest'):
-    return registry + '/' + image + ':' + tag
-
-
 def _get_build_container_from_ctx(ctx):
     build_container = None
     if ctx.obj['nested']:
-        try:
-            build_container = _generate_fqdn_image(
-                ctx.obj['registry'],
-                ctx.obj['build_container_image'],
-                ctx.obj['build_container_tag']
-            )
-        except:
+        build_container = utils.generate_fqdn_image(
+            ctx.obj['registry'],
+            ctx.obj['build_container_image'],
+            ctx.obj['build_container_tag']
+        )
+        if build_container is None:
             raise click.BadParameter('At least one of the parameters: regitstry, build-container-image or build-container-tag is invalid')
 
     return build_container
