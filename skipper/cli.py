@@ -1,22 +1,23 @@
 import logging
 import click
-from skipper import runner
 from skipper import git
+from skipper import runner
+from skipper import utils
 
 
 @click.group()
-@click.option('-q', '--quiet', help='Silence the output', is_flag=True, default=False)
+@click.option('-v', '--verbose', help='Increase verbosity', is_flag=True, default=False)
 @click.option('--nested/--no-nested', help='Run inside a build contanier', default=True)
 @click.option('--registry', help='URL of the docker registry')
 @click.option('--build-container-image', help='Image to use as build container')
 @click.option('--build-container-tag', help='Tag of the build container')
 @click.pass_context
-def cli(ctx, registry, build_container_image, build_container_tag, quiet, nested):
+def cli(ctx, registry, build_container_image, build_container_tag, verbose, nested):
     '''
     Easily dockerize your Git repository
     '''
-    logging_level = logging.INFO if quiet else logging.DEBUG
-    logging.basicConfig(format='%(message)s', level=logging_level)
+    logging_level = logging.DEBUG if verbose else logging.INFO
+    utils.configure_logging(name='skipper', level=logging_level)
 
     ctx.obj['nested'] = nested
     ctx.obj['registry'] = registry

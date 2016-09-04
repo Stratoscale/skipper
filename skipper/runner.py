@@ -18,7 +18,8 @@ def run(command, fqdn_image=None, environment=None):
 
 
 def _run(cmd):
-    logging.debug(" ".join(cmd))
+    logger = logging.getLogger('skipper')
+    logger.debug(' '.join(cmd))
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
     return_code = 0
@@ -27,7 +28,7 @@ def _run(cmd):
         return_code = proc.poll()
         if line == '' and return_code is not None:
             break
-        logging.debug(line.rstrip())
+        print(line.rstrip())
 
     return return_code
 
