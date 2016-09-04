@@ -158,6 +158,37 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE)
 
+    @mock.patch('tabulate.tabulate', autospec=True)
+    @mock.patch('glob.glob', autospec=True, return_value=[IMAGE + '.Dockerfile'])
+    @mock.patch('docker.Client', autospec=True)
+    def test_images_only_local(self, docker_client_mock, *args):
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='images',
+            subcmd_params=[]
+        )
+        expected_name = REGISTRY + '/' + IMAGE
+        docker_client_mock.return_value.images.assert_called_once_with(name=expected_name)
+
+    @mock.patch('tabulate.tabulate', autospec=True)
+    @mock.patch('glob.glob', autospec=True, return_value=[IMAGE + '.Dockerfile'])
+    @mock.patch('requests.get', autospec=True)
+    @mock.patch('docker.Client', autospec=True)
+    def test_images_including_remote(self, docker_client_mock, requests_get_mock, *args):
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='images',
+            subcmd_params=['-r']
+        )
+        expected_name = REGISTRY + '/' + IMAGE
+        docker_client_mock.return_value.images.assert_called_once_with(name=expected_name)
+
+        expected_url = 'https://%(registry)s/v2/%(image)s/tags/list' % dict(registry=REGISTRY, image=IMAGE)
+        requests_get_mock.assert_called_once_with(
+            url=expected_url,
+            verify=False
+        )
+
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run(self, skipper_runner_run_mock):
         command = ['ls', '-l']

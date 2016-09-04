@@ -1,4 +1,5 @@
 import logging
+import tabulate
 import click
 from skipper import git
 from skipper import runner
@@ -66,6 +67,21 @@ def push(ctx, image):
     ]
 
     return runner.run(command, fqdn_image=build_container)
+
+
+@cli.command()
+@click.option('-r', '--remote', help='List also remote images', is_flag=True, default=False)
+@click.pass_context
+def images(ctx, remote):
+    '''
+    List images
+    '''
+    images_names = utils.get_images_from_dockerfiles()
+    images_info = utils.get_local_images_info(images_names, ctx.obj['registry'])
+    if remote:
+        images_info += utils.get_remote_images_info(images_names, ctx.obj['registry'])
+
+    print(tabulate.tabulate(images_info, headers=['ORIGIN', 'IMAGE', 'TAG'], tablefmt='grid'))
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))

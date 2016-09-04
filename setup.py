@@ -16,5 +16,8 @@ setup(
     install_requires=[
             'PyYAML>=3.11',
             'click>=6.6',
+            'docker-py>=1.8.1',
+            'requests>=2.10.0',
+            'tabulate>=0.7.5',
         ]
 )
