@@ -35,7 +35,6 @@ def get_local_images_info(images, registry=None):
 
 def get_remote_images_info(images, registry):
     requests.packages.urllib3.disable_warnings()
-    registry = registry.replace('dc1', 'dc1.strato')   # TODO: remove this
     images_info = []
     for image in images:
         url = 'https://%(registry)s/v2/%(image)s/tags/list' % dict(registry=registry, image=image)

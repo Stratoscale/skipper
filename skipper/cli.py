@@ -8,19 +8,17 @@ from skipper import utils
 
 @click.group()
 @click.option('-v', '--verbose', help='Increase verbosity', is_flag=True, default=False)
-@click.option('--nested/--no-nested', help='Run inside a build contanier', default=True)
 @click.option('--registry', help='URL of the docker registry')
 @click.option('--build-container-image', help='Image to use as build container')
 @click.option('--build-container-tag', help='Tag of the build container')
 @click.pass_context
-def cli(ctx, registry, build_container_image, build_container_tag, verbose, nested):
+def cli(ctx, registry, build_container_image, build_container_tag, verbose):
     '''
     Easily dockerize your Git repository
     '''
     logging_level = logging.DEBUG if verbose else logging.INFO
     utils.configure_logging(name='skipper', level=logging_level)
 
-    ctx.obj['nested'] = nested
     ctx.obj['registry'] = registry
     ctx.obj['build_container_image'] = build_container_image
     ctx.obj['build_container_tag'] = build_container_tag
@@ -33,7 +31,6 @@ def build(ctx, image):
     '''
     Build a container
     '''
-    build_container = _get_build_container_from_ctx(ctx)
     dockerfile = image + '.Dockerfile'
     tag = git.get_hash()
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
@@ -46,7 +43,7 @@ def build(ctx, image):
         '.'
     ]
 
-    return runner.run(command, fqdn_image=build_container)
+    return runner.run(command)
 
 
 @cli.command()
@@ -56,7 +53,6 @@ def push(ctx, image):
     '''
     Push a container
     '''
-    build_container = _get_build_container_from_ctx(ctx)
     tag = git.get_hash()
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
 
@@ -66,7 +62,7 @@ def push(ctx, image):
         fqdn_image
     ]
 
-    return runner.run(command, fqdn_image=build_container)
+    return runner.run(command)
 
 
 @cli.command()
@@ -115,14 +111,12 @@ def make(ctx, env, makefile, target):
 
 
 def _get_build_container_from_ctx(ctx):
-    build_container = None
-    if ctx.obj['nested']:
-        build_container = utils.generate_fqdn_image(
-            ctx.obj['registry'],
-            ctx.obj['build_container_image'],
-            ctx.obj['build_container_tag']
-        )
-        if build_container is None:
-            raise click.BadParameter('At least one of the parameters: regitstry, build-container-image or build-container-tag is invalid')
+    build_container = utils.generate_fqdn_image(
+        ctx.obj['registry'],
+        ctx.obj['build_container_image'],
+        ctx.obj['build_container_tag']
+    )
+    if build_container is None:
+        raise click.BadParameter('At least one of the parameters: regitstry, build-container-image or build-container-tag is invalid')
 
     return build_container

@@ -99,7 +99,7 @@ class TestCLI(unittest.TestCase):
             '-t', FQDN_IMAGE,
             '.'
         ]
-        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=BUILD_CONTAINER_FQDN_IMAGE)
+        skipper_runner_run_mock.assert_called_once_with(expected_command)
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
@@ -121,7 +121,7 @@ class TestCLI(unittest.TestCase):
             '-t', FQDN_IMAGE,
             '.'
         ]
-        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE)
+        skipper_runner_run_mock.assert_called_once_with(expected_command)
 
     @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
     @mock.patch('skipper.runner.run', autospec=True)
@@ -137,7 +137,7 @@ class TestCLI(unittest.TestCase):
             'push',
             FQDN_IMAGE
         ]
-        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=BUILD_CONTAINER_FQDN_IMAGE)
+        skipper_runner_run_mock.assert_called_once_with(expected_command)
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
@@ -156,7 +156,7 @@ class TestCLI(unittest.TestCase):
             'push',
             FQDN_IMAGE
         ]
-        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE)
+        skipper_runner_run_mock.assert_called_once_with(expected_command)
 
     @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('glob.glob', autospec=True, return_value=[IMAGE + '.Dockerfile'])
