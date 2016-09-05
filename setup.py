@@ -1,5 +1,15 @@
+import os
 from setuptools import find_packages
 from distutils.core import setup
+
+
+
+data_files = []
+# Add bash completion script in case we are running as root
+if os.getuid() == 0:
+    data_files=[
+        ('/etc/bash_completion.d', ['data/skipper-complete.sh'])
+    ]
 
 setup(
     name='skipper',
@@ -8,9 +18,7 @@ setup(
     author='Adir Gabai',
     author_mail='adir@stratoscale.com',
     packages=find_packages(include=['skipper*']),
-    data_files=[
-        ('/etc/bash_completion.d', ['data/skipper-complete.sh']),
-    ],
+    data_files=data_files,
     entry_points={
           'console_scripts': [
               'skipper = skipper.main:main',
