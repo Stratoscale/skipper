@@ -37,10 +37,10 @@ def build(ctx, image):
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
 
     command = [
-        "docker",
-        "build",
-        "-f", dockerfile,
-        "-t", fqdn_image,
+        'docker',
+        'build',
+        '-f', dockerfile,
+        '-t', fqdn_image,
         '.'
     ]
 
