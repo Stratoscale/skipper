@@ -8,6 +8,9 @@ setup(
     author='Adir Gabai',
     author_mail='adir@stratoscale.com',
     packages=find_packages(include=['skipper*']),
+    data_files=[
+        ('/etc/bash_completion.d', ['data/skipper-complete.sh']),
+    ],
     entry_points={
           'console_scripts': [
               'skipper = skipper.main:main',
