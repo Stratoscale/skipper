@@ -32,7 +32,7 @@ def build(ctx, image):
     Build a container
     '''
     _validate_context(ctx)
-    dockerfile = image + '.Dockerfile'
+    dockerfile = utils.image_to_dockerfile(image)
     tag = git.get_hash()
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
 

@@ -20,7 +20,7 @@ def configure_logging(name, level):
 
 def get_images_from_dockerfiles():
     dockerfiles = glob.glob('*.Dockerfile')
-    images = [dockerfile.replace('.Dockerfile', '') for dockerfile in dockerfiles]
+    images = [dockerfile_to_image(dockerfile) for dockerfile in dockerfiles]
     return images
 
 
@@ -59,3 +59,11 @@ def generate_fqdn_image(registry, image, tag='latest'):
     if tag is not None:
         fqdn_image = fqdn_image + ':' + tag
     return fqdn_image
+
+
+def image_to_dockerfile(image):
+    return 'Dockerfile.' + image
+
+
+def dockerfile_to_image(dockerfile):
+    return dockerfile.replace('Dockerfile.', '')

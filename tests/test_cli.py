@@ -85,7 +85,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
     @mock.patch('skipper.runner.run', autospec=True)
     def test_build(self, skipper_runner_run_mock, *args):
-        dockerfile = IMAGE + '.Dockerfile'
+        dockerfile = 'Dockerfile.' + IMAGE
         build_params = [IMAGE]
         self._invoke_cli(
             global_params=self.global_params,
@@ -107,7 +107,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
     @mock.patch('skipper.runner.run', autospec=True)
     def test_build_with_defaults_from_config_file(self, skipper_runner_run_mock, *args):
-        dockerfile = IMAGE + '.Dockerfile'
+        dockerfile = 'Dockerfile.' + IMAGE
         build_params = [IMAGE]
         self._invoke_cli(
             defaults=config.load_defaults(),
@@ -159,7 +159,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 
     @mock.patch('tabulate.tabulate', autospec=True)
-    @mock.patch('glob.glob', autospec=True, return_value=[IMAGE + '.Dockerfile'])
+    @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
     @mock.patch('subprocess.check_output', autospec=True)
     def test_images_only_local(self, subprocess_check_output_mock, *args):
         name = REGISTRY + '/' + IMAGE
@@ -178,7 +178,7 @@ class TestCLI(unittest.TestCase):
         subprocess_check_output_mock.assert_called_once_with(expected_command)
 
     @mock.patch('tabulate.tabulate', autospec=True)
-    @mock.patch('glob.glob', autospec=True, return_value=[IMAGE + '.Dockerfile'])
+    @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
     @mock.patch('requests.get', autospec=True)
     @mock.patch('subprocess.check_output', autospec=True)
     def test_images_including_remote(self, subprocess_check_output_mock, requests_get_mock, *args):
