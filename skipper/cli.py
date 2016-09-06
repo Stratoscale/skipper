@@ -31,7 +31,7 @@ def build(ctx, image):
     '''
     Build a container
     '''
-    _validate_context(ctx)
+    _validate_global_params(ctx, 'registry')
     dockerfile = utils.image_to_dockerfile(image)
     tag = git.get_hash()
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
@@ -54,7 +54,7 @@ def push(ctx, image):
     '''
     Push a container
     '''
-    _validate_context(ctx)
+    _validate_global_params(ctx, 'registry')
     tag = git.get_hash()
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
 
@@ -74,7 +74,7 @@ def images(ctx, remote):
     '''
     List images
     '''
-    _validate_context(ctx)
+    _validate_global_params(ctx, 'registry')
     images_names = utils.get_images_from_dockerfiles()
     images_info = utils.get_local_images_info(images_names, ctx.obj['registry'])
     if remote:
@@ -91,7 +91,7 @@ def run(ctx, env, command):
     '''
     Run arbitrary commands
     '''
-    _validate_context(ctx)
+    _validate_global_params(ctx, 'registry', 'build_container_image', 'build_container_tag')
     build_container = _get_build_container_from_ctx(ctx)
     return runner.run(list(command), fqdn_image=build_container, environment=list(env))
 
@@ -105,7 +105,7 @@ def make(ctx, env, makefile, target):
     '''
     Execute makefile target
     '''
-    _validate_context(ctx)
+    _validate_global_params(ctx, 'registry', 'build_container_image', 'build_container_tag')
     build_container = _get_build_container_from_ctx(ctx)
     command = [
         'make',
@@ -121,12 +121,11 @@ def _get_build_container_from_ctx(ctx):
         ctx.obj['build_container_image'],
         ctx.obj['build_container_tag']
     )
-    if build_container is None:
-        raise click.BadParameter('At least one of the parameters: regitstry, build-container-image or build-container-tag is invalid')
 
     return build_container
 
 
-def _validate_context(ctx):
-    if ctx.obj['registry'] is None:
-        raise click.BadParameter(str(ctx.obj['registry']), param_hint='registry')
+def _validate_global_params(ctx, *params):
+    for param in params:
+        if ctx.obj[param] is None:
+            raise click.BadParameter(str(ctx.obj[param]), param_hint=param)
