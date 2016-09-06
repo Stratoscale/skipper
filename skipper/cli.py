@@ -83,6 +83,23 @@ def images(ctx, remote):
     print(tabulate.tabulate(images_info, headers=['ORIGIN', 'IMAGE', 'TAG'], tablefmt='grid'))
 
 
+@cli.command()
+@click.option('-r', '--remote', help='Delete image from registry', is_flag=True, default=False)
+@click.argument('image')
+@click.argument('tag')
+@click.pass_context
+def rmi(ctx, remote, image, tag):
+    '''
+    Delete an image from local docker or from registry
+    '''
+    _validate_global_params(ctx, 'registry')
+    _validate_project_image(image)
+    if remote:
+        utils.delete_image_from_registry(ctx.obj['registry'], image, tag)
+    else:
+        utils.delete_local_image(ctx.obj['registry'], image, tag)
+
+
 @cli.command(context_settings=dict(ignore_unknown_options=True))
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.argument('command', nargs=-1, type=click.UNPROCESSED, required=True)
@@ -129,3 +146,9 @@ def _validate_global_params(ctx, *params):
     for param in params:
         if ctx.obj[param] is None:
             raise click.BadParameter(str(ctx.obj[param]), param_hint=param)
+
+
+def _validate_project_image(image):
+    project_images = utils.get_images_from_dockerfiles()
+    if image not in project_images:
+        raise click.BadParameter("'%s' is not an image of this project, try %s" % (image, project_images), param_hint='image')

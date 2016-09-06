@@ -4,6 +4,9 @@ import logging
 import subprocess
 import requests
 
+REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
+MANIFEST_URL = REGISTRY_BASE_URL + '%(image)s/manifests/%(reference)s'
+
 
 def configure_logging(name, level):
     logger = logging.getLogger(name)
@@ -52,6 +55,27 @@ def get_remote_images_info(images, registry):
         images_info += [['REMOTE', generate_fqdn_image(registry, image, None), tag] for tag in info['tags']]
 
     return images_info
+
+
+def get_image_digest(registry, image, tag):
+    requests.packages.urllib3.disable_warnings()
+    url = MANIFEST_URL % dict(registry=registry, image=image, reference=tag)
+    headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
+    response = requests.get(url=url, headers=headers, verify=False)
+    return response.headers['Docker-Content-Digest']
+
+
+def delete_image_from_registry(registry, image, tag):
+    digest = get_image_digest(registry, image, tag)
+    url = MANIFEST_URL % dict(registry=registry, image=image, reference=digest)
+    response = requests.delete(url=url, verify=False)
+    if not response.ok:
+        raise Exception(response.content)
+
+
+def delete_local_image(registry, image, tag):
+    name = generate_fqdn_image(registry, image, tag)
+    subprocess.check_call(['docker', 'rmi', name])
 
 
 def generate_fqdn_image(registry, image, tag='latest'):
