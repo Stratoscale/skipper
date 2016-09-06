@@ -34,6 +34,8 @@ def get_local_images_info(images, registry=None):
     for image in images:
         name = generate_fqdn_image(registry, image, None)
         output = subprocess.check_output(command + [name])
+        if output == '':
+            continue
         info = json.loads(output)
         images_info += [['LOCAL', info['name'], info['tag']]]
 
