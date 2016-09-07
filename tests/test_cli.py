@@ -158,11 +158,12 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 
-    @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
+    @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('subprocess.check_output', autospec=True)
-    def test_images_only_local(self, subprocess_check_output_mock, *args):
+    def test_images_with_local_results(self, subprocess_check_output_mock, tabulate_mock, *args):
         name = REGISTRY + '/' + IMAGE
+        subprocess_check_output_mock.return_value = '{"name": "%(name)s", "tag": "%(tag)s"}' % dict(name=name, tag=TAG)
         self._invoke_cli(
             global_params=self.global_params,
             subcmd='images',
@@ -176,14 +177,25 @@ class TestCLI(unittest.TestCase):
             name
         ]
         subprocess_check_output_mock.assert_called_once_with(expected_command)
+        tabulate_mock.assert_called_once_with([['LOCAL', name, TAG]], headers=['ORIGIN', 'IMAGE', 'TAG'], tablefmt='grid')
 
-    @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
+    @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('requests.get', autospec=True)
     @mock.patch('subprocess.check_output', autospec=True)
-    def test_images_including_remote(self, subprocess_check_output_mock, requests_get_mock, *args):
+    def test_images_with_all_results(self, subprocess_check_output_mock, requests_get_mock, tabulate_mock, *args):
         name = REGISTRY + '/' + IMAGE
         subprocess_check_output_mock.return_value = '{"name": "%(name)s", "tag": "%(tag)s"}' % dict(name=name, tag=TAG)
+
+        requests_response_mock = None
+        with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
+            requests_response_mock = requests_response_class_mock.return_value
+            requests_response_mock.json.return_value = {
+                'name': name,
+                'tags': ['latest', '85cd8cae14592a8f2086db5559fa90b334009028', '0f259966bee4d908636bcbee82dd89be5f274f9e']
+            }
+            requests_get_mock.return_value = requests_response_mock
+
         self._invoke_cli(
             global_params=self.global_params,
             subcmd='images',
@@ -203,6 +215,34 @@ class TestCLI(unittest.TestCase):
             url=expected_url,
             verify=False
         )
+
+        expected_images_results = [
+            ['LOCAL', name, TAG],
+            ['REMOTE', name, 'latest'],
+            ['REMOTE', name, '85cd8cae14592a8f2086db5559fa90b334009028'],
+            ['REMOTE', name, '0f259966bee4d908636bcbee82dd89be5f274f9e']
+        ]
+        tabulate_mock.assert_called_once_with(expected_images_results, headers=['ORIGIN', 'IMAGE', 'TAG'], tablefmt='grid')
+
+    @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
+    @mock.patch('tabulate.tabulate', autospec=True)
+    @mock.patch('subprocess.check_output', autospec=True, return_value='')
+    def test_images_without_results(self, subprocess_check_output_mock, tabulate_mock, *args):
+        name = REGISTRY + '/' + IMAGE
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='images',
+            subcmd_params=[]
+        )
+
+        expected_command = [
+            'docker',
+            'images',
+            '--format', '{"name": "{{.Repository}}", "tag": "{{.Tag}}"}',
+            name
+        ]
+        subprocess_check_output_mock.assert_called_once_with(expected_command)
+        tabulate_mock.assert_called_once_with([], headers=['ORIGIN', 'IMAGE', 'TAG'], tablefmt='grid')
 
     @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
     @mock.patch('subprocess.check_call', autospec=True)
