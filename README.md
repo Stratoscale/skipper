@@ -19,6 +19,7 @@ Skipper can serve as your primary tool for your daily development tasks:
 * Use `skipper build` to build the images defined by the Dockerfiles in your repository. All the images will be automatically tagged with the *COMMIT_ID*.
 * Use `skipper push` to publish your images.
 * Use `skipper images` to list your images.
+* Use `skipper rmi` to delete your images.
 * Use `skipper make` to execute makefile targets inside a container.
 * Use `skipper run` to run arbitrary commands inside a container.
 
@@ -66,6 +67,17 @@ skipper --registry some-registry images
 In order to list also images that were pushed to the registry, run:
 ```bash
 skipper --registry some-registry images -r
+```
+
+### Rmi
+To delete image of your repository, run:
+```bash
+skipper --registry some-registry rmi production <tag>
+```
+
+In order to delete image from the registry, run:
+```bash
+skipper --registry some-registry rmi -r production <tag>
 ```
 
 ### Make
