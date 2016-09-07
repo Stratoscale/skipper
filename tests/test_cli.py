@@ -204,6 +204,39 @@ class TestCLI(unittest.TestCase):
             verify=False
         )
 
+    @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
+    @mock.patch('subprocess.check_call', autospec=True)
+    def test_rmi_local(self, subprocess_check_call_mock, *args):
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='rmi',
+            subcmd_params=[IMAGE, TAG]
+        )
+
+        expected_command = [
+            'docker',
+            'rmi',
+            FQDN_IMAGE
+        ]
+        subprocess_check_call_mock.assert_called_once_with(expected_command)
+
+    @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
+    @mock.patch('requests.delete', autospec=True)
+    @mock.patch('requests.get', autospec=True)
+    def test_rmi_remote(self, requests_get_mock, requests_delete_mock, *args):
+        requests_get_mock.side_effect = [mock.Mock(headers={'Docker-Content-Digest': 'digest'}), mock.Mock(ok=True)]
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='rmi',
+            subcmd_params=['-r', IMAGE, TAG]
+        )
+
+        url = 'https://%(registry)s/v2/%(image)s/manifests/%(reference)s' % dict(registry=REGISTRY, image=IMAGE, reference=TAG)
+        headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
+        requests_get_mock.assert_called_once_with(url=url, headers=headers, verify=False)
+        url = 'https://%(registry)s/v2/%(image)s/manifests/%(reference)s' % dict(registry=REGISTRY, image=IMAGE, reference='digest')
+        requests_delete_mock.assert_called_once_with(url=url, verify=False)
+
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run(self, skipper_runner_run_mock):
         command = ['ls', '-l']
