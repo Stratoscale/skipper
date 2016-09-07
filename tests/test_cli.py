@@ -302,6 +302,21 @@ class TestCLI(unittest.TestCase):
         )
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=BUILD_CONTAINER_FQDN_IMAGE, environment=ENV)
 
+    @mock.patch('subprocess.check_output', autospec=True)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_without_build_container_tag(self, skipper_runner_run_mock, subprocess_check_output_mock):
+        build_container_sha256 = 'sha256:8f0396f5d47ebeaded68702e67c21bf13519efb00c9959a308615beb2e5a429f'
+        subprocess_check_output_mock.return_value = build_container_sha256 + '\n'
+        global_params = self.global_params[:-2]
+        command = ['ls', '-l']
+        run_params = command
+        self._invoke_cli(
+            global_params=global_params,
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=build_container_sha256, environment=[])
+
     @mock.patch('skipper.runner.run', autospec=True)
     def test_make(self, skipper_runner_run_mock):
         makefile = 'Makefile'
@@ -330,6 +345,23 @@ class TestCLI(unittest.TestCase):
         )
         expected_command = ['make', '-f', makefile, target]
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE, environment=[])
+
+    @mock.patch('subprocess.check_output', autospec=True)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_make_without_build_container_tag(self, skipper_runner_run_mock, subprocess_check_output_mock):
+        build_container_sha256 = 'sha256:8f0396f5d47ebeaded68702e67c21bf13519efb00c9959a308615beb2e5a429f'
+        subprocess_check_output_mock.return_value = build_container_sha256 + '\n'
+        global_params = self.global_params[:-2]
+        makefile = 'Makefile'
+        target = 'all'
+        make_params = ['-f', makefile, target]
+        self._invoke_cli(
+            global_params=global_params,
+            subcmd='make',
+            subcmd_params=make_params
+        )
+        expected_command = ['make', '-f', makefile, target]
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=build_container_sha256, environment=[])
 
     def _invoke_cli(self, defaults=None, global_params=None, subcmd=None, subcmd_params=None):
         self.assertFalse(subcmd is None and subcmd_params is not None, 'No sub-command was provided!')

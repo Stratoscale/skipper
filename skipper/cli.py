@@ -1,4 +1,5 @@
 import logging
+import subprocess
 import tabulate
 import click
 from skipper import git
@@ -108,8 +109,10 @@ def run(ctx, env, command):
     '''
     Run arbitrary commands
     '''
-    _validate_global_params(ctx, 'registry', 'build_container_image', 'build_container_tag')
-    build_container = _get_build_container_from_ctx(ctx)
+    _validate_global_params(ctx, 'build_container_image')
+    build_container = _prepare_build_container(ctx.obj['registry'],
+                                               ctx.obj['build_container_image'],
+                                               ctx.obj['build_container_tag'])
     return runner.run(list(command), fqdn_image=build_container, environment=list(env))
 
 
@@ -122,8 +125,10 @@ def make(ctx, env, makefile, target):
     '''
     Execute makefile target
     '''
-    _validate_global_params(ctx, 'registry', 'build_container_image', 'build_container_tag')
-    build_container = _get_build_container_from_ctx(ctx)
+    _validate_global_params(ctx, 'build_container_image')
+    build_container = _prepare_build_container(ctx.obj['registry'],
+                                               ctx.obj['build_container_image'],
+                                               ctx.obj['build_container_tag'])
     command = [
         'make',
         '-f', makefile,
@@ -132,14 +137,20 @@ def make(ctx, env, makefile, target):
     return runner.run(command, fqdn_image=build_container, environment=list(env))
 
 
-def _get_build_container_from_ctx(ctx):
-    build_container = utils.generate_fqdn_image(
-        ctx.obj['registry'],
-        ctx.obj['build_container_image'],
-        ctx.obj['build_container_tag']
-    )
+def _prepare_build_container(registry, image, tag):
+    if tag is not None:
+        return utils.generate_fqdn_image(registry, image, tag)
 
-    return build_container
+    dockerfile = utils.image_to_dockerfile(image)
+    command = [
+        'docker',
+        'build',
+        '-q',
+        '-f', dockerfile,
+        '.'
+    ]
+
+    return subprocess.check_output(command).strip()
 
 
 def _validate_global_params(ctx, *params):
