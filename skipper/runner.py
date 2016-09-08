@@ -35,6 +35,7 @@ def _run(cmd):
 
 def _run_nested(workspace, project, uid, gid, fqdn_image, environment, command):
     docker_cmd = ["docker", "run"]
+    docker_cmd += ["-t"]
     docker_cmd += ["--rm"]
     docker_cmd += ["--net", "host"]
 
