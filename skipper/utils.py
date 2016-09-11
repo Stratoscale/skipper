@@ -7,8 +7,11 @@ import requests
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
 MANIFEST_URL = REGISTRY_BASE_URL + '%(image)s/manifests/%(reference)s'
 
+logger = None   # pylint: disable=invalid-name
+
 
 def configure_logging(name, level):
+    global logger   # pylint: disable=global-statement,invalid-name
     logger = logging.getLogger(name)
 
     formatter = logging.Formatter('[%(name)s] %(message)s')

@@ -32,6 +32,7 @@ def build(ctx, image):
     '''
     Build a container
     '''
+    utils.logger.debug("Executing build command")
     _validate_global_params(ctx, 'registry')
     dockerfile = utils.image_to_dockerfile(image)
     tag = git.get_hash()
@@ -55,6 +56,7 @@ def push(ctx, image):
     '''
     Push a container
     '''
+    utils.logger.debug("Executing push command")
     _validate_global_params(ctx, 'registry')
     tag = git.get_hash()
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
@@ -75,6 +77,7 @@ def images(ctx, remote):
     '''
     List images
     '''
+    utils.logger.debug("Executing images command")
     _validate_global_params(ctx, 'registry')
     images_names = utils.get_images_from_dockerfiles()
     images_info = utils.get_local_images_info(images_names, ctx.obj['registry'])
@@ -93,6 +96,7 @@ def rmi(ctx, remote, image, tag):
     '''
     Delete an image from local docker or from registry
     '''
+    utils.logger.debug("Executing rmi command")
     _validate_global_params(ctx, 'registry')
     _validate_project_image(image)
     if remote:
@@ -109,6 +113,7 @@ def run(ctx, env, command):
     '''
     Run arbitrary commands
     '''
+    utils.logger.debug("Executing run command")
     _validate_global_params(ctx, 'build_container_image')
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
@@ -125,6 +130,7 @@ def make(ctx, env, makefile, target):
     '''
     Execute makefile target
     '''
+    utils.logger.debug("Executing make command")
     _validate_global_params(ctx, 'build_container_image')
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
@@ -139,8 +145,11 @@ def make(ctx, env, makefile, target):
 
 def _prepare_build_container(registry, image, tag):
     if tag is not None:
-        return utils.generate_fqdn_image(registry, image, tag)
+        fqdn_image = utils.generate_fqdn_image(registry, image, tag)
+        utils.logger.info("Using build container: %(fqdn_image)s", dict(fqdn_image=fqdn_image))
+        return fqdn_image
 
+    utils.logger.info("No build container tag was provided. Building from scratch...")
     dockerfile = utils.image_to_dockerfile(image)
     command = [
         'docker',
