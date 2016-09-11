@@ -55,6 +55,7 @@ class TestRunner(unittest.TestCase):
         runner.run(command, FQDN_IMAGE)
         expected_nested_command = [
             'docker', 'run',
+            '-t',
             '--rm',
             '--net', 'host',
             '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
@@ -82,6 +83,7 @@ class TestRunner(unittest.TestCase):
         runner.run(command, FQDN_IMAGE, ENV)
         expected_docker_command = [
             'docker', 'run',
+            '-t',
             '--rm',
             '--net', 'host',
             '-e', 'KEY1=VAL1',
@@ -111,6 +113,7 @@ class TestRunner(unittest.TestCase):
         runner.run(command, FQDN_IMAGE)
         expected_nested_command = [
             'docker', 'run',
+            '-t',
             '--rm',
             '--net', 'host',
             '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
@@ -139,6 +142,7 @@ class TestRunner(unittest.TestCase):
         runner.run(command, FQDN_IMAGE, ENV)
         expected_nested_command = [
             'docker', 'run',
+            '-t',
             '--rm',
             '--net', 'host',
             '-e', 'KEY1=VAL1',
