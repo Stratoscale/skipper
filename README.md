@@ -2,12 +2,17 @@
 
 ## Introduction
 
-Use Skipper to build & test your project in an isolated environment using Docker containers with pre-defined sane configuration.
+Use Skipper to build & test your project in an isolated environment, using Docker containers with pre-defined sane configuration.
 Skipper allows you to execute makefile targets inside a container (or just run arbitrary commands). You can also use Skipper to build your development and production containers.
 
 ## Installation
 
-To install Skipper, run:
+It is recommended to install Skipper directly from PyPi:
+```bash
+sudo pip install strato-skipper
+```
+
+You can also install Skipper from source:
 ``` bash 
 git clone http://github.com/Stratoscale/skipper
 sudo make install
@@ -34,13 +39,13 @@ Skipper can serve as your primary tool for your daily development tasks:
 Note that registry is mandatory parameter, as it is used to indentify the images.
 
 ### Build
-Skipper infers the docker images from the Dockerfiles in the top directory of your repository. For example, assume there are 2 Dockerfile in the top directory of the repository:
+Skipper infers the docker images from the Dockerfiles in the top directory of your repository. For example, assuming that there are 2 Dockerfile in the top directory of the repository:
 ```
 Dockerfile.production
 Dockerfile.development
 ```
 
-To build the image corresponeded to `Dockerfile.production`, run:
+To build the image that corresponeds to `Dockerfile.production`, run:
 ```bash
 skipper --registry some-registry build production
 ```
@@ -51,7 +56,7 @@ skipper --registry some-registry build development
 ```
 
 ### Push
-Once you've built the images of you your repositories as described above. You can publish them by pushing them to the registry.
+Once you've built the images of your repositories as described above. You can publish them by pushing them to the registry.
 To push the `production` image, run:
 ```bash
 skipper --registry some-registry push production
@@ -64,25 +69,25 @@ To list images of your repository, run:
 skipper --registry some-registry images
 ```
 
-In order to list also images that were pushed to the registry, run:
+In order to also list also images that were pushed to the registry, run:
 ```bash
 skipper --registry some-registry images -r
 ```
 
 ### Rmi
-To delete image of your repository, run:
+To delete an image of your repository, run:
 ```bash
 skipper --registry some-registry rmi production <tag>
 ```
 
-In order to delete image from the registry, run:
+In order to delete the image from the registry, run:
 ```bash
 skipper --registry some-registry rmi -r production <tag>
 ```
 
 ### Make
-You can execute Makefile target inside a container. This is good for keeping the development in an isolated environment, without installing development tools on the host. Once a development container is defined and built, it can be shared among the team member, assuring all of them use exactly thg same development environment.
-Assuming your project has a Makefile with `tests` target, you can run:
+You can execute a Makefile target inside a container. This is good for keeping the development in an isolated environment, without installing development tools on the host. Once a development container is defined and built, it can be shared among the team member, assuring all of them use exactly thg same development environment.
+Assuming your project has a Makefile with a `tests` target, you can run:
 ```bash
 skipper --registry some-registry --build-container-image development --build-container-tag latest \
 make tests
