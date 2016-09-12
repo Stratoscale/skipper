@@ -12,11 +12,12 @@ if os.getuid() == 0:
     ]
 
 setup(
-    name='skipper',
-    version='0.0.1',
+    name='strato-skipper',
+    version='1.0.1',
     url='http://github.com/Stratoscale/skipper',
     author='Adir Gabai',
-    author_mail='adir@stratoscale.com',
+    author_email='adir@stratoscale.com',
+    description='Easily dockerize your Git repository',
     packages=find_packages(include=['skipper*']),
     data_files=data_files,
     entry_points={
