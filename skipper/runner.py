@@ -25,7 +25,8 @@ def _run(cmd):
         return_code = proc.poll()
         if line == '' and return_code is not None:
             break
-        print(line.rstrip())
+        if line != '':
+            print(line.rstrip())
 
     return return_code
 
