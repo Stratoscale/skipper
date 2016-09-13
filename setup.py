@@ -9,7 +9,7 @@ data_files = []
 if os.getuid() == 0:
     data_files=[
         ('/etc/bash_completion.d', ['data/skipper-complete.sh']),
-        ('/usr/share/skipper', ['data/skipper-entrypoint.sh']),
+        ('/opt/skipper', ['data/skipper-entrypoint.sh']),
     ]
 
 setup(
