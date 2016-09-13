@@ -13,7 +13,7 @@ tests:
 	py.test --cov=skipper --cov-report=term-missing tests
 
 install: build
-	python setup.py install
+	python setup.py install -f
 
 clean:
 	rm -rf build dist *egg-info .tox tests/__pycache__
