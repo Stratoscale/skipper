@@ -60,9 +60,9 @@ class TestRunner(unittest.TestCase):
             '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/usr/share/skipper/skipper-entrypoint.sh:/usr/share/skipper/skipper-entrypoint.sh:Z',
+            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', '/workspace/proj',
-            '--entrypoint', '/usr/share/skipper/skipper-entrypoint.sh',
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
             command[0]
         ]
@@ -90,9 +90,9 @@ class TestRunner(unittest.TestCase):
             '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/usr/share/skipper/skipper-entrypoint.sh:/usr/share/skipper/skipper-entrypoint.sh:Z',
+            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', '/workspace/proj',
-            '--entrypoint', '/usr/share/skipper/skipper-entrypoint.sh',
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
             command[0]
         ]
@@ -119,9 +119,9 @@ class TestRunner(unittest.TestCase):
             '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/usr/share/skipper/skipper-entrypoint.sh:/usr/share/skipper/skipper-entrypoint.sh:Z',
+            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', '/workspace/proj',
-            '--entrypoint', '/usr/share/skipper/skipper-entrypoint.sh',
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
             ' '.join(command)
         ]
@@ -149,9 +149,9 @@ class TestRunner(unittest.TestCase):
             '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/usr/share/skipper/skipper-entrypoint.sh:/usr/share/skipper/skipper-entrypoint.sh:Z',
+            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', '/workspace/proj',
-            '--entrypoint', '/usr/share/skipper/skipper-entrypoint.sh',
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
             ' '.join(command)
         ]

@@ -47,13 +47,14 @@ def _run_nested(workspace, project, fqdn_image, environment, command):
         '%(workspace)s:/workspace:rw,Z' % dict(workspace=workspace),
         '/var/lib/osmosis:/var/lib/osmosis:rw,Z' % dict(workspace=workspace),
         '/var/run/docker.sock:/var/run/docker.sock:Z',
-        '/usr/share/skipper/skipper-entrypoint.sh:/usr/share/skipper/skipper-entrypoint.sh:Z',
+        '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
     ]
     for volume in volumes:
         docker_cmd += ['-v', volume]
 
     docker_cmd += ['-w', '%(workdir)s' % dict(workdir=os.path.join('/workspace', project))]
-    docker_cmd += ['--entrypoint', '/usr/share/skipper/skipper-entrypoint.sh']
+    docker_cmd += ['--entrypoint', '/opt/skipper/skipper-entrypoint.sh']
     docker_cmd += [fqdn_image]
+    docker_cmd += [' '.join(command)]
 
-    return _run(docker_cmd + [' '.join(command)])
+    return _run(docker_cmd)
