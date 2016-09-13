@@ -1,4 +1,3 @@
-import grp
 import logging
 import os
 import subprocess
@@ -10,9 +9,7 @@ def run(command, fqdn_image=None, environment=None):
         workspace = os.path.dirname(cwd)
         project = os.path.basename(cwd)
 
-        uid = os.getuid()
-        gid = grp.getgrnam('docker').gr_gid
-        return _run_nested(workspace, project, uid, gid, fqdn_image, environment, command)
+        return _run_nested(workspace, project, fqdn_image, environment, command)
     else:
         return _run(command)
 
@@ -33,7 +30,7 @@ def _run(cmd):
     return return_code
 
 
-def _run_nested(workspace, project, uid, gid, fqdn_image, environment, command):
+def _run_nested(workspace, project, fqdn_image, environment, command):
     docker_cmd = ['docker', 'run']
     docker_cmd += ['-t']
     docker_cmd += ['--rm']
@@ -43,17 +40,20 @@ def _run_nested(workspace, project, uid, gid, fqdn_image, environment, command):
     for env in environment:
         docker_cmd += ['-e', env]
 
+    user = os.environ.get('USER', 'strato')
+    docker_cmd += ['-e', 'SKIPPER_USERNAME=%(user)s' % dict(user=user)]
+
     volumes = [
         '%(workspace)s:/workspace:rw,Z' % dict(workspace=workspace),
         '/var/lib/osmosis:/var/lib/osmosis:rw,Z' % dict(workspace=workspace),
         '/var/run/docker.sock:/var/run/docker.sock:Z',
+        '/usr/share/skipper/skipper-entrypoint.sh:/usr/share/skipper/skipper-entrypoint.sh:Z',
     ]
     for volume in volumes:
         docker_cmd += ['-v', volume]
 
-    docker_cmd += ['-u', '%(uid)d:%(gid)d' % dict(uid=uid, gid=gid)]
     docker_cmd += ['-w', '%(workdir)s' % dict(workdir=os.path.join('/workspace', project))]
-    docker_cmd += ['--entrypoint', command[0]]
+    docker_cmd += ['--entrypoint', '/usr/share/skipper/skipper-entrypoint.sh']
     docker_cmd += [fqdn_image]
 
-    return _run(docker_cmd + command[1:])
+    return _run(docker_cmd + [' '.join(command)])
