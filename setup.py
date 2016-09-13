@@ -5,10 +5,11 @@ from distutils.core import setup
 
 
 data_files = []
-# Add bash completion script in case we are running as root
+# Install data files only when installing as root
 if os.getuid() == 0:
     data_files=[
-        ('/etc/bash_completion.d', ['data/skipper-complete.sh'])
+        ('/etc/bash_completion.d', ['data/skipper-complete.sh']),
+        ('/opt/skipper', ['data/skipper-entrypoint.sh']),
     ]
 
 setup(

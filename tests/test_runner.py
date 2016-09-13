@@ -43,43 +43,41 @@ class TestRunner(unittest.TestCase):
             stdout=subprocess.PIPE
         )
 
-    @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
+    @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
-    @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
-    def test_run_simple_command_nested(self, popen_mock, getgrnam_mock, *args):
+    def test_run_simple_command_nested(self, popen_mock, *args):
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
         command = ['pwd']
-        getgrnam_mock.return_value.gr_gid = GROUP_ID
         runner.run(command, FQDN_IMAGE)
         expected_nested_command = [
             'docker', 'run',
             '-t',
             '--rm',
             '--net', 'host',
+            '-e', 'SKIPPER_USERNAME=testuser',
             '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-u', '%(uid)s:%(gid)s' % dict(uid=USER_ID, gid=GROUP_ID),
+            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', '/workspace/proj',
-            '--entrypoint', command[0],
-            FQDN_IMAGE
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
+            FQDN_IMAGE,
+            command[0]
         ]
         popen_mock.assert_called_once_with(
             expected_nested_command,
             stdout=subprocess.PIPE
         )
 
-    @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
+    @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
-    @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
-    def test_run_simple_command_nested_with_env(self, popen_mock, getgrnam_mock, *args):
+    def test_run_simple_command_nested_with_env(self, popen_mock, *args):
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
         command = ['pwd']
-        getgrnam_mock.return_value.gr_gid = GROUP_ID
         runner.run(command, FQDN_IMAGE, ENV)
         expected_docker_command = [
             'docker', 'run',
@@ -88,57 +86,57 @@ class TestRunner(unittest.TestCase):
             '--net', 'host',
             '-e', 'KEY1=VAL1',
             '-e', 'KEY2=VAL2',
+            '-e', 'SKIPPER_USERNAME=testuser',
             '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-u', '%(uid)s:%(gid)s' % dict(uid=USER_ID, gid=GROUP_ID),
+            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', '/workspace/proj',
-            '--entrypoint', command[0],
-            FQDN_IMAGE
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
+            FQDN_IMAGE,
+            command[0]
         ]
         popen_mock.assert_called_once_with(
             expected_docker_command,
             stdout=subprocess.PIPE
         )
 
-    @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
+    @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
     @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
-    def test_run_complex_command_nested(self, popen_mock, getgrnam_mock, *args):
+    def test_run_complex_command_nested(self, popen_mock, *args):
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
         command = ['ls', '-l']
-        getgrnam_mock.return_value.gr_gid = GROUP_ID
         runner.run(command, FQDN_IMAGE)
         expected_nested_command = [
             'docker', 'run',
             '-t',
             '--rm',
             '--net', 'host',
+            '-e', 'SKIPPER_USERNAME=testuser',
             '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-u', '%(uid)s:%(gid)s' % dict(uid=USER_ID, gid=GROUP_ID),
+            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', '/workspace/proj',
-            '--entrypoint', command[0],
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
-            command[1]
+            ' '.join(command)
         ]
         popen_mock.assert_called_once_with(
             expected_nested_command,
             stdout=subprocess.PIPE
         )
 
-    @mock.patch('os.getuid', autospec=True, return_value=USER_ID)
+    @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
-    @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
-    def test_run_complex_command_nested_with_env(self, popen_mock, getgrnam_mock, *args):
+    def test_run_complex_command_nested_with_env(self, popen_mock, *args):
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
         command = ['ls', '-l']
-        getgrnam_mock.return_value.gr_gid = GROUP_ID
         runner.run(command, FQDN_IMAGE, ENV)
         expected_nested_command = [
             'docker', 'run',
@@ -147,14 +145,15 @@ class TestRunner(unittest.TestCase):
             '--net', 'host',
             '-e', 'KEY1=VAL1',
             '-e', 'KEY2=VAL2',
+            '-e', 'SKIPPER_USERNAME=testuser',
             '-v', '%(workdir)s:/workspace:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-u', '%(uid)s:%(gid)s' % dict(uid=USER_ID, gid=GROUP_ID),
+            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', '/workspace/proj',
-            '--entrypoint', command[0],
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
-            command[1]
+            ' '.join(command)
         ]
         popen_mock.assert_called_once_with(
             expected_nested_command,
