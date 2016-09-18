@@ -7,6 +7,13 @@ from skipper import runner
 from skipper import utils
 
 
+def _is_dirty(ctx, allow_dirty_param, allow_dirty_value):
+    if not allow_dirty_value and git.is_dirty():
+        raise click.ClickException('Git repo is dirty! Consider running with --allow-dirty')
+
+    return allow_dirty_value
+
+
 @click.group()
 @click.option('-v', '--verbose', help='Increase verbosity', is_flag=True, default=False)
 @click.option('--registry', help='URL of the docker registry')
@@ -27,15 +34,20 @@ def cli(ctx, registry, build_container_image, build_container_tag, verbose):
 
 @cli.command()
 @click.argument('image')
+@click.option('--allow-dirty', help='Build even if the repository is dirty', is_flag=True, default=False, callback=_is_dirty)
 @click.pass_context
-def build(ctx, image):
+def build(ctx, allow_dirty, image):
     '''
     Build a container
     '''
     utils.logger.debug("Executing build command")
     _validate_global_params(ctx, 'registry')
-    dockerfile = utils.image_to_dockerfile(image)
+
     tag = git.get_hash()
+    if allow_dirty:
+        tag = tag + '.dirty'
+
+    dockerfile = utils.image_to_dockerfile(image)
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
 
     command = [
