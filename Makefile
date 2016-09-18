@@ -1,4 +1,4 @@
-all: pep8 pylint tests build
+all: build
 
 build:
 	python setup.py sdist
@@ -12,11 +12,14 @@ pylint:
 tests:
 	py.test --cov=skipper --cov-report=term-missing tests
 
-install: build
-	sudo pip install -U .
+install:
+	pip install -U .
+
+uninstall:
+	pip uninstall -y strato-skipper
 
 clean:
 	rm -rf build dist *egg-info .tox tests/__pycache__
 	find -name *.pyc -delete
 
-.PHONY: build pep8 pylint tests install clean
+.PHONY: build pep8 pylint tests install uninstall clean
