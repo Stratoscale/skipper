@@ -42,8 +42,8 @@ def get_local_images_info(images, registry=None):
         output = subprocess.check_output(command + [name])
         if output == '':
             continue
-        info = json.loads(output)
-        images_info += [['LOCAL', info['name'], info['tag']]]
+        image_info = [json.loads(record) for record in output.splitlines()]
+        images_info += [['LOCAL', info['name'], info['tag']] for info in image_info]
 
     return images_info
 

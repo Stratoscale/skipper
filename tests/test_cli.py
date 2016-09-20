@@ -161,7 +161,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
     @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('subprocess.check_output', autospec=True)
-    def test_images_with_local_results(self, subprocess_check_output_mock, tabulate_mock, *args):
+    def test_images_with_single_local_results(self, subprocess_check_output_mock, tabulate_mock, *args):
         name = REGISTRY + '/' + IMAGE
         subprocess_check_output_mock.return_value = '{"name": "%(name)s", "tag": "%(tag)s"}' % dict(name=name, tag=TAG)
         self._invoke_cli(
@@ -178,6 +178,37 @@ class TestCLI(unittest.TestCase):
         ]
         subprocess_check_output_mock.assert_called_once_with(expected_command)
         tabulate_mock.assert_called_once_with([['LOCAL', name, TAG]], headers=['ORIGIN', 'IMAGE', 'TAG'], tablefmt='grid')
+
+    @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.image1', 'Dockerfile.image2'])
+    @mock.patch('tabulate.tabulate', autospec=True)
+    @mock.patch('subprocess.check_output', autospec=True)
+    def test_images_with_multiple_local_results(self, subprocess_check_output_mock, tabulate_mock, *args):
+        subprocess_check_output_mock.side_effect = [
+            '{"name": "%(registry)s/image1", "tag": "tag1"}\n' % dict(registry=REGISTRY),
+            '{"name": "%(registry)s/image2", "tag": "tag2"}\n{"name": "%(registry)s/image2", "tag": "tag3"}\n' % dict(registry=REGISTRY),
+        ]
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='images',
+            subcmd_params=[]
+        )
+
+        command_prefix = [
+            'docker',
+            'images',
+            '--format', '{"name": "{{.Repository}}", "tag": "{{.Tag}}"}',
+        ]
+        expected_check_output_calls = [
+            mock.call(command_prefix + [REGISTRY + '/image1']),
+            mock.call(command_prefix + [REGISTRY + '/image2']),
+        ]
+        subprocess_check_output_mock.assert_has_calls(expected_check_output_calls)
+        expected_table = [
+            ['LOCAL', REGISTRY + '/image1', 'tag1'],
+            ['LOCAL', REGISTRY + '/image2', 'tag2'],
+            ['LOCAL', REGISTRY + '/image2', 'tag3'],
+        ]
+        tabulate_mock.assert_called_once_with(expected_table, headers=['ORIGIN', 'IMAGE', 'TAG'], tablefmt='grid')
 
     @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
     @mock.patch('tabulate.tabulate', autospec=True)
