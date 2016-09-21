@@ -17,18 +17,9 @@ def run(command, fqdn_image=None, environment=None):
 def _run(cmd):
     logger = logging.getLogger('skipper')
     logger.debug(' '.join(cmd))
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-
-    return_code = 0
-    while True:
-        line = proc.stdout.readline()
-        return_code = proc.poll()
-        if line == '' and return_code is not None:
-            break
-        if line != '':
-            print(line.rstrip())
-
-    return return_code
+    proc = subprocess.Popen(cmd)
+    proc.wait()
+    return proc.returncode
 
 
 def _run_nested(workspace, project, fqdn_image, environment, command):

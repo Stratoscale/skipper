@@ -27,10 +27,7 @@ class TestRunner(unittest.TestCase):
         popen_mock.return_value.poll.return_value = -1
         command = ['pwd']
         runner.run(command)
-        popen_mock.assert_called_once_with(
-            command,
-            stdout=subprocess.PIPE
-        )
+        popen_mock.assert_called_once_with(command)
 
     @mock.patch('subprocess.Popen', autospec=False)
     def test_run_complex_command_not_nested(self, popen_mock):
@@ -38,10 +35,7 @@ class TestRunner(unittest.TestCase):
         popen_mock.return_value.poll.return_value = -1
         command = ['ls -l']
         runner.run(command)
-        popen_mock.assert_called_once_with(
-            command,
-            stdout=subprocess.PIPE
-        )
+        popen_mock.assert_called_once_with(command)
 
     @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
@@ -66,10 +60,7 @@ class TestRunner(unittest.TestCase):
             FQDN_IMAGE,
             command[0]
         ]
-        popen_mock.assert_called_once_with(
-            expected_nested_command,
-            stdout=subprocess.PIPE
-        )
+        popen_mock.assert_called_once_with(expected_nested_command)
 
     @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
@@ -96,10 +87,7 @@ class TestRunner(unittest.TestCase):
             FQDN_IMAGE,
             command[0]
         ]
-        popen_mock.assert_called_once_with(
-            expected_docker_command,
-            stdout=subprocess.PIPE
-        )
+        popen_mock.assert_called_once_with(expected_docker_command)
 
     @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
@@ -125,10 +113,7 @@ class TestRunner(unittest.TestCase):
             FQDN_IMAGE,
             ' '.join(command)
         ]
-        popen_mock.assert_called_once_with(
-            expected_nested_command,
-            stdout=subprocess.PIPE
-        )
+        popen_mock.assert_called_once_with(expected_nested_command)
 
     @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
@@ -155,7 +140,4 @@ class TestRunner(unittest.TestCase):
             FQDN_IMAGE,
             ' '.join(command)
         ]
-        popen_mock.assert_called_once_with(
-            expected_nested_command,
-            stdout=subprocess.PIPE
-        )
+        popen_mock.assert_called_once_with(expected_nested_command)
