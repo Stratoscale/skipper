@@ -3,9 +3,9 @@ import os
 import subprocess
 
 
-def run(command, fqdn_image=None, environment=None):
+def run(command, fqdn_image=None, environment=None, interactive=False):
     if fqdn_image is not None:
-        return _run_nested(fqdn_image, environment, command)
+        return _run_nested(fqdn_image, environment, command, interactive)
     else:
         return _run(command)
 
@@ -18,13 +18,16 @@ def _run(cmd):
     return proc.returncode
 
 
-def _run_nested(fqdn_image, environment, command):
+def _run_nested(fqdn_image, environment, command, interactive):
     cwd = os.getcwd()
     workspace = os.path.dirname(cwd)
     project = os.path.basename(cwd)
 
     docker_cmd = ['docker', 'run']
-    docker_cmd += ['-it']
+    if interactive:
+        docker_cmd += ['-i']
+
+    docker_cmd += ['-t']
     docker_cmd += ['--rm']
     docker_cmd += ['--net', 'host']
 
