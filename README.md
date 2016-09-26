@@ -106,6 +106,13 @@ skipper --registry some-registry --build-container-image development --build-con
 run gcc myprog.c -o myprog 
 ```
 
+### Shell
+You can get a shell inside your containers. 
+```bash
+skipper --registry some-registry --build-container-image development --build-container-tag latest \
+shell
+```
+
 ## Configuration File
 Skipper allows you to define commonly used parameters in a configuration file `skipper.yaml` at the top directory of your repositry.
 ```yaml

@@ -434,6 +434,14 @@ class TestCLI(unittest.TestCase):
         expected_command = ['make', '-f', makefile, target]
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=build_container_sha256, environment=[])
 
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_shell(self, skipper_runner_run_mock):
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='shell',
+        )
+        skipper_runner_run_mock.assert_called_once_with(['bash'], fqdn_image=BUILD_CONTAINER_FQDN_IMAGE, environment=[], interactive=True)
+
     def _invoke_cli(self, defaults=None, global_params=None, subcmd=None, subcmd_params=None):
         self.assertFalse(subcmd is None and subcmd_params is not None, 'No sub-command was provided!')
 

@@ -143,6 +143,21 @@ def make(ctx, env, makefile, target):
     return runner.run(command, fqdn_image=build_container, environment=list(env))
 
 
+@cli.command()
+@click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
+@click.pass_context
+def shell(ctx, env):
+    '''
+    Start a shell
+    '''
+    utils.logger.debug("Starting a shell")
+    _validate_global_params(ctx, 'build_container_image')
+    build_container = _prepare_build_container(ctx.obj['registry'],
+                                               ctx.obj['build_container_image'],
+                                               ctx.obj['build_container_tag'])
+    return runner.run(['bash'], fqdn_image=build_container, environment=list(env), interactive=True)
+
+
 def _prepare_build_container(registry, image, tag):
     if tag is not None:
         fqdn_image = utils.generate_fqdn_image(registry, image, tag)
