@@ -26,27 +26,35 @@ def cli(ctx, registry, build_container_image, build_container_tag, verbose):
 
 
 @cli.command()
-@click.argument('image')
+@click.argument('images_to_build', nargs=-1, metavar='[IMAGE...]')
 @click.pass_context
-def build(ctx, image):
+def build(ctx, images_to_build):
     '''
     Build a container
     '''
     utils.logger.debug("Executing build command")
     _validate_global_params(ctx, 'registry')
-    dockerfile = utils.image_to_dockerfile(image)
+    images_to_build = images_to_build or utils.get_images_from_dockerfiles()
     tag = git.get_hash()
-    fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
+    for image in images_to_build:
+        utils.logger.info('Building image: %(image)s', dict(image=image))
+        dockerfile = utils.image_to_dockerfile(image)
+        fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
 
-    command = [
-        'docker',
-        'build',
-        '-f', dockerfile,
-        '-t', fqdn_image,
-        '.'
-    ]
+        command = [
+            'docker',
+            'build',
+            '-f', dockerfile,
+            '-t', fqdn_image,
+            '.'
+        ]
 
-    return runner.run(command)
+        ret = runner.run(command)
+        if ret != 0:
+            utils.logger.error('Failed to build image: %(image)s', dict(image=image))
+            return ret
+
+    return 0
 
 
 @cli.command()

@@ -84,7 +84,8 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_build(self, skipper_runner_run_mock, *args):
+    def test_build_single_image(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.return_value = 0
         dockerfile = 'Dockerfile.' + IMAGE
         build_params = [IMAGE]
         self._invoke_cli(
@@ -101,12 +102,63 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_build_multiple_images(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.return_value = 0
+        build_params = ['image1', 'image2']
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='build',
+            subcmd_params=build_params
+        )
+        expected_commands = [
+            mock.call(['docker', 'build', '-f', 'Dockerfile.image1', '-t', REGISTRY + '/' + 'image1' + ':' + TAG, '.']),
+            mock.call(['docker', 'build', '-f', 'Dockerfile.image2', '-t', REGISTRY + '/' + 'image2' + ':' + TAG, '.']),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
+
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_build_multiple_images_with_error(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.return_value = 1
+        build_params = ['image1', 'image2']
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='build',
+            subcmd_params=build_params
+        )
+        expected_command = [
+            'docker',
+            'build',
+            '-f', 'Dockerfile.image1',
+            '-t', REGISTRY + '/' + 'image1' + ':' + TAG,
+            '.'
+        ]
+        skipper_runner_run_mock.assert_called_once_with(expected_command)
+
+    @mock.patch('skipper.utils.get_images_from_dockerfiles', autospec=True, return_value=['image1', 'image2'])
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_build_all_images(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.return_value = 0
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='build',
+        )
+        expected_commands = [
+            mock.call(['docker', 'build', '-f', 'Dockerfile.image1', '-t', REGISTRY + '/' + 'image1' + ':' + TAG, '.']),
+            mock.call(['docker', 'build', '-f', 'Dockerfile.image2', '-t', REGISTRY + '/' + 'image2' + ':' + TAG, '.']),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
+
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
     @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF)
     @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
     @mock.patch('skipper.runner.run', autospec=True)
     def test_build_with_defaults_from_config_file(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.return_value = 0
         dockerfile = 'Dockerfile.' + IMAGE
         build_params = [IMAGE]
         self._invoke_cli(

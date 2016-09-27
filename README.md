@@ -55,6 +55,16 @@ In the same way you can build the image corresponded to `Dockerfile.development`
 skipper --registry some-registry build development
 ```
 
+You can also build mutliple images with single command:
+```bash
+skipper --registry some-registry build development production
+```
+
+If no image is specifed skipper will build all detected images:
+```bash
+skipper --registry some-registry build
+```
+
 ### Push
 Once you've built the images of your repositories as described above. You can publish them by pushing them to the registry.
 To push the `production` image, run:
