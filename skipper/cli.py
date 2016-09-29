@@ -23,6 +23,7 @@ def cli(ctx, registry, build_container_image, build_container_tag, verbose):
     ctx.obj['registry'] = registry
     ctx.obj['build_container_image'] = build_container_image
     ctx.obj['build_container_tag'] = build_container_tag
+    ctx.obj['env'] = ctx.default_map.get('env', {})
 
 
 @cli.command()
@@ -126,7 +127,7 @@ def run(ctx, env, command):
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'])
-    return runner.run(list(command), fqdn_image=build_container, environment=list(env))
+    return runner.run(list(command), fqdn_image=build_container, environment=_expend_env(ctx, env))
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
@@ -148,7 +149,7 @@ def make(ctx, env, makefile, target):
         '-f', makefile,
         target
     ]
-    return runner.run(command, fqdn_image=build_container, environment=list(env))
+    return runner.run(command, fqdn_image=build_container, environment=_expend_env(ctx, env))
 
 
 @cli.command()
@@ -163,7 +164,7 @@ def shell(ctx, env):
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'])
-    return runner.run(['bash'], fqdn_image=build_container, environment=list(env), interactive=True)
+    return runner.run(['bash'], fqdn_image=build_container, environment=_expend_env(ctx, env), interactive=True)
 
 
 def _prepare_build_container(registry, image, tag):
@@ -195,3 +196,11 @@ def _validate_project_image(image):
     project_images = utils.get_images_from_dockerfiles()
     if image not in project_images:
         raise click.BadParameter("'%s' is not an image of this project, try %s" % (image, project_images), param_hint='image')
+
+
+def _expend_env(ctx, extra_env):
+    environment = []
+    for key, value in ctx.obj['env'].iteritems():
+        utils.logger.debug("Adding {}={} to environment".format(key, value))
+        environment.append("{}={}".format(key, value))
+    return environment + list(extra_env)

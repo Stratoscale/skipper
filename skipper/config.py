@@ -1,3 +1,5 @@
+from string import Template
+from collections import defaultdict
 import os
 import yaml
 
@@ -20,4 +22,8 @@ def _normalize_config(config, normalized_config):
             _normalize_config(value, normalized_config[key])
         else:
             normalized_key = key.replace('-', '_')
-            normalized_config[normalized_key] = value
+            normalized_config[normalized_key] = _interpolate_env_vars(value)
+
+
+def _interpolate_env_vars(key):
+    return Template(key).substitute(defaultdict(lambda: "", os.environ))
