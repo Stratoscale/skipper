@@ -132,9 +132,47 @@ build-container-tag: latest
 
 make: 
     makefile: Makefile.arm32
+env:
+    VAR: value
 ```
 
 Using the above configuration file, we now can run a simplified version of the make command described above:
 ```bash
 skipper make tests
 ```
+
+###Environment variables:
+For `shell`, `run` & `make` commands:
+You can use `-e` in order to pass environment variables to the container.
+````
+skipper make -e regex=test1 tests
+````
+
+Your configuration file can contain environment variables, Skipper will set the specified environment variables in the container.
+````
+env:
+    VAR: value
+```
+
+
+###Variable substitution:
+Skipper uses the variable values from the shell environment in which skipper is run.
+It’s possible to use environment variables in your shell to populate values
+For example, suppose the shell contains EXTERNAL_PORT=5000 and you supply this configuration:
+````
+env:
+    EXTERNAL_PORT: $EXTERNAL_PORT
+````
+When you run Skipper command with this configuration, Skipper looks for the EXTERNAL_PORT environment variable in the shell and substitutes its value in.In this example, Skipper resolves the $EXTERNAL_PORT to "5000" and will set EXTERNAL_PORT=5000 environment in the container.
+
+If an environment variable is not set, Skipper substitutes with an empty string.
+
+Both $VARIABLE and ${VARIABLE} syntax are supported. Extended shell-style features, such as ${VARIABLE-default} and ${VARIABLE/foo/bar}, are not supported.
+
+You can use a $$ (double-dollar sign) when your configuration needs a literal dollar sign. This also prevents Skipper from interpolating a value, so a $$ allows you to refer to environment variables that you don’t want processed by Skipper.
+````
+env:
+    VAR: $$VAR_NOT_INTERPOLATED
+````
+
+
