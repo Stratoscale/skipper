@@ -30,6 +30,27 @@ SKIPPER_CONF = {
         'makefile': SKIPPER_CONF_MAKEFILE,
     }
 }
+CONFIG_ENV = {
+    "KEY2": "NOT_VAL2",
+    "KEY3": "VAL3",
+    "KEY4": "$VAL4",
+    "KEY5": "$$VAL5"
+}
+CONFIG_ENV_EVALUATION = {
+    "KEY2": "NOT_VAL2",
+    "KEY3": "VAL3",
+    "KEY4": "val4-evaluation",
+    "KEY5": "$VAL5"
+}
+SKIPPER_CONF_WITH_ENV = {
+    'registry': REGISTRY,
+    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
+    'env': CONFIG_ENV
+}
 
 
 class TestCLI(unittest.TestCase):
@@ -414,9 +435,41 @@ class TestCLI(unittest.TestCase):
         )
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE, environment=[])
 
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('os.path.exists', autospec=True, return_value=True)
+    @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF_WITH_ENV)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_defaults_and_env_from_config_file(self, skipper_runner_run_mock, *args):
+        command = ['ls', '-l']
+        run_params = command
+        os.environ['VAL4'] = "val4-evaluation"
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        env = ["%s=%s" % (key, value) for key, value in CONFIG_ENV_EVALUATION.iteritems()]
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE, environment=env)
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('os.path.exists', autospec=True, return_value=True)
+    @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF_WITH_ENV)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_env_overriding_config_file(self, skipper_runner_run_mock, *args):
+        command = ['ls', '-l']
+        run_params = ['-e', ENV[0], '-e', ENV[1]] + command
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        env = ["%s=%s" % (key, value) for key, value in CONFIG_ENV_EVALUATION.iteritems()] + ENV
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE, environment=env)
+
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_env(self, skipper_runner_run_mock):
         command = ['ls', '-l']
+        os.environ['VAL4'] = "val4-evaluation"
         run_params = ['-e', ENV[0], '-e', ENV[1]] + command
         self._invoke_cli(
             global_params=self.global_params,
