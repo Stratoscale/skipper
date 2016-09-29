@@ -5,7 +5,7 @@ if [ x"$?" != x"0" ]; then
 	useradd -M "${SKIPPER_USERNAME}"
 fi
 
-groupadd docker
+groupadd -g ${SKIPPER_DOCKER_GID} docker
 usermod -G root,docker ${SKIPPER_USERNAME}
 
 su -m ${SKIPPER_USERNAME} -c "$@"

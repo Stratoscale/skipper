@@ -39,10 +39,12 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
+    @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
-    def test_run_simple_command_nested(self, popen_mock, *args):
+    def test_run_simple_command_nested(self, popen_mock, grp_getgrnam_mock, *args):
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
         command = ['pwd']
         runner.run(command, FQDN_IMAGE)
         expected_nested_command = [
@@ -51,6 +53,7 @@ class TestRunner(unittest.TestCase):
             '--rm',
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
+            '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
@@ -64,10 +67,12 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
+    @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
-    def test_run_simple_command_nested_with_env(self, popen_mock, *args):
+    def test_run_simple_command_nested_with_env(self, popen_mock, grp_getgrnam_mock, *args):
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
         command = ['pwd']
         runner.run(command, FQDN_IMAGE, ENV)
         expected_docker_command = [
@@ -78,6 +83,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'KEY1=VAL1',
             '-e', 'KEY2=VAL2',
             '-e', 'SKIPPER_USERNAME=testuser',
+            '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
@@ -91,10 +97,12 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
+    @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
-    def test_run_simple_command_nested_interactive(self, popen_mock, *args):
+    def test_run_simple_command_nested_interactive(self, popen_mock, grp_getgrnam_mock, *args):
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
         command = ['pwd']
         runner.run(command, FQDN_IMAGE, interactive=True)
         expected_nested_command = [
@@ -104,6 +112,7 @@ class TestRunner(unittest.TestCase):
             '--rm',
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
+            '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
@@ -119,9 +128,10 @@ class TestRunner(unittest.TestCase):
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
     @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
-    def test_run_complex_command_nested(self, popen_mock, *args):
+    def test_run_complex_command_nested(self, popen_mock, grp_getgrnam_mock, *args):
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
         command = ['ls', '-l']
         runner.run(command, FQDN_IMAGE)
         expected_nested_command = [
@@ -130,6 +140,7 @@ class TestRunner(unittest.TestCase):
             '--rm',
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
+            '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
@@ -143,10 +154,12 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('os.environ.get', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
+    @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
-    def test_run_complex_command_nested_with_env(self, popen_mock, *args):
+    def test_run_complex_command_nested_with_env(self, popen_mock, grp_getgrnam_mock, *args):
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
         command = ['ls', '-l']
         runner.run(command, FQDN_IMAGE, ENV)
         expected_nested_command = [
@@ -157,6 +170,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'KEY1=VAL1',
             '-e', 'KEY2=VAL2',
             '-e', 'SKIPPER_USERNAME=testuser',
+            '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
