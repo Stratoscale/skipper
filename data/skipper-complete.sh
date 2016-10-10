@@ -151,6 +151,14 @@ _skipper_completion() {
                 COMPREPLY=( $(compgen -f -X '!*[mM]akefile' -- $cur) )
             else
                 makefile=$(_get_makefile ${COMP_WORDS[*]})
+
+                # recognise that possible completions are only going to be displayed
+                # so only the base name is shown
+                local mode=--
+                if (( COMP_TYPE != 9 )); then
+                    mode=-d # display-only mode
+                fi
+
                 COMPREPLY=( $( LC_ALL=C make -npq __BASH_MAKE_COMPLETION__=1 -f "$makefile" "." .DEFAULT 2>/dev/null | \
                                command sed -nf <(_make_target_extract_script $mode "$cur") ) )
             fi
