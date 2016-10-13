@@ -2,7 +2,7 @@
 
 getent passwd ${SKIPPER_USERNAME} > /dev/null
 if [ x"$?" != x"0" ]; then
-	useradd -M "${SKIPPER_USERNAME}"
+	useradd -u ${SKIPPER_UID} --non-unique -M "${SKIPPER_USERNAME}"
 fi
 
 groupadd -g ${SKIPPER_DOCKER_GID} docker

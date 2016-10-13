@@ -1,4 +1,5 @@
 import grp
+import getpass
 import logging
 import os
 import subprocess
@@ -36,8 +37,10 @@ def _run_nested(fqdn_image, environment, command, interactive):
     for env in environment:
         docker_cmd += ['-e', env]
 
-    user = os.environ.get('USER', 'skipper')
+    user = getpass.getuser()
+    user_id = os.getuid()
     docker_cmd += ['-e', 'SKIPPER_USERNAME=%(user)s' % dict(user=user)]
+    docker_cmd += ['-e', 'SKIPPER_UID=%(user_id)s' % dict(user_id=user_id)]
 
     docker_gid = grp.getgrnam('docker').gr_gid
     docker_cmd += ['-e', 'SKIPPER_DOCKER_GID=%(docker_gid)s' % dict(docker_gid=docker_gid)]
