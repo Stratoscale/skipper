@@ -109,13 +109,13 @@ def images(ctx, remote):
     List images
     '''
     utils.logger.debug("Executing images command")
-    _validate_global_params(ctx, 'registry')
     images_names = utils.get_images_from_dockerfiles()
-    images_info = utils.get_local_images_info(images_names, ctx.obj['registry'])
+    images_info = utils.get_local_images_info(images_names)
     if remote:
+        _validate_global_params(ctx, 'registry')
         images_info += utils.get_remote_images_info(images_names, ctx.obj['registry'])
 
-    print(tabulate.tabulate(images_info, headers=['ORIGIN', 'IMAGE', 'TAG'], tablefmt='grid'))
+    print(tabulate.tabulate(images_info, headers=['REGISTRY', 'IMAGE', 'TAG'], tablefmt='grid'))
 
 
 @cli.command()
@@ -128,12 +128,12 @@ def rmi(ctx, remote, image, tag):
     Delete an image from local docker or from registry
     '''
     utils.logger.debug("Executing rmi command")
-    _validate_global_params(ctx, 'registry')
     _validate_project_image(image)
     if remote:
+        _validate_global_params(ctx, 'registry')
         utils.delete_image_from_registry(ctx.obj['registry'], image, tag)
     else:
-        utils.delete_local_image(ctx.obj['registry'], image, tag)
+        utils.delete_local_image(image, tag)
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))

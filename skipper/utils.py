@@ -30,7 +30,7 @@ def get_images_from_dockerfiles():
     return images
 
 
-def get_local_images_info(images, registry=None):
+def get_local_images_info(images):
     command = [
         'docker',
         'images',
@@ -38,12 +38,11 @@ def get_local_images_info(images, registry=None):
     ]
     images_info = []
     for image in images:
-        name = generate_fqdn_image(registry, image, None)
-        output = subprocess.check_output(command + [name])
+        output = subprocess.check_output(command + [image])
         if output == '':
             continue
         image_info = [json.loads(record) for record in output.splitlines()]
-        images_info += [['LOCAL', info['name'], info['tag']] for info in image_info]
+        images_info += [['none', info['name'], info['tag']] for info in image_info]
 
     return images_info
 
@@ -55,7 +54,7 @@ def get_remote_images_info(images, registry):
         url = 'https://%(registry)s/v2/%(image)s/tags/list' % dict(registry=registry, image=image)
         response = requests.get(url=url, verify=False)
         info = response.json()
-        images_info += [['REMOTE', generate_fqdn_image(registry, image, None), tag] for tag in info['tags']]
+        images_info += [[registry, image, tag] for tag in info['tags']]
 
     return images_info
 
@@ -76,8 +75,8 @@ def delete_image_from_registry(registry, image, tag):
         raise Exception(response.content)
 
 
-def delete_local_image(registry, image, tag):
-    name = generate_fqdn_image(registry, image, tag)
+def delete_local_image(image, tag):
+    name = image + ':' + tag
     subprocess.check_call(['docker', 'rmi', name])
 
 
