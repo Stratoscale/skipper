@@ -72,15 +72,33 @@ def push(ctx, image):
     utils.logger.debug("Executing push command")
     _validate_global_params(ctx, 'registry')
     tag = git.get_hash()
+    image_name = image + ':' + tag
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
 
+    utils.logger.debug("Adding tag %(tag)s", dict(tag=fqdn_image))
+    command = [
+        'docker',
+        'tag',
+        image_name,
+        fqdn_image
+    ]
+    runner.run(command)
+
+    utils.logger.debug("Pushing to registry %(registry)s", dict(registry=ctx.obj['registry']))
     command = [
         'docker',
         'push',
         fqdn_image
     ]
+    runner.run(command)
 
-    return runner.run(command)
+    utils.logger.debug("Removing tag %(tag)s", dict(tag=fqdn_image))
+    command = [
+        'docker',
+        'rmi',
+        fqdn_image
+    ]
+    runner.run(command)
 
 
 @cli.command()

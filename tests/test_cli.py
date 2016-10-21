@@ -205,40 +205,40 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 
-    @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
     @mock.patch('skipper.runner.run', autospec=True)
     def test_push(self, skipper_runner_run_mock, *args):
-        push_params = [IMAGE]
+        push_params = ['my_image']
         self._invoke_cli(
             global_params=self.global_params,
             subcmd='push',
             subcmd_params=push_params
         )
-        expected_command = [
-            'docker',
-            'push',
-            FQDN_IMAGE
+        expected_commands = [
+            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
+            mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
         ]
-        skipper_runner_run_mock.assert_called_once_with(expected_command)
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
     @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF)
-    @mock.patch('skipper.git.get_hash', autospec=True, return_value=TAG)
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
     @mock.patch('skipper.runner.run', autospec=True)
     def test_push_with_defaults_from_config_file(self, skipper_runner_run_mock, *args):
-        push_params = [IMAGE]
+        push_params = ['my_image']
         self._invoke_cli(
             defaults=config.load_defaults(),
             subcmd='push',
             subcmd_params=push_params
         )
-        expected_command = [
-            'docker',
-            'push',
-            FQDN_IMAGE
+        expected_commands = [
+            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
+            mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
         ]
-        skipper_runner_run_mock.assert_called_once_with(expected_command)
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
 
     @mock.patch('glob.glob', autospec=True, return_value=['Dockerfile.' + IMAGE])
     @mock.patch('tabulate.tabulate', autospec=True)
