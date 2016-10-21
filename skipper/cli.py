@@ -1,4 +1,5 @@
 import logging
+import os.path
 import subprocess
 import tabulate
 import click
@@ -28,19 +29,22 @@ def cli(ctx, registry, build_container_image, build_container_tag, verbose):
 
 @cli.command()
 @click.argument('images_to_build', nargs=-1, metavar='[IMAGE...]')
-@click.pass_context
-def build(ctx, images_to_build):
+def build(images_to_build):
     '''
     Build a container
     '''
     utils.logger.debug("Executing build command")
-    _validate_global_params(ctx, 'registry')
     images_to_build = images_to_build or utils.get_images_from_dockerfiles()
     tag = git.get_hash()
     for image in images_to_build:
         utils.logger.info('Building image: %(image)s', dict(image=image))
         dockerfile = utils.image_to_dockerfile(image)
-        fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
+
+        if not os.path.exists(dockerfile):
+            utils.logger.warning('Image %(image)s is not valid for this project! Skipping...', dict(image=image))
+            continue
+
+        fqdn_image = image + ':' + tag
 
         command = [
             'docker',
