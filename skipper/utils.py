@@ -5,6 +5,7 @@ import subprocess
 import requests
 
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
+IMAGE_TAGS_URL = REGISTRY_BASE_URL + '%(image)s/tags/list'
 MANIFEST_URL = REGISTRY_BASE_URL + '%(image)s/manifests/%(reference)s'
 
 logger = None   # pylint: disable=invalid-name
@@ -30,6 +31,26 @@ def get_images_from_dockerfiles():
     return images
 
 
+def local_image_exist(image, tag):
+    name = image + ':' + tag
+    command = [
+        'docker',
+        'images',
+        '--format', '{{.ID}}',
+        name
+    ]
+    output = subprocess.check_output(command)
+    return output != ''
+
+
+def remote_image_exist(registry, image, tag):
+    requests.packages.urllib3.disable_warnings()
+    url = IMAGE_TAGS_URL % dict(registry=registry, image=image)
+    response = requests.get(url=url, verify=False)
+    info = response.json()
+    return tag in info['tags']
+
+
 def get_local_images_info(images):
     command = [
         'docker',
@@ -51,7 +72,7 @@ def get_remote_images_info(images, registry):
     requests.packages.urllib3.disable_warnings()
     images_info = []
     for image in images:
-        url = 'https://%(registry)s/v2/%(image)s/tags/list' % dict(registry=registry, image=image)
+        url = IMAGE_TAGS_URL % dict(registry=registry, image=image)
         response = requests.get(url=url, verify=False)
         info = response.json()
         images_info += [[registry, image, tag] for tag in info['tags']]
