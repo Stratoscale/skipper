@@ -416,8 +416,9 @@ class TestCLI(unittest.TestCase):
         )
         self.assertIsInstance(result.exception, click.BadParameter)
 
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_run(self, skipper_runner_run_mock):
+    def test_run_with_existing_local_build_container(self, skipper_runner_run_mock, *args):
         command = ['ls', '-l']
         run_params = command
         self._invoke_cli(
@@ -425,11 +426,56 @@ class TestCLI(unittest.TestCase):
             subcmd='run',
             subcmd_params=run_params
         )
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=BUILD_CONTAINER_FQDN_IMAGE, environment=[])
+        expected_image_name = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_image_name, environment=[])
+
+    @mock.patch('subprocess.check_output', autospec=True, return_value='')
+    @mock.patch('requests.get', autospec=True)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_existing_remote_build_container(self, skipper_runner_run_mock, requests_get_mock, *args):
+        requests_response_class_mock = mock.MagicMock(spec='requests.Response')
+        requests_response_mock = requests_response_class_mock.return_value
+        requests_response_mock.json.return_value = {
+            'name': 'my_image',
+            'tags': ['latest', 'aaaaaaa', 'bbbbbbb', 'build-container-tag']
+        }
+        requests_get_mock.return_value = requests_response_mock
+
+        command = ['ls', '-l']
+        run_params = command
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        expected_image_name = 'registry.io:5000/build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_image_name, environment=[])
+
+    @mock.patch('subprocess.check_output', autospec=True, return_value='')
+    @mock.patch('requests.get', autospec=True)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_non_existing_build_container(self, skipper_runner_run_mock, requests_get_mock, *args):
+        requests_response_class_mock = mock.MagicMock(spec='requests.Response')
+        requests_response_mock = requests_response_class_mock.return_value
+        requests_response_mock.json.return_value = {
+            'name': 'my_image',
+            'tags': ['latest', 'aaaaaaa', 'bbbbbbb']
+        }
+
+        requests_get_mock.return_value = requests_response_mock
+        command = ['ls', '-l']
+        run_params = command
+        ret = self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        self.assertIsInstance(ret.exception, click.exceptions.ClickException)
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
     @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF)
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_from_config_file(self, skipper_runner_run_mock, *args):
         command = ['ls', '-l']
@@ -439,11 +485,13 @@ class TestCLI(unittest.TestCase):
             subcmd='run',
             subcmd_params=run_params
         )
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE, environment=[])
+        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[])
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
     @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF_WITH_ENV)
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_and_env_from_config_file(self, skipper_runner_run_mock, *args):
         command = ['ls', '-l']
@@ -455,13 +503,16 @@ class TestCLI(unittest.TestCase):
             subcmd_params=run_params
         )
         env = ["%s=%s" % (key, value) for key, value in CONFIG_ENV_EVALUATION.iteritems()]
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE, environment=env)
+        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env)
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
     @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF_WITH_ENV)
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_env_overriding_config_file(self, skipper_runner_run_mock, *args):
+        os.environ['VAL4'] = "val4-evaluation"
         command = ['ls', '-l']
         run_params = ['-e', ENV[0], '-e', ENV[1]] + command
         self._invoke_cli(
@@ -470,10 +521,12 @@ class TestCLI(unittest.TestCase):
             subcmd_params=run_params
         )
         env = ["%s=%s" % (key, value) for key, value in CONFIG_ENV_EVALUATION.iteritems()] + ENV
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE, environment=env)
+        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env)
 
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_run_with_env(self, skipper_runner_run_mock):
+    def test_run_with_env(self, skipper_runner_run_mock, *args):
         command = ['ls', '-l']
         os.environ['VAL4'] = "val4-evaluation"
         run_params = ['-e', ENV[0], '-e', ENV[1]] + command
@@ -482,13 +535,12 @@ class TestCLI(unittest.TestCase):
             subcmd='run',
             subcmd_params=run_params
         )
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=BUILD_CONTAINER_FQDN_IMAGE, environment=ENV)
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=ENV)
 
-    @mock.patch('subprocess.check_output', autospec=True)
+    @mock.patch('subprocess.check_output', autospec=True, return_value='')
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_run_without_build_container_tag(self, skipper_runner_run_mock, subprocess_check_output_mock):
-        build_container_sha256 = 'sha256:8f0396f5d47ebeaded68702e67c21bf13519efb00c9959a308615beb2e5a429f'
-        subprocess_check_output_mock.return_value = build_container_sha256 + '\n'
+    def test_run_without_build_container_tag(self, skipper_runner_run_mock, *args):
         global_params = self.global_params[:-2]
         command = ['ls', '-l']
         run_params = command
@@ -497,10 +549,15 @@ class TestCLI(unittest.TestCase):
             subcmd='run',
             subcmd_params=run_params
         )
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=build_container_sha256, environment=[])
+        expected_commands = [
+            mock.call(['docker', 'build', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image', '.']),
+            mock.call(command, fqdn_image='build-container-image', environment=[]),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
 
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_make(self, skipper_runner_run_mock):
+    def test_make(self, skipper_runner_run_mock, *args):
         makefile = 'Makefile'
         target = 'all'
         make_params = ['-f', makefile, target]
@@ -510,11 +567,13 @@ class TestCLI(unittest.TestCase):
             subcmd_params=make_params
         )
         expected_command = ['make', '-f', makefile, target]
-        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=BUILD_CONTAINER_FQDN_IMAGE, environment=[])
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image, environment=[])
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
     @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF)
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
     def test_make_with_defaults_from_config_file(self, skipper_runner_run_mock, *args):
         makefile = 'Makefile'
@@ -526,13 +585,12 @@ class TestCLI(unittest.TestCase):
             subcmd_params=make_params
         )
         expected_command = ['make', '-f', makefile, target]
-        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE, environment=[])
+        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image, environment=[])
 
-    @mock.patch('subprocess.check_output', autospec=True)
+    @mock.patch('subprocess.check_output', autospec=True, return_value='')
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_make_without_build_container_tag(self, skipper_runner_run_mock, subprocess_check_output_mock):
-        build_container_sha256 = 'sha256:8f0396f5d47ebeaded68702e67c21bf13519efb00c9959a308615beb2e5a429f'
-        subprocess_check_output_mock.return_value = build_container_sha256 + '\n'
+    def test_make_without_build_container_tag(self, skipper_runner_run_mock, *args):
         global_params = self.global_params[:-2]
         makefile = 'Makefile'
         target = 'all'
@@ -542,16 +600,21 @@ class TestCLI(unittest.TestCase):
             subcmd='make',
             subcmd_params=make_params
         )
-        expected_command = ['make', '-f', makefile, target]
-        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=build_container_sha256, environment=[])
+        expected_commands = [
+            mock.call(['docker', 'build', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image', '.']),
+            mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[]),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
 
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_shell(self, skipper_runner_run_mock):
+    def test_shell(self, skipper_runner_run_mock, *args):
         self._invoke_cli(
             global_params=self.global_params,
             subcmd='shell',
         )
-        skipper_runner_run_mock.assert_called_once_with(['bash'], fqdn_image=BUILD_CONTAINER_FQDN_IMAGE, environment=[], interactive=True)
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(['bash'], fqdn_image=expected_fqdn_image, environment=[], interactive=True)
 
     def _invoke_cli(self, defaults=None, global_params=None, subcmd=None, subcmd_params=None):
         self.assertFalse(subcmd is None and subcmd_params is not None, 'No sub-command was provided!')

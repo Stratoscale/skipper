@@ -30,6 +30,26 @@ def get_images_from_dockerfiles():
     return images
 
 
+def local_image_exist(image, tag):
+    name = image + ':' + tag
+    command = [
+        'docker',
+        'images',
+        '--format', '{{.ID}}',
+        name
+    ]
+    output = subprocess.check_output(command)
+    return output != ''
+
+
+def remote_image_exist(registry, image, tag):
+    requests.packages.urllib3.disable_warnings()
+    url = 'https://%(registry)s/v2/%(image)s/tags/list' % dict(registry=registry, image=image)
+    response = requests.get(url=url, verify=False)
+    info = response.json()
+    return tag in info['tags']
+
+
 def get_local_images_info(images):
     command = [
         'docker',

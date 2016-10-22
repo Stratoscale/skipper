@@ -1,6 +1,5 @@
 import logging
 import os.path
-import subprocess
 import tabulate
 import click
 from skipper import git
@@ -191,21 +190,30 @@ def shell(ctx, env):
 
 def _prepare_build_container(registry, image, tag):
     if tag is not None:
-        fqdn_image = utils.generate_fqdn_image(registry, image, tag)
-        utils.logger.info("Using build container: %(fqdn_image)s", dict(fqdn_image=fqdn_image))
-        return fqdn_image
+        if utils.local_image_exist(image, tag):
+            image_name = image + ':' + tag
+            utils.logger.info("Using build container: %(image_name)s", dict(image_name=image_name))
+            return image_name
+
+        if utils.remote_image_exist(registry, image, tag):
+            fqdn_image = utils.generate_fqdn_image(registry, image, tag)
+            utils.logger.info("Using build container: %(fqdn_image)s", dict(fqdn_image=fqdn_image))
+            return fqdn_image
+
+        raise click.exceptions.ClickException("Couldn't find build image %(image)s with tag %(tag)s" % dict(image=image, tag=tag))
 
     utils.logger.info("No build container tag was provided. Building from scratch...")
     dockerfile = utils.image_to_dockerfile(image)
     command = [
         'docker',
         'build',
-        '-q',
+        '-t', image,
         '-f', dockerfile,
         '.'
     ]
 
-    return subprocess.check_output(command).strip()
+    runner.run(command)
+    return image
 
 
 def _validate_global_params(ctx, *params):
