@@ -27,6 +27,7 @@ Skipper can serve as your primary tool for your daily development tasks:
 * Use `skipper rmi` to delete your images.
 * Use `skipper make` to execute makefile targets inside a container.
 * Use `skipper run` to run arbitrary commands inside a container.
+* Use `skipper shell` to get an interactive shell inside a container.
 
 ### Global Options
 ```bash
@@ -36,7 +37,6 @@ Skipper can serve as your primary tool for your daily development tasks:
   --build-container-tag         Tag of the build container
   --help                        Show this message and exit.
 ```
-Note that registry is mandatory parameter, as it is used to indentify the images.
 
 ### Build
 Skipper infers the docker images from the Dockerfiles in the top directory of your repository. For example, assuming that there are 2 Dockerfile in the top directory of the repository:
@@ -47,22 +47,22 @@ Dockerfile.development
 
 To build the image that corresponeds to `Dockerfile.production`, run:
 ```bash
-skipper --registry some-registry build production
+skipper build production
 ```
 
 In the same way you can build the image corresponded to `Dockerfile.development`:
 ```bash
-skipper --registry some-registry build development
+skipper build development
 ```
 
 You can also build mutliple images with single command:
 ```bash
-skipper --registry some-registry build development production
+skipper build development production
 ```
 
 If no image is specifed skipper will build all detected images:
 ```bash
-skipper --registry some-registry build
+skipper build
 ```
 
 ### Push
@@ -74,9 +74,9 @@ skipper --registry some-registry push production
 Note that the registry in this command must be the same registry used while building the image.
 
 ### Images
-To list images of your repository, run:
+To list local images of your repository, run:
 ```bash
-skipper --registry some-registry images
+skipper images
 ```
 
 In order to also list also images that were pushed to the registry, run:
@@ -87,7 +87,7 @@ skipper --registry some-registry images -r
 ### Rmi
 To delete an image of your repository, run:
 ```bash
-skipper --registry some-registry rmi production <tag>
+skipper rmi production <tag>
 ```
 
 In order to delete the image from the registry, run:
