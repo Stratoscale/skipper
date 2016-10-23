@@ -136,10 +136,11 @@ def rmi(ctx, remote, image, tag):
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
+@click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False)
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.argument('command', nargs=-1, type=click.UNPROCESSED, required=True)
 @click.pass_context
-def run(ctx, env, command):
+def run(ctx, interactive, env, command):
     '''
     Run arbitrary commands
     '''
@@ -148,15 +149,16 @@ def run(ctx, env, command):
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'])
-    return runner.run(list(command), fqdn_image=build_container, environment=_expend_env(ctx, env))
+    return runner.run(list(command), fqdn_image=build_container, environment=_expend_env(ctx, env), interactive=interactive)
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
+@click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False)
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.option('-f', 'makefile', help='Makefile to use', default='Makefile')
 @click.argument('target')
 @click.pass_context
-def make(ctx, env, makefile, target):
+def make(ctx, interactive, env, makefile, target):
     '''
     Execute makefile target
     '''
@@ -170,7 +172,7 @@ def make(ctx, env, makefile, target):
         '-f', makefile,
         target
     ]
-    return runner.run(command, fqdn_image=build_container, environment=_expend_env(ctx, env))
+    return runner.run(command, fqdn_image=build_container, environment=_expend_env(ctx, env), interactive=interactive)
 
 
 @cli.command()
