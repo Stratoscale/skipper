@@ -427,7 +427,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=run_params
         )
         expected_image_name = 'build-container-image:build-container-tag'
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_image_name, environment=[])
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_image_name, environment=[], interactive=True)
 
     @mock.patch('subprocess.check_output', autospec=True, return_value='')
     @mock.patch('requests.get', autospec=True)
@@ -449,7 +449,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=run_params
         )
         expected_image_name = 'registry.io:5000/build-container-image:build-container-tag'
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_image_name, environment=[])
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_image_name, environment=[], interactive=True)
 
     @mock.patch('subprocess.check_output', autospec=True, return_value='')
     @mock.patch('requests.get', autospec=True)
@@ -486,7 +486,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=run_params
         )
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[])
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[], interactive=True)
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
@@ -504,7 +504,7 @@ class TestCLI(unittest.TestCase):
         )
         env = ["%s=%s" % (key, value) for key, value in CONFIG_ENV_EVALUATION.iteritems()]
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env)
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env, interactive=True)
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
@@ -522,7 +522,7 @@ class TestCLI(unittest.TestCase):
         )
         env = ["%s=%s" % (key, value) for key, value in CONFIG_ENV_EVALUATION.iteritems()] + ENV
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env)
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env, interactive=True)
 
     @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
@@ -536,7 +536,20 @@ class TestCLI(unittest.TestCase):
             subcmd_params=run_params
         )
         expected_fqdn_image = 'build-container-image:build-container-tag'
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=ENV)
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=ENV, interactive=True)
+
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_non_interactive(self, skipper_runner_run_mock, *args):
+        command = ['ls', '-l']
+        run_params = ['--no-interactive'] + command
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[], interactive=False)
 
     @mock.patch('subprocess.check_output', autospec=True, return_value='')
     @mock.patch('skipper.runner.run', autospec=True)
@@ -551,7 +564,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_commands = [
             mock.call(['docker', 'build', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image', '.']),
-            mock.call(command, fqdn_image='build-container-image', environment=[]),
+            mock.call(command, fqdn_image='build-container-image', environment=[], interactive=True),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -568,7 +581,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_command = ['make', '-f', makefile, target]
         expected_fqdn_image = 'build-container-image:build-container-tag'
-        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image, environment=[])
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image, environment=[], interactive=True)
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
@@ -586,7 +599,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_command = ['make', '-f', makefile, target]
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
-        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image, environment=[])
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image, environment=[], interactive=True)
 
     @mock.patch('subprocess.check_output', autospec=True, return_value='')
     @mock.patch('skipper.runner.run', autospec=True)
@@ -602,7 +615,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_commands = [
             mock.call(['docker', 'build', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image', '.']),
-            mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[]),
+            mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[], interactive=True),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
