@@ -69,15 +69,27 @@ def get_local_images_info(images):
 
 
 def get_remote_images_info(images, registry):
-    requests.packages.urllib3.disable_warnings()
     images_info = []
     for image in images:
-        url = IMAGE_TAGS_URL % dict(registry=registry, image=image)
-        response = requests.get(url=url, verify=False)
-        info = response.json()
-        images_info += [[registry, image, tag] for tag in info['tags']]
-
+        images_info += get_remote_image_info(image, registry)
     return images_info
+
+
+def get_remote_image_info(image, registry):
+    requests.packages.urllib3.disable_warnings()
+    image_info = []
+    url = IMAGE_TAGS_URL % dict(registry=registry, image=image)
+    response = requests.get(url=url, verify=False)
+    info = response.json()
+    if response.ok:
+        image_info += [[registry, image, tag] for tag in info['tags']]
+    else:
+        if info['errors'][0]['code'] == 'NAME_UNKNOWN':
+            pass
+        else:
+            raise Exception(info)
+
+    return image_info
 
 
 def get_image_digest(registry, image, tag):

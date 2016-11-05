@@ -109,10 +109,14 @@ def images(ctx, remote):
     '''
     utils.logger.debug("Executing images command")
     images_names = utils.get_images_from_dockerfiles()
+    utils.logger.info("Expected images: %(images)s\n" % dict(images=", ".join(images_names)))
     images_info = utils.get_local_images_info(images_names)
     if remote:
         _validate_global_params(ctx, 'registry')
-        images_info += utils.get_remote_images_info(images_names, ctx.obj['registry'])
+        try:
+            images_info += utils.get_remote_images_info(images_names, ctx.obj['registry'])
+        except Exception as exp:
+            raise click.exceptions.ClickException('Got unknow error from remote registry %(error)s' % dict(error=exp.message))
 
     print(tabulate.tabulate(images_info, headers=['REGISTRY', 'IMAGE', 'TAG'], tablefmt='grid'))
 
