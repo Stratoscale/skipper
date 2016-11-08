@@ -221,6 +221,22 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_push_to_namespace(self, skipper_runner_run_mock, *args):
+        push_params = ['--namespace', 'my_namespace', 'my_image']
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='push',
+            subcmd_params=push_params
+        )
+        expected_commands = [
+            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_namespace/my_image:1234567']),
+            mock.call(['docker', 'push', 'registry.io:5000/my_namespace/my_image:1234567']),
+            mock.call(['docker', 'rmi', 'registry.io:5000/my_namespace/my_image:1234567']),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
+
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
     @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF)

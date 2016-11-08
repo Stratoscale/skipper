@@ -113,8 +113,10 @@ def delete_local_image(image, tag):
     subprocess.check_call(['docker', 'rmi', name])
 
 
-def generate_fqdn_image(registry, image, tag='latest'):
+def generate_fqdn_image(registry, namespace, image, tag='latest'):
     fqdn_image = image
+    if namespace is not None:
+        fqdn_image = namespace + '/' + fqdn_image
     if registry is not None:
         fqdn_image = registry + '/' + fqdn_image
     if tag is not None:

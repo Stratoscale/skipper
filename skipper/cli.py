@@ -62,9 +62,10 @@ def build(images_to_build):
 
 
 @cli.command()
+@click.option('--namespace', help='Namespace to push into')
 @click.argument('image')
 @click.pass_context
-def push(ctx, image):
+def push(ctx, namespace, image):
     '''
     Push a container
     '''
@@ -72,7 +73,7 @@ def push(ctx, image):
     _validate_global_params(ctx, 'registry')
     tag = git.get_hash()
     image_name = image + ':' + tag
-    fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], image, tag)
+    fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace, image, tag)
 
     utils.logger.debug("Adding tag %(tag)s", dict(tag=fqdn_image))
     command = [
@@ -202,7 +203,7 @@ def _prepare_build_container(registry, image, tag):
             return image_name
 
         if utils.remote_image_exist(registry, image, tag):
-            fqdn_image = utils.generate_fqdn_image(registry, image, tag)
+            fqdn_image = utils.generate_fqdn_image(registry, None, image, tag)
             utils.logger.info("Using build container: %(fqdn_image)s", dict(fqdn_image=fqdn_image))
             return fqdn_image
 
