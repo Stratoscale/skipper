@@ -96,6 +96,7 @@ _get_images_from_dockerfiles() {
 
 _get_makefile() {
     local words=( "$@" )
+    local makefile
 
     for (( i=0; i < ${#words[@]}; i++ )); do
         if [[ ${words[i]} == -f ]]; then
@@ -103,6 +104,14 @@ _get_makefile() {
             return
         fi
     done
+
+    if [ -e skipper.yaml ]; then
+        makefile=$(cat skipper.yaml | grep makefile: | awk '{print $2}')
+        if [ -n "$makefile" ]; then
+            echo $makefile
+            return
+        fi
+    fi
 
     echo "Makefile"
 }
