@@ -141,7 +141,7 @@ def rmi(ctx, remote, image, tag):
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
-@click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False)
+@click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False, envvar='SKIPPER_INTERACTIVE')
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.argument('command', nargs=-1, type=click.UNPROCESSED, required=True)
 @click.pass_context
@@ -158,7 +158,7 @@ def run(ctx, interactive, env, command):
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
-@click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False)
+@click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False, envvar='SKIPPER_INTERACTIVE')
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.option('-f', 'makefile', help='Makefile to use', default='Makefile')
 @click.argument('target')

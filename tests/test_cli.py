@@ -712,6 +712,36 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_interactive_from_environment(self, skipper_runner_run_mock, *args):
+        os.environ['SKIPPER_INTERACTIVE'] = 'True'
+        command = ['ls', '-l']
+        run_params = command
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[], interactive=True)
+        del os.environ['SKIPPER_INTERACTIVE']
+
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_non_interactive_from_environment(self, skipper_runner_run_mock, *args):
+        os.environ['SKIPPER_INTERACTIVE'] = 'False'
+        command = ['ls', '-l']
+        run_params = command
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[], interactive=False)
+        del os.environ['SKIPPER_INTERACTIVE']
+
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
+    @mock.patch('skipper.runner.run', autospec=True)
     def test_run_non_interactive(self, skipper_runner_run_mock, *args):
         command = ['ls', '-l']
         run_params = ['--interactive'] + command
