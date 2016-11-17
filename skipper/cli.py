@@ -161,11 +161,11 @@ def run(ctx, interactive, env, command):
 @click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False, envvar='SKIPPER_INTERACTIVE')
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.option('-f', 'makefile', help='Makefile to use', default='Makefile')
-@click.argument('target')
+@click.argument('make_params', nargs=-1, type=click.UNPROCESSED, required=False)
 @click.pass_context
-def make(ctx, interactive, env, makefile, target):
+def make(ctx, interactive, env, makefile, make_params):
     '''
-    Execute makefile target
+    Execute makefile target(s)
     '''
     utils.logger.debug("Executing make command")
     _validate_global_params(ctx, 'build_container_image')
@@ -174,9 +174,8 @@ def make(ctx, interactive, env, makefile, target):
                                                ctx.obj['build_container_tag'])
     command = [
         'make',
-        '-f', makefile,
-        target
-    ]
+        '-f', makefile
+    ] + list(make_params)
     return runner.run(command, fqdn_image=build_container, environment=_expend_env(ctx, env), interactive=interactive)
 
 

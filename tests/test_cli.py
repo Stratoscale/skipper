@@ -785,6 +785,33 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image, environment=[], interactive=False)
 
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_make_with_default_params(self, skipper_runner_run_mock, *args):
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='make',
+        )
+        expected_command = ['make', '-f', "Makefile"]
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image, environment=[], interactive=False)
+
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_make_with_additional_make_params(self, skipper_runner_run_mock, *args):
+        makefile = 'Makefile'
+        target = 'all'
+        options = ['-f', 'Makefile']
+        make_params = ['-j', '4', target, 'OS=linux']
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='make',
+            subcmd_params=make_params
+        )
+        expected_command = ['make', '-f', 'Makefile', '-j', '4', target, 'OS=linux']
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image, environment=[], interactive=False)
+
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('os.path.exists', autospec=True, return_value=True)
     @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF)
