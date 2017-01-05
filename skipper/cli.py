@@ -24,36 +24,43 @@ def cli(ctx, registry, build_container_image, build_container_tag, verbose):
     ctx.obj['build_container_image'] = build_container_image
     ctx.obj['build_container_tag'] = build_container_tag
     ctx.obj['env'] = ctx.default_map.get('env', {})
+    ctx.obj['containers'] = ctx.default_map.get('containers')
 
 
 @cli.command()
 @click.argument('images_to_build', nargs=-1, metavar='[IMAGE...]')
-def build(images_to_build):
+@click.pass_context
+def build(ctx, images_to_build):
     '''
     Build a container
     '''
     utils.logger.debug("Executing build command")
-    images_to_build = images_to_build or utils.get_images_from_dockerfiles()
+
+    valid_images = ctx.obj.get('containers') or utils.get_images_from_dockerfiles()
+    valid_images = {image: os.path.abspath(dockerfile) for image, dockerfile in valid_images.iteritems()}
+    valid_images_to_build = {}
+    if len(images_to_build) == 0:
+        valid_images_to_build = valid_images
+    else:
+        for image in images_to_build:
+            if image not in valid_images:
+                utils.logger.warning('Image %(image)s is not valid for this project! Skipping...', dict(image=image))
+                continue
+            valid_images_to_build[image] = valid_images[image]
+
     tag = git.get_hash()
-    for image in images_to_build:
+    for image, dockerfile in valid_images_to_build.iteritems():
         utils.logger.info('Building image: %(image)s', dict(image=image))
-        dockerfile = utils.image_to_dockerfile(image)
 
         if not os.path.exists(dockerfile):
-            utils.logger.warning('Image %(image)s is not valid for this project! Skipping...', dict(image=image))
+            utils.logger.warning('Dockerfile %(dockerfile)s does not exist! Skipping...', dict(dockerfile=dockerfile))
             continue
 
         fqdn_image = image + ':' + tag
-
-        command = [
-            'docker',
-            'build',
-            '-f', dockerfile,
-            '-t', fqdn_image,
-            '.'
-        ]
-
+        path = os.path.dirname(os.path.abspath(dockerfile))
+        command = ['docker', 'build', '-f', dockerfile, '-t', fqdn_image, path]
         ret = runner.run(command)
+
         if ret != 0:
             utils.logger.error('Failed to build image: %(image)s', dict(image=image))
             return ret
@@ -76,28 +83,15 @@ def push(ctx, namespace, image):
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace, image, tag)
 
     utils.logger.debug("Adding tag %(tag)s", dict(tag=fqdn_image))
-    command = [
-        'docker',
-        'tag',
-        image_name,
-        fqdn_image
-    ]
+    command = ['docker', 'tag', image_name, fqdn_image]
     runner.run(command)
 
     utils.logger.debug("Pushing to registry %(registry)s", dict(registry=ctx.obj['registry']))
-    command = [
-        'docker',
-        'push',
-        fqdn_image
-    ]
+    command = ['docker', 'push', fqdn_image]
     runner.run(command)
 
     utils.logger.debug("Removing tag %(tag)s", dict(tag=fqdn_image))
-    command = [
-        'docker',
-        'rmi',
-        fqdn_image
-    ]
+    command = ['docker', 'rmi', fqdn_image]
     runner.run(command)
 
 
@@ -109,7 +103,9 @@ def images(ctx, remote):
     List images
     '''
     utils.logger.debug("Executing images command")
-    images_names = utils.get_images_from_dockerfiles()
+
+    valid_images = ctx.obj.get('containers') or utils.get_images_from_dockerfiles()
+    images_names = valid_images.keys() 
     utils.logger.info("Expected images: %(images)s\n" % dict(images=", ".join(images_names)))
     images_info = utils.get_local_images_info(images_names)
     if remote:
@@ -172,10 +168,7 @@ def make(ctx, interactive, env, makefile, make_params):
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'])
-    command = [
-        'make',
-        '-f', makefile
-    ] + list(make_params)
+    command = ['make', '-f', makefile] + list(make_params)
     return runner.run(command, fqdn_image=build_container, environment=_expend_env(ctx, env), interactive=interactive)
 
 
@@ -210,14 +203,7 @@ def _prepare_build_container(registry, image, tag):
 
     utils.logger.info("No build container tag was provided. Building from scratch...")
     dockerfile = utils.image_to_dockerfile(image)
-    command = [
-        'docker',
-        'build',
-        '-t', image,
-        '-f', dockerfile,
-        '.'
-    ]
-
+    command = ['docker', 'build', '-t', image, '-f', dockerfile, '.']
     runner.run(command)
     return image
 

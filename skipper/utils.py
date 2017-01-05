@@ -1,8 +1,9 @@
 import glob
 import json
 import logging
-import subprocess
+import os
 import requests
+import subprocess
 
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
 IMAGE_TAGS_URL = REGISTRY_BASE_URL + '%(image)s/tags/list'
@@ -27,7 +28,8 @@ def configure_logging(name, level):
 
 def get_images_from_dockerfiles():
     dockerfiles = glob.glob(image_to_dockerfile('*'))
-    images = [dockerfile_to_image(dockerfile) for dockerfile in dockerfiles]
+    # TODO: remove call to os.path.abspath()
+    images = {dockerfile_to_image(dockerfile): os.path.abspath(dockerfile) for dockerfile in dockerfiles}
     return images
 
 
