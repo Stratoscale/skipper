@@ -39,15 +39,16 @@ Skipper can serve as your primary tool for your daily development tasks:
 ```
 
 ### Build
-Skipper infers the docker images from the Dockerfiles in the top directory of your repository. For example, assuming that there are 2 Dockerfile in the top directory of the repository:
+As a convention, skipper infers the docker images from the Dockerfiles in the top directory of your repository. For example, assuming that there are 3 Dockerfile in the top directory of the repository:
 ```
-Dockerfile.production
+Dockerfile.service1
+Dockerfile.service2
 Dockerfile.development
 ```
 
-To build the image that corresponeds to `Dockerfile.production`, run:
+To build the image that corresponeds to `Dockerfile.service1`, run:
 ```bash
-skipper build production
+skipper build service1
 ```
 
 In the same way you can build the image corresponded to `Dockerfile.development`:
@@ -57,7 +58,7 @@ skipper build development
 
 You can also build mutliple images with single command:
 ```bash
-skipper build development production
+skipper build development service2
 ```
 
 If no image is specifed skipper will build all detected images:
@@ -65,11 +66,13 @@ If no image is specifed skipper will build all detected images:
 skipper build
 ```
 
+If you don't want to store all the Dockerfiles under the top directory of the project, you can specify the project's containers in skipper's config file (see below).
+
 ### Push
 Once you've built the images of your repositories as described above. You can publish them by pushing them to the registry.
-To push the `production` image, run:
+To push the `service1` image, run:
 ```bash
-skipper --registry some-registry push production
+skipper --registry some-registry push service1
 ```
 Note that the registry in this command must be the same registry used while building the image.
 
@@ -87,12 +90,12 @@ skipper --registry some-registry images -r
 ### Rmi
 To delete an image of your repository, run:
 ```bash
-skipper rmi production <tag>
+skipper rmi service1 <tag>
 ```
 
 In order to delete the image from the registry, run:
 ```bash
-skipper --registry some-registry rmi -r production <tag>
+skipper --registry some-registry rmi -r service1 <tag>
 ```
 
 ### Make
@@ -132,6 +135,9 @@ build-container-tag: latest
 
 make: 
     makefile: Makefile.arm32
+containers:
+    service1: path/to/service1/dockerfile
+    service2: path/to/service2/dockerfile
 env:
     VAR: value
 ```
