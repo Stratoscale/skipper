@@ -83,28 +83,15 @@ def push(ctx, namespace, image):
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace, image, tag)
 
     utils.logger.debug("Adding tag %(tag)s", dict(tag=fqdn_image))
-    command = [
-        'docker',
-        'tag',
-        image_name,
-        fqdn_image
-    ]
+    command = ['docker', 'tag', image_name, fqdn_image]
     runner.run(command)
 
     utils.logger.debug("Pushing to registry %(registry)s", dict(registry=ctx.obj['registry']))
-    command = [
-        'docker',
-        'push',
-        fqdn_image
-    ]
+    command = ['docker', 'push', fqdn_image]
     runner.run(command)
 
     utils.logger.debug("Removing tag %(tag)s", dict(tag=fqdn_image))
-    command = [
-        'docker',
-        'rmi',
-        fqdn_image
-    ]
+    command = ['docker', 'rmi', fqdn_image]
     runner.run(command)
 
 
@@ -181,10 +168,7 @@ def make(ctx, interactive, env, makefile, make_params):
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'])
-    command = [
-        'make',
-        '-f', makefile
-    ] + list(make_params)
+    command = ['make', '-f', makefile] + list(make_params)
     return runner.run(command, fqdn_image=build_container, environment=_expend_env(ctx, env), interactive=interactive)
 
 
@@ -219,14 +203,7 @@ def _prepare_build_container(registry, image, tag):
 
     utils.logger.info("No build container tag was provided. Building from scratch...")
     dockerfile = utils.image_to_dockerfile(image)
-    command = [
-        'docker',
-        'build',
-        '-t', image,
-        '-f', dockerfile,
-        '.'
-    ]
-
+    command = ['docker', 'build', '-t', image, '-f', dockerfile, '.']
     runner.run(command)
     return image
 
