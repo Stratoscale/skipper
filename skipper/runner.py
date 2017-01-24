@@ -5,9 +5,9 @@ import os
 import subprocess
 
 
-def run(command, fqdn_image=None, environment=None, interactive=False, disable_net_host=False):
+def run(command, fqdn_image=None, environment=None, interactive=False, net='host'):
     if fqdn_image is not None:
-        return _run_nested(fqdn_image, environment, command, interactive, disable_net_host)
+        return _run_nested(fqdn_image, environment, command, interactive, net)
     else:
         return _run(command)
 
@@ -20,7 +20,7 @@ def _run(cmd):
     return proc.returncode
 
 
-def _run_nested(fqdn_image, environment, command, interactive, disable_net_host=False):
+def _run_nested(fqdn_image, environment, command, interactive, net='host'):
     cwd = os.getcwd()
     workspace = os.path.dirname(cwd)
     project = os.path.basename(cwd)
@@ -32,8 +32,7 @@ def _run_nested(fqdn_image, environment, command, interactive, disable_net_host=
     docker_cmd += ['-t']
     docker_cmd += ['--rm']
 
-    if not disable_net_host:
-        docker_cmd += ['--net', 'host']
+    docker_cmd += ['--net', net]
 
     environment = environment or []
     for env in environment:
