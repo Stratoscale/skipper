@@ -12,8 +12,9 @@ from skipper import utils
 @click.option('--registry', help='URL of the docker registry')
 @click.option('--build-container-image', help='Image to use as build container')
 @click.option('--build-container-tag', help='Tag of the build container')
+@click.option('--build-container-net', help='Network to connect the build container', default='host')
 @click.pass_context
-def cli(ctx, registry, build_container_image, build_container_tag, verbose):
+def cli(ctx, registry, build_container_image, build_container_tag, build_container_net, verbose):
     '''
     Easily dockerize your Git repository
     '''
@@ -23,6 +24,7 @@ def cli(ctx, registry, build_container_image, build_container_tag, verbose):
     ctx.obj['registry'] = registry
     ctx.obj['build_container_image'] = build_container_image
     ctx.obj['build_container_tag'] = build_container_tag
+    ctx.obj['build_container_net'] = build_container_net
     ctx.obj['env'] = ctx.default_map.get('env', {})
     ctx.obj['containers'] = ctx.default_map.get('containers')
 
@@ -139,10 +141,9 @@ def rmi(ctx, remote, image, tag):
 @cli.command(context_settings=dict(ignore_unknown_options=True))
 @click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False, envvar='SKIPPER_INTERACTIVE')
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
-@click.option('-d', '--disable_net_host', help='Disable net host mode', is_flag=True, default=False)
 @click.argument('command', nargs=-1, type=click.UNPROCESSED, required=True)
 @click.pass_context
-def run(ctx, interactive, env, disable_net_host, command):
+def run(ctx, interactive, env, command):
     '''
     Run arbitrary commands
     '''
@@ -155,17 +156,16 @@ def run(ctx, interactive, env, disable_net_host, command):
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
                       interactive=interactive,
-                      disable_net_host=disable_net_host)
+                      net=ctx.obj['build_container_net'])
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
 @click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False, envvar='SKIPPER_INTERACTIVE')
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.option('-f', 'makefile', help='Makefile to use', default='Makefile')
-@click.option('-d', '--disable_net_host', help='Disable net host mode', is_flag=True, default=False)
 @click.argument('make_params', nargs=-1, type=click.UNPROCESSED, required=False)
 @click.pass_context
-def make(ctx, interactive, env, makefile, disable_net_host, make_params):
+def make(ctx, interactive, env, makefile, make_params):
     '''
     Execute makefile target(s)
     '''
@@ -179,7 +179,7 @@ def make(ctx, interactive, env, makefile, disable_net_host, make_params):
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
                       interactive=interactive,
-                      disable_net_host=disable_net_host)
+                      net=ctx.obj['build_container_net'])
 
 
 @cli.command()
@@ -194,7 +194,11 @@ def shell(ctx, env):
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'])
-    return runner.run(['bash'], fqdn_image=build_container, environment=_expend_env(ctx, env), interactive=True)
+    return runner.run(['bash'],
+                      fqdn_image=build_container,
+                      environment=_expend_env(ctx, env),
+                      interactive=True,
+                      net=ctx.obj['build_container_net'])
 
 
 def _prepare_build_container(registry, image, tag):
