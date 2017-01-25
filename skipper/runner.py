@@ -66,6 +66,7 @@ def _run_nested(fqdn_image, environment, command, interactive, net='host'):
 
 def _create_network(net):
     if not _network_exists(net):
+        logging.debug("Network %(net)s does not exist. Creating...")
         subprocess.check_output(['docker', 'network', 'create', net])
 
 
