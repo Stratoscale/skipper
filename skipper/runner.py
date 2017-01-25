@@ -21,6 +21,7 @@ def _run(cmd):
 
 
 def _run_nested(fqdn_image, environment, command, interactive, net='host'):
+    _create_network(net)
     cwd = os.getcwd()
     workspace = os.path.dirname(cwd)
     project = os.path.basename(cwd)
@@ -61,3 +62,13 @@ def _run_nested(fqdn_image, environment, command, interactive, net='host'):
     docker_cmd += [' '.join(command)]
 
     return _run(docker_cmd)
+
+
+def _create_network(net):
+    if not _network_exists(net):
+        subprocess.check_output(['docker', 'network', 'create', net])
+
+
+def _network_exists(net):
+    result = subprocess.check_output(['docker', 'network', 'ls', '-q', '-f', 'NAME=%s' % net])
+    return len(result) > 0
