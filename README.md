@@ -35,6 +35,7 @@ Skipper can serve as your primary tool for your daily development tasks:
   --registry                    URL of the docker registry
   --build-container-image       Image to use as build container
   --build-container-tag         Tag of the build container
+  --build-container-net         Network to connect the build container (default: net=host)
   --help                        Show this message and exit.
 ```
 
