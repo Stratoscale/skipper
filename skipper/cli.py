@@ -1,3 +1,4 @@
+import sys
 import logging
 import os.path
 import tabulate
@@ -86,15 +87,24 @@ def push(ctx, namespace, image):
 
     utils.logger.debug("Adding tag %(tag)s", dict(tag=fqdn_image))
     command = ['docker', 'tag', image_name, fqdn_image]
-    runner.run(command)
+    ret = runner.run(command)
+    if ret != 0:
+        utils.logger.error('Failed to tag image: %(tag)s as fqdn', dict(tag=image_name, fqdn=fqdn_image))
+        sys.exit(ret)
 
     utils.logger.debug("Pushing to registry %(registry)s", dict(registry=ctx.obj['registry']))
     command = ['docker', 'push', fqdn_image]
-    runner.run(command)
+    ret = runner.run(command)
+    if ret != 0:
+        utils.logger.error('Failed to push image: %(tag)s', dict(tag=fqdn_image))
+        sys.exit(ret)
 
     utils.logger.debug("Removing tag %(tag)s", dict(tag=fqdn_image))
     command = ['docker', 'rmi', fqdn_image]
-    runner.run(command)
+    ret = runner.run(command)
+    if ret != 0:
+        utils.logger.warning('Failed to remove image tag: %(tag)s', dict(tag=fqdn_image))
+    return ret
 
 
 @cli.command()

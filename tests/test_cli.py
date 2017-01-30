@@ -280,6 +280,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
     @mock.patch('skipper.runner.run', autospec=True)
     def test_push(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.side_effect = [0, 0]
         push_params = ['my_image']
         self._invoke_cli(
             global_params=self.global_params,
@@ -295,7 +296,59 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
     @mock.patch('skipper.runner.run', autospec=True)
+    def test_push_fail(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.side_effect = [0, 1]
+        push_params = ['my_image']
+        result = self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='push',
+            subcmd_params=push_params
+        )
+        self.assertEqual(result.exit_code, 1)
+        expected_commands = [
+            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
+
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_push_tag_fail(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.side_effect = [1]
+        push_params = ['my_image']
+        result = self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='push',
+            subcmd_params=push_params
+        )
+        self.assertEqual(result.exit_code, 1)
+        expected_commands = [
+            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
+
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_push_rmi_fail(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.side_effect = [0, 0, 1]
+        push_params = ['my_image']
+        result = self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='push',
+            subcmd_params=push_params
+        )
+        self.assertEqual(result.exit_code, 0)
+        expected_commands = [
+            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
+            mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
+
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('skipper.runner.run', autospec=True)
     def test_push_to_namespace(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.side_effect = [0, 0]
         push_params = ['--namespace', 'my_namespace', 'my_image']
         self._invoke_cli(
             global_params=self.global_params,
@@ -315,6 +368,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
     @mock.patch('skipper.runner.run', autospec=True)
     def test_push_with_defaults_from_config_file(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.side_effect = [0, 0]
         push_params = ['my_image']
         self._invoke_cli(
             defaults=config.load_defaults(),
