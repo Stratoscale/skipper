@@ -952,9 +952,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)
     def test_make_with_additional_make_params(self, skipper_runner_run_mock, *args):
-        makefile = 'Makefile'
         target = 'all'
-        options = ['-f', 'Makefile']
         make_params = ['-j', '4', target, 'OS=linux']
         self._invoke_cli(
             global_params=self.global_params,
