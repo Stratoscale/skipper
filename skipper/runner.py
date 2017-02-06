@@ -5,9 +5,9 @@ import os
 import subprocess
 
 
-def run(command, fqdn_image=None, environment=None, interactive=False, net='host'):
+def run(command, fqdn_image=None, environment=None, interactive=False, net='host', volumes=None):
     if fqdn_image is not None:
-        return _run_nested(fqdn_image, environment, command, interactive, net)
+        return _run_nested(fqdn_image, environment, command, interactive, net, volumes)
     else:
         return _run(command)
 
@@ -20,7 +20,7 @@ def _run(cmd):
     return proc.returncode
 
 
-def _run_nested(fqdn_image, environment, command, interactive, net='host'):
+def _run_nested(fqdn_image, environment, command, interactive, net='host', volumes=None):
     _create_network(net)
     cwd = os.getcwd()
     workspace = os.path.dirname(cwd)
@@ -47,12 +47,14 @@ def _run_nested(fqdn_image, environment, command, interactive, net='host'):
     docker_gid = grp.getgrnam('docker').gr_gid
     docker_cmd += ['-e', 'SKIPPER_DOCKER_GID=%(docker_gid)s' % dict(docker_gid=docker_gid)]
 
-    volumes = [
+    volumes = volumes or []
+
+    volumes.extend([
         '%(workspace)s:%(workspace)s:rw,Z' % dict(workspace=workspace),
         '/var/lib/osmosis:/var/lib/osmosis:rw,Z' % dict(workspace=workspace),
         '/var/run/docker.sock:/var/run/docker.sock:Z',
         '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
-    ]
+    ])
     for volume in volumes:
         docker_cmd += ['-v', volume]
 

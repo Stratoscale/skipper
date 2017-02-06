@@ -14,7 +14,6 @@ def load_defaults():
         _normalize_config(config, defaults)
         if containers is not None:
             defaults['containers'] = containers
-
     return defaults
 
 
@@ -23,6 +22,8 @@ def _normalize_config(config, normalized_config):
         if isinstance(value, dict):
             normalized_config[key] = {}
             _normalize_config(value, normalized_config[key])
+        elif isinstance(value, list):
+            normalized_config[key] = value
         else:
             normalized_key = key.replace('-', '_')
             normalized_config[normalized_key] = _interpolate_env_vars(value)
