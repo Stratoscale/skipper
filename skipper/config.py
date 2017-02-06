@@ -23,7 +23,7 @@ def _normalize_config(config, normalized_config):
             normalized_config[key] = {}
             _normalize_config(value, normalized_config[key])
         elif isinstance(value, list):
-            normalized_config[key] = value
+            normalized_config[key] = [_interpolate_env_vars(x) for x in value]
         else:
             normalized_key = key.replace('-', '_')
             normalized_config[normalized_key] = _interpolate_env_vars(value)
