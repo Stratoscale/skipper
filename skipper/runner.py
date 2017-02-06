@@ -5,9 +5,9 @@ import os
 import subprocess
 
 
-def run(command, fqdn_image=None, environment=None, interactive=False, net='host', volumes=None):
+def run(command, fqdn_image=None, environment=None, interactive=False, net='host', volumes=None, workdir=None):
     if fqdn_image is not None:
-        return _run_nested(fqdn_image, environment, command, interactive, net, volumes)
+        return _run_nested(fqdn_image, environment, command, interactive, net, volumes, workdir)
     else:
         return _run(command)
 
@@ -20,7 +20,8 @@ def _run(cmd):
     return proc.returncode
 
 
-def _run_nested(fqdn_image, environment, command, interactive, net='host', volumes=None):
+# pylint: disable=too-many-locals
+def _run_nested(fqdn_image, environment, command, interactive, net='host', volumes=None, workdir=None):
     _create_network(net)
     cwd = os.getcwd()
     workspace = os.path.dirname(cwd)
@@ -58,7 +59,11 @@ def _run_nested(fqdn_image, environment, command, interactive, net='host', volum
     for volume in volumes:
         docker_cmd += ['-v', volume]
 
-    docker_cmd += ['-w', '%(workdir)s' % dict(workdir=os.path.join(workspace, project))]
+    if workdir:
+        docker_cmd += ['-w', workdir]
+    else:
+        docker_cmd += ['-w', '%(workdir)s' % dict(workdir=os.path.join(workspace, project))]
+
     docker_cmd += ['--entrypoint', '/opt/skipper/skipper-entrypoint.sh']
     docker_cmd += [fqdn_image]
     docker_cmd += [' '.join(command)]

@@ -29,6 +29,7 @@ def cli(ctx, registry, build_container_image, build_container_tag, build_contain
     ctx.obj['env'] = ctx.default_map.get('env', {})
     ctx.obj['containers'] = ctx.default_map.get('containers')
     ctx.obj['volumes'] = ctx.default_map.get('volumes')
+    ctx.obj['workdir'] = ctx.default_map.get('workdir')
 
 
 @cli.command()
@@ -168,7 +169,8 @@ def run(ctx, interactive, env, command):
                       environment=_expend_env(ctx, env),
                       interactive=interactive,
                       net=ctx.obj['build_container_net'],
-                      volumes=ctx.obj.get('volumes'))
+                      volumes=ctx.obj.get('volumes'),
+                      workdir=ctx.obj.get('workdir'))
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
@@ -192,7 +194,8 @@ def make(ctx, interactive, env, makefile, make_params):
                       environment=_expend_env(ctx, env),
                       interactive=interactive,
                       net=ctx.obj['build_container_net'],
-                      volumes=ctx.obj.get('volumes'))
+                      volumes=ctx.obj.get('volumes'),
+                      workdir=ctx.obj.get('workdir'))
 
 
 @cli.command()
@@ -212,7 +215,8 @@ def shell(ctx, env):
                       environment=_expend_env(ctx, env),
                       interactive=True,
                       net=ctx.obj['build_container_net'],
-                      volumes=ctx.obj.get('volumes'))
+                      volumes=ctx.obj.get('volumes'),
+                      workdir=ctx.obj.get('workdir'))
 
 
 def _prepare_build_container(registry, image, tag):
