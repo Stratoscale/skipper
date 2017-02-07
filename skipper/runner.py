@@ -3,11 +3,12 @@ import getpass
 import logging
 import os
 import subprocess
+import pwd
 
 
-def run(command, fqdn_image=None, environment=None, interactive=False, net='host', volumes=None, workdir=None):
+def run(command, fqdn_image=None, environment=None, interactive=False, net='host', volumes=None, workdir=None, user=None):
     if fqdn_image is not None:
-        return _run_nested(fqdn_image, environment, command, interactive, net, volumes, workdir)
+        return _run_nested(fqdn_image, environment, command, interactive, net, volumes, workdir, user)
     else:
         return _run(command)
 
@@ -21,7 +22,7 @@ def _run(cmd):
 
 
 # pylint: disable=too-many-locals
-def _run_nested(fqdn_image, environment, command, interactive, net='host', volumes=None, workdir=None):
+def _run_nested(fqdn_image, environment, command, interactive, net='host', volumes=None, workdir=None, user=None):
     _create_network(net)
     cwd = os.getcwd()
     workspace = os.path.dirname(cwd)
@@ -40,8 +41,12 @@ def _run_nested(fqdn_image, environment, command, interactive, net='host', volum
     for env in environment:
         docker_cmd += ['-e', env]
 
-    user = getpass.getuser()
-    user_id = os.getuid()
+    if user:
+        user_id = pwd.getpwnam(user).pw_uid
+    else:
+        user = getpass.getuser()
+        user_id = os.getuid()
+
     docker_cmd += ['-e', 'SKIPPER_USERNAME=%(user)s' % dict(user=user)]
     docker_cmd += ['-e', 'SKIPPER_UID=%(user_id)s' % dict(user_id=user_id)]
 
