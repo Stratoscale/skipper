@@ -3,6 +3,7 @@ import logging
 import os.path
 import tabulate
 import click
+from pkg_resources import get_distribution
 from skipper import git
 from skipper import runner
 from skipper import utils
@@ -217,6 +218,15 @@ def shell(ctx, env):
                       net=ctx.obj['build_container_net'],
                       volumes=ctx.obj.get('volumes'),
                       workdir=ctx.obj.get('workdir'))
+
+
+@cli.command()
+def version():
+    '''
+    Output skipper version
+    '''
+    utils.logger.debug("Printing skipper version")
+    click.echo(get_distribution("strato-skipper").version)  # pylint: disable=no-member
 
 
 def _prepare_build_container(registry, image, tag):

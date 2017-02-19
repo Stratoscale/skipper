@@ -1074,6 +1074,18 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(['bash'], fqdn_image=expected_fqdn_image, environment=[], interactive=True,
                                                         net='host', volumes=None, workdir=None)
 
+    @mock.patch('click.echo', autospec=True)
+    @mock.patch('skipper.cli.get_distribution', autospec=True)
+    def test_version(self, get_dist_mock, echo_mock):
+        expected_version = '1.2.3'
+        get_dist_mock.return_value = mock.MagicMock()
+        get_dist_mock.return_value.version = expected_version
+
+        self._invoke_cli(
+            subcmd='version',
+        )
+        echo_mock.assert_called_once_with(expected_version)
+
     def _invoke_cli(self, defaults=None, global_params=None, subcmd=None, subcmd_params=None):
         self.assertFalse(subcmd is None and subcmd_params is not None, 'No sub-command was provided!')
 
