@@ -1,0 +1,9 @@
+From python:2.7
+
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
+
+COPY dev-requirements.txt /tmp/dev-requirements.txt
+RUN pip install -r /tmp/dev-requirements.txt
+
+RUN rm /tmp/*requirements.txt

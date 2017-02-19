@@ -1,4 +1,4 @@
-all: build
+all: pep8 pylint tests build
 
 build:
 	python setup.py sdist
