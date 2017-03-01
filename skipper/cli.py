@@ -25,8 +25,9 @@ def cli(ctx, registry, build_container_image, build_container_tag, build_contain
 
     ctx.obj['registry'] = registry
     ctx.obj['build_container_image'] = build_container_image
-    ctx.obj['build_container_tag'] = build_container_tag
     ctx.obj['build_container_net'] = build_container_net
+    ctx.obj['git_revision'] = build_container_tag == 'git:revision'
+    ctx.obj['build_container_tag'] = git.get_hash() if ctx.obj['git_revision'] else build_container_tag
     ctx.obj['env'] = ctx.default_map.get('env', {})
     ctx.obj['containers'] = ctx.default_map.get('containers')
     ctx.obj['volumes'] = ctx.default_map.get('volumes')
@@ -164,7 +165,8 @@ def run(ctx, interactive, env, command):
     _validate_global_params(ctx, 'build_container_image')
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
-                                               ctx.obj['build_container_tag'])
+                                               ctx.obj['build_container_tag'],
+                                               ctx.obj['git_revision'])
     return runner.run(list(command),
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
@@ -188,7 +190,8 @@ def make(ctx, interactive, env, makefile, make_params):
     _validate_global_params(ctx, 'build_container_image')
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
-                                               ctx.obj['build_container_tag'])
+                                               ctx.obj['build_container_tag'],
+                                               ctx.obj['git_revision'])
     command = ['make', '-f', makefile] + list(make_params)
     return runner.run(command,
                       fqdn_image=build_container,
@@ -210,7 +213,8 @@ def shell(ctx, env):
     _validate_global_params(ctx, 'build_container_image')
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
-                                               ctx.obj['build_container_tag'])
+                                               ctx.obj['build_container_tag'],
+                                               ctx.obj['git_revision'])
     return runner.run(['bash'],
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
@@ -229,24 +233,37 @@ def version():
     click.echo(get_distribution("strato-skipper").version)  # pylint: disable=no-member
 
 
-def _prepare_build_container(registry, image, tag):
+def _prepare_build_container(registry, image, tag, git_revision=False):
+
     if tag is not None:
+
+        tagged_image_name = image + ':' + tag
+
         if utils.local_image_exist(image, tag):
-            image_name = image + ':' + tag
-            utils.logger.info("Using build container: %(image_name)s", dict(image_name=image_name))
-            return image_name
+            utils.logger.info("Using build container: %(image_name)s", dict(image_name=tagged_image_name))
+            return tagged_image_name
 
         if utils.remote_image_exist(registry, image, tag):
             fqdn_image = utils.generate_fqdn_image(registry, None, image, tag)
             utils.logger.info("Using build container: %(fqdn_image)s", dict(fqdn_image=fqdn_image))
             return fqdn_image
 
-        raise click.exceptions.ClickException("Couldn't find build image %(image)s with tag %(tag)s" % dict(image=image, tag=tag))
+        if not git_revision:
+            raise click.exceptions.ClickException(
+                "Couldn't find build image %(image)s with tag %(tag)s" % dict(image=image, tag=tag))
 
-    utils.logger.info("No build container tag was provided. Building from scratch...")
-    dockerfile = utils.image_to_dockerfile(image)
-    command = ['docker', 'build', '-t', image, '-f', dockerfile, '.']
-    runner.run(command)
+    else:
+        tagged_image_name = image
+        utils.logger.info("No build container tag was provided")
+
+    docker_file = utils.image_to_dockerfile(image)
+    utils.logger.info("Building image using docker file: %(docker_file)s", dict(docker_file=docker_file))
+    runner.run(['docker', 'build', '-t', image, '-f', docker_file, '.'])
+
+    if git_revision and not git.uncommitted_changes():
+        utils.logger.info("Tagging image with git revision: %(tag)s", dict(tag=tag))
+        runner.run(['docker', 'tag', image, tagged_image_name])
+
     return image
 
 

@@ -1,5 +1,6 @@
 import mock
 import os
+import httplib
 import unittest
 import click
 from click import testing
@@ -84,6 +85,15 @@ SKIPPER_CONF_WITH_WORKDIR = {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
     'workdir': 'test-workdir'
+}
+
+SKIPPER_CONF_WITH_GIT_REV = {
+    'registry': REGISTRY,
+    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build-container-tag': 'git:revision',
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
 }
 
 
@@ -760,6 +770,7 @@ class TestCLI(unittest.TestCase):
             'name': 'my_image',
             'tags': ['latest', 'aaaaaaa', 'bbbbbbb', 'build-container-tag']
         }
+        requests_response_mock.status_code = httplib.OK
         requests_get_mock.return_value = requests_response_mock
 
         command = ['ls', '-l']
@@ -979,6 +990,42 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=False, net='host', volumes=None,
                                                         workdir='test-workdir')
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('os.path.exists', autospec=True, return_value=True)
+    @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV)
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
+    @mock.patch('skipper.git.uncommitted_changes', return_value=True)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_config_including_git_revision_with_uncommitted_changes(self, skipper_runner_run_mock, *args):
+        command = ['ls', '-l']
+        run_params = command
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        expected_fqdn_image = 'skipper-conf-build-container-image:1234567'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
+                                                        interactive=False, net='host', volumes=None, workdir=None)
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('os.path.exists', autospec=True, return_value=True)
+    @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV)
+    @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
+    @mock.patch('skipper.git.uncommitted_changes', return_value=False)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_config_including_git_revision_without_uncommitted_changes(self, skipper_runner_run_mock, *args):
+        command = ['ls', '-l']
+        run_params = command
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        expected_fqdn_image = 'skipper-conf-build-container-image:1234567'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
+                                                        interactive=False, net='host', volumes=None, workdir=None)
 
     @mock.patch('subprocess.check_output', autospec=True, return_value='1234567\n')
     @mock.patch('skipper.runner.run', autospec=True)

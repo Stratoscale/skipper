@@ -2,6 +2,7 @@ import glob
 import json
 import logging
 import subprocess
+import httplib
 import requests
 
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
@@ -47,6 +48,10 @@ def remote_image_exist(registry, image, tag):
     requests.packages.urllib3.disable_warnings()
     url = IMAGE_TAGS_URL % dict(registry=registry, image=image)
     response = requests.get(url=url, verify=False)
+
+    if response.status_code != httplib.OK:
+        return False
+
     info = response.json()
     return tag in info['tags']
 
