@@ -3,6 +3,7 @@ import getpass
 import logging
 import os
 import subprocess
+from contextlib import contextmanager
 
 
 def run(command, fqdn_image=None, environment=None, interactive=False, net='host', volumes=None, workdir=None):
@@ -22,7 +23,6 @@ def _run(cmd):
 
 # pylint: disable=too-many-locals
 def _run_nested(fqdn_image, environment, command, interactive, net='host', volumes=None, workdir=None):
-    _create_network(net)
     cwd = os.getcwd()
     workspace = os.path.dirname(cwd)
     project = os.path.basename(cwd)
@@ -68,13 +68,30 @@ def _run_nested(fqdn_image, environment, command, interactive, net='host', volum
     docker_cmd += [fqdn_image]
     docker_cmd += [' '.join(command)]
 
-    return _run(docker_cmd)
+    with _network(net):
+        ret = _run(docker_cmd)
+
+    return ret
+
+
+@contextmanager
+def _network(net):
+    if _network_exists(net):
+        yield
+    else:
+        _create_network(net)
+        yield
+        _destroy_network(net)
 
 
 def _create_network(net):
-    if not _network_exists(net):
-        logging.debug("Network %(net)s does not exist. Creating...", dict(net=net))
-        subprocess.check_output(['docker', 'network', 'create', net])
+    logging.debug("Creating network %(net)s", dict(net=net))
+    subprocess.check_output(['docker', 'network', 'create', net])
+
+
+def _destroy_network(net):
+    logging.debug("Deleting network %(net)s", dict(net=net))
+    subprocess.check_output(['docker', 'network', 'rm', net])
 
 
 def _network_exists(net):
