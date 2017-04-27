@@ -33,6 +33,7 @@ def _run_nested(fqdn_image, environment, command, interactive, net='host', volum
 
     docker_cmd += ['-t']
     docker_cmd += ['--rm']
+    docker_cmd += ['--privileged']
 
     docker_cmd += ['--net', net]
 
