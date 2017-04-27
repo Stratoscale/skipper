@@ -46,7 +46,7 @@ def build(ctx, images_to_build):
     valid_images = ctx.obj.get('containers') or utils.get_images_from_dockerfiles()
     valid_images = {image: os.path.abspath(dockerfile) for image, dockerfile in valid_images.iteritems()}
     valid_images_to_build = {}
-    if len(images_to_build) == 0:
+    if not images_to_build:
         valid_images_to_build = valid_images
     else:
         for image in images_to_build:
@@ -122,7 +122,7 @@ def images(ctx, remote):
 
     valid_images = ctx.obj.get('containers') or utils.get_images_from_dockerfiles()
     images_names = valid_images.keys()
-    utils.logger.info("Expected images: %(images)s\n" % dict(images=", ".join(images_names)))
+    utils.logger.info("Expected images: %(images)s\n", dict(images=", ".join(images_names)))
     images_info = utils.get_local_images_info(images_names)
     if remote:
         _validate_global_params(ctx, 'registry')
@@ -282,6 +282,6 @@ def _validate_project_image(image):
 def _expend_env(ctx, extra_env):
     environment = []
     for key, value in ctx.obj['env'].iteritems():
-        utils.logger.debug("Adding {}={} to environment".format(key, value))
+        utils.logger.debug("Adding %s=%s to environment", key, value)
         environment.append("{}={}".format(key, value))
     return environment + list(extra_env)

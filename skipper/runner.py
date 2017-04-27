@@ -9,8 +9,8 @@ from contextlib import contextmanager
 def run(command, fqdn_image=None, environment=None, interactive=False, net='host', volumes=None, workdir=None):
     if fqdn_image is not None:
         return _run_nested(fqdn_image, environment, command, interactive, net, volumes, workdir)
-    else:
-        return _run(command)
+
+    return _run(command)
 
 
 def _run(cmd):
