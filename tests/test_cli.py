@@ -922,7 +922,7 @@ class TestCLI(unittest.TestCase):
                                                         interactive=True, net='host', volumes=None, workdir=None)
 
     @mock.patch('subprocess.check_output', autospec=True, return_value='')
-    @mock.patch('skipper.runner.run', autospec=True)
+    @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_run_without_build_container_tag(self, skipper_runner_run_mock, *args):
         global_params = self.global_params[:-2]
         command = ['ls', '-l']
@@ -1092,7 +1092,7 @@ class TestCLI(unittest.TestCase):
                                                         interactive=False, net='host', volumes=None, workdir=None)
 
     @mock.patch('subprocess.check_output', autospec=True, return_value='')
-    @mock.patch('skipper.runner.run', autospec=True)
+    @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_make_without_build_container_tag(self, skipper_runner_run_mock, *args):
         global_params = self.global_params[:-2]
         makefile = 'Makefile'
