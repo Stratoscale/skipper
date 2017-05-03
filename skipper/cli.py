@@ -258,7 +258,9 @@ def _prepare_build_container(registry, image, tag, git_revision=False):
 
     docker_file = utils.image_to_dockerfile(image)
     utils.logger.info("Building image using docker file: %(docker_file)s", dict(docker_file=docker_file))
-    runner.run(['docker', 'build', '-t', image, '-f', docker_file, '.'])
+    ret = runner.run(['docker', 'build', '-t', image, '-f', docker_file, '.'])
+    if ret != 0:
+        exit('Failed to build image: %(image)s' % dict(image=image))
 
     if git_revision and not git.uncommitted_changes():
         utils.logger.info("Tagging image with git revision: %(tag)s", dict(tag=tag))
