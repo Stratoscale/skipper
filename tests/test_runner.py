@@ -1,8 +1,9 @@
-import os
 import mock
+import os
+import subprocess
 import unittest
 from skipper import runner
-from skipper.runner import DOCKER_PATH_ON_HOST
+
 
 USER_ID = 1000
 GROUP_ID = 2000
@@ -62,14 +63,13 @@ class TestRunner(unittest.TestCase):
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '{docker_path_on_host}:/usr/bin/docker:ro'.format(docker_path_on_host=DOCKER_PATH_ON_HOST),
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
             command[0]
         ]
-        popen_mock.assert_called_with(expected_nested_command)
+        popen_mock.assert_called_once_with(expected_nested_command)
 
     @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
@@ -97,14 +97,13 @@ class TestRunner(unittest.TestCase):
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '{docker_path_on_host}:/usr/bin/docker:ro'.format(docker_path_on_host=DOCKER_PATH_ON_HOST),
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
             command[0]
         ]
-        popen_mock.assert_called_with(expected_nested_command)
+        popen_mock.assert_called_once_with(expected_nested_command)
 
     @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
@@ -134,14 +133,13 @@ class TestRunner(unittest.TestCase):
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '{docker_path_on_host}:/usr/bin/docker:ro'.format(docker_path_on_host=DOCKER_PATH_ON_HOST),
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
             command[0]
         ]
-        popen_mock.assert_called_with(expected_docker_command)
+        popen_mock.assert_called_once_with(expected_docker_command)
 
     @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
@@ -170,14 +168,13 @@ class TestRunner(unittest.TestCase):
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '{docker_path_on_host}:/usr/bin/docker:ro'.format(docker_path_on_host=DOCKER_PATH_ON_HOST),
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
             command[0]
         ]
-        popen_mock.assert_called_with(expected_nested_command)
+        popen_mock.assert_called_once_with(expected_nested_command)
 
     @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
@@ -205,14 +202,13 @@ class TestRunner(unittest.TestCase):
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '{docker_path_on_host}:/usr/bin/docker:ro'.format(docker_path_on_host=DOCKER_PATH_ON_HOST),
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
             ' '.join(command)
         ]
-        popen_mock.assert_called_with(expected_nested_command)
+        popen_mock.assert_called_once_with(expected_nested_command)
 
     @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
     @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
@@ -242,11 +238,10 @@ class TestRunner(unittest.TestCase):
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '{docker_path_on_host}:/usr/bin/docker:ro'.format(docker_path_on_host=DOCKER_PATH_ON_HOST),
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
             ' '.join(command)
         ]
-        popen_mock.assert_called_with(expected_nested_command)
+        popen_mock.assert_called_once_with(expected_nested_command)

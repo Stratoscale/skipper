@@ -5,8 +5,6 @@ import os
 import subprocess
 from contextlib import contextmanager
 
-DOCKER_PATH_ON_HOST = subprocess.check_output('which docker', shell=True).strip()
-
 
 def run(command, fqdn_image=None, environment=None, interactive=False, net='host', volumes=None, workdir=None):
     if fqdn_image is not None:
@@ -57,7 +55,6 @@ def _run_nested(fqdn_image, environment, command, interactive, net='host', volum
         '%(workspace)s:%(workspace)s:rw,Z' % dict(workspace=workspace),
         '/var/lib/osmosis:/var/lib/osmosis:rw,Z' % dict(workspace=workspace),
         '/var/run/docker.sock:/var/run/docker.sock:Z',
-        '{docker_path_on_host}:/usr/bin/docker:ro'.format(docker_path_on_host=DOCKER_PATH_ON_HOST),
         '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
     ])
     for volume in volumes:
