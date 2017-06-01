@@ -4,6 +4,8 @@ import logging
 import subprocess
 import httplib
 import requests
+import urllib3
+
 
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
 IMAGE_TAGS_URL = REGISTRY_BASE_URL + '%(image)s/tags/list'
@@ -45,7 +47,7 @@ def local_image_exist(image, tag):
 
 
 def remote_image_exist(registry, image, tag):
-    requests.packages.urllib3.disable_warnings()
+    urllib3.disable_warnings()
     url = IMAGE_TAGS_URL % dict(registry=registry, image=image)
     response = requests.get(url=url, verify=False)
 
@@ -81,7 +83,7 @@ def get_remote_images_info(images, registry):
 
 
 def get_remote_image_info(image, registry):
-    requests.packages.urllib3.disable_warnings()
+    urllib3.disable_warnings()
     image_info = []
     url = IMAGE_TAGS_URL % dict(registry=registry, image=image)
     response = requests.get(url=url, verify=False)
@@ -98,7 +100,7 @@ def get_remote_image_info(image, registry):
 
 
 def get_image_digest(registry, image, tag):
-    requests.packages.urllib3.disable_warnings()
+    urllib3.disable_warnings()
     url = MANIFEST_URL % dict(registry=registry, image=image, reference=tag)
     headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
     response = requests.get(url=url, headers=headers, verify=False)
