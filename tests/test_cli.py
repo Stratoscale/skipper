@@ -312,7 +312,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
     @mock.patch('skipper.runner.run', autospec=True)
     def test_push(self, skipper_runner_run_mock, *args):
-        skipper_runner_run_mock.side_effect = [0, 0]
+        skipper_runner_run_mock.side_effect = [0, 0, 0, 0, 0, 0]
         push_params = ['my_image']
         self._invoke_cli(
             global_params=self.global_params,
@@ -323,6 +323,20 @@ class TestCLI(unittest.TestCase):
             mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
             mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
             mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
+
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_push_build_container(self, skipper_runner_run_mock, *args):
+        skipper_runner_run_mock.side_effect = [0, 0, 0]
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='push_build_container'
+        )
+        expected_commands = [
+            mock.call(['docker', 'tag', 'build-container-image', 'registry.io:5000/build-container-image:latest']),
+            mock.call(['docker', 'push', 'registry.io:5000/build-container-image:latest']),
+            mock.call(['docker', 'rmi', 'registry.io:5000/build-container-image:latest']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
