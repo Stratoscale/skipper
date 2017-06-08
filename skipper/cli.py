@@ -78,7 +78,7 @@ def build(ctx, images_to_build):
 
         if ret != 0:
             utils.logger.error('Failed to build image: %(image)s', dict(image=image))
-            return ret
+            sys.exit(ret)
 
     return 0
 
