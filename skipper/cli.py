@@ -9,7 +9,7 @@ from skipper import runner
 from skipper import utils
 
 
-PULL_LATEST_BEFORE_BUILD = os.environ.get("SKIPPER_PULL_LATEST_BEFORE_BUILD", None)
+PULL_LATEST_BEFORE_BUILD = os.environ.get("PULL_LATEST_BEFORE_BUILD", None)
 
 
 @click.group()
