@@ -8,5 +8,10 @@ fi
 groupadd -g ${SKIPPER_DOCKER_GID} --non-unique docker
 usermod -G root,docker ${SKIPPER_USERNAME}
 
-su -m ${SKIPPER_USERNAME} -c "$@"
 
+while true; do
+	su -m ${SKIPPER_USERNAME} -c "$@"
+	if [ x$? == x0 ]; then
+	    break
+	fi
+done
