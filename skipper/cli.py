@@ -1,15 +1,12 @@
 import sys
 import logging
-import os
+import os.path
 import tabulate
 import click
 from pkg_resources import get_distribution
 from skipper import git
 from skipper import runner
 from skipper import utils
-
-
-PULL_LATEST_BEFORE_BUILD = os.environ.get("PULL_LATEST_BEFORE_BUILD", None)
 
 
 @click.group()
@@ -66,11 +63,6 @@ def build(ctx, images_to_build):
             utils.logger.warning('Dockerfile %(dockerfile)s does not exist! Skipping...', dict(dockerfile=dockerfile))
             continue
 
-        if PULL_LATEST_BEFORE_BUILD:
-            # Optimization: try to pull latest image before building to save layers
-            fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], None, image)
-            runner.run(['docker', 'pull', fqdn_image])
-
         fqdn_image = image + ':' + tag
         path = os.path.dirname(dockerfile)
         command = ['docker', 'build', '-f', dockerfile, '-t', fqdn_image, path]
@@ -96,28 +88,26 @@ def push(ctx, namespace, image):
     tag = git.get_hash()
     image_name = image + ':' + tag
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace, image, tag)
-    ret = _push_image(image_name, fqdn_image, ctx)
+
+    utils.logger.debug("Adding tag %(tag)s", dict(tag=fqdn_image))
+    command = ['docker', 'tag', image_name, fqdn_image]
+    ret = runner.run(command)
     if ret != 0:
-        return ret
+        utils.logger.error('Failed to tag image: %(tag)s as fqdn', dict(tag=image_name, fqdn=fqdn_image))
+        sys.exit(ret)
 
-    # Push also as latest, optimization for building in a different environment
-    fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], None, image)
-    ret = _push_image(image_name, fqdn_image, ctx)
-    return ret
+    utils.logger.debug("Pushing to registry %(registry)s", dict(registry=ctx.obj['registry']))
+    command = ['docker', 'push', fqdn_image]
+    ret = runner.run(command)
+    if ret != 0:
+        utils.logger.error('Failed to push image: %(tag)s', dict(tag=fqdn_image))
+        sys.exit(ret)
 
-
-@cli.command()
-@click.pass_context
-def push_build_container(ctx):
-    '''
-    Push the build container to registry
-    '''
-    utils.logger.debug("Executing push command of the build container")
-    _validate_global_params(ctx, 'registry')
-    _validate_global_params(ctx, 'build_container_image')
-    image_name = ctx.obj['build_container_image']
-    fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], None, image_name)
-    ret = _push_image(image_name, fqdn_image, ctx)
+    utils.logger.debug("Removing tag %(tag)s", dict(tag=fqdn_image))
+    command = ['docker', 'rmi', fqdn_image]
+    ret = runner.run(command)
+    if ret != 0:
+        utils.logger.warning('Failed to remove image tag: %(tag)s', dict(tag=fqdn_image))
     return ret
 
 
@@ -244,7 +234,7 @@ def version():
 
 
 def _prepare_build_container(registry, image, tag, git_revision=False):
-    fqdn_image = utils.generate_fqdn_image(registry, None, image, tag)
+
     if tag is not None:
 
         tagged_image_name = image + ':' + tag
@@ -254,6 +244,7 @@ def _prepare_build_container(registry, image, tag, git_revision=False):
             return tagged_image_name
 
         if utils.remote_image_exist(registry, image, tag):
+            fqdn_image = utils.generate_fqdn_image(registry, None, image, tag)
             utils.logger.info("Using build container: %(fqdn_image)s", dict(fqdn_image=fqdn_image))
             return fqdn_image
 
@@ -261,12 +252,9 @@ def _prepare_build_container(registry, image, tag, git_revision=False):
             raise click.exceptions.ClickException(
                 "Couldn't find build image %(image)s with tag %(tag)s" % dict(image=image, tag=tag))
 
-    tagged_image_name = image
-    utils.logger.info("No build container tag was provided")
-
-    if PULL_LATEST_BEFORE_BUILD:
-        # Optimization: try to pull latest image before building to save layers
-        runner.run(['docker', 'pull', fqdn_image])
+    else:
+        tagged_image_name = image
+        utils.logger.info("No build container tag was provided")
 
     docker_file = utils.image_to_dockerfile(image)
     utils.logger.info("Building image using docker file: %(docker_file)s", dict(docker_file=docker_file))
@@ -279,29 +267,6 @@ def _prepare_build_container(registry, image, tag, git_revision=False):
         runner.run(['docker', 'tag', image, tagged_image_name])
 
     return image
-
-
-def _push_image(image_name, fqdn_image, ctx):
-    utils.logger.debug("Adding tag %(tag)s", dict(tag=fqdn_image))
-    command = ['docker', 'tag', image_name, fqdn_image]
-    ret = runner.run(command)
-    if ret != 0:
-        utils.logger.error('Failed to tag image: %(tag)s as fqdn', dict(tag=image_name, fqdn=fqdn_image))
-        sys.exit(ret)
-
-    utils.logger.debug("Pushing to registry %(registry)s", dict(registry=ctx.obj['registry']))
-    command = ['docker', 'push', fqdn_image]
-    ret = runner.run(command)
-    if ret != 0:
-        utils.logger.error('Failed to push image: %(tag)s', dict(tag=fqdn_image))
-        sys.exit(ret)
-
-    utils.logger.debug("Removing tag %(tag)s", dict(tag=fqdn_image))
-    command = ['docker', 'rmi', fqdn_image]
-    ret = runner.run(command)
-    if ret != 0:
-        utils.logger.warning('Failed to remove image tag: %(tag)s', dict(tag=fqdn_image))
-    return ret
 
 
 def _validate_global_params(ctx, *params):
