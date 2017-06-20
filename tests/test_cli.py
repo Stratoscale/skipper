@@ -168,6 +168,29 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 
+    @mock.patch('skipper.utils.get_images_from_dockerfiles', autospec=True,
+                return_value={'image1': '/home/user/work/project/Dockerfile.image1'})
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('os.path.exists', autospec=True, return_value=True)
+    @mock.patch('skipper.runner.run', autospec=True, return_value=0)
+    def test_build_existing_image_with_context(self, skipper_runner_run_mock, *args):
+        build_params = ['image1',
+                        '--container-context',
+                        '/home/user/work']
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='build',
+            subcmd_params=build_params
+        )
+        expected_command = [
+            'docker',
+            'build',
+            '-f', '/home/user/work/project/Dockerfile.image1',
+            '-t', 'image1:1234567',
+            '/home/user/work'
+        ]
+        skipper_runner_run_mock.assert_called_once_with(expected_command)
+
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
     @mock.patch('os.path.exists', autospec=True, return_value=False)
     @mock.patch('skipper.runner.run', autospec=True)
