@@ -62,7 +62,7 @@ You can also build mutliple images with single command:
 skipper build development service2
 ```
 
-A context path can be added to the build command, The build’s context is the files at a specified location PATH:
+A context path can be added to the build command, The build’s context is the files at a specified location PATH, the default is current directory:
 ```bash
 skipper buid service1 --container-context /path/to/context/dir
 ```
