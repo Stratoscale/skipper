@@ -176,7 +176,7 @@ class TestCLI(unittest.TestCase):
     def test_build_existing_image_with_context(self, skipper_runner_run_mock, *args):
         build_params = ['image1',
                         '--container-context',
-                        '/home/user/work']
+                        '/home/user/work/project']
         self._invoke_cli(
             global_params=self.global_params,
             subcmd='build',
@@ -187,7 +187,7 @@ class TestCLI(unittest.TestCase):
             'build',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
-            '/home/user/work'
+            '/home/user/work/project'
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 

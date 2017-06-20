@@ -32,6 +32,7 @@ def cli(ctx, registry, build_container_image, build_container_tag, build_contain
     ctx.obj['containers'] = ctx.default_map.get('containers')
     ctx.obj['volumes'] = ctx.default_map.get('volumes')
     ctx.obj['workdir'] = ctx.default_map.get('workdir')
+    ctx.obj['container_context'] = ctx.default_map.get('container_context')
 
 
 @cli.command()
@@ -66,7 +67,10 @@ def build(ctx, images_to_build, container_context):
 
         fqdn_image = image + ':' + tag
         if not container_context:
-            container_context = os.path.dirname(dockerfile)
+            if ctx.obj['container_context']:
+                container_context = ctx.obj['container_context']
+            else:
+                container_context = os.path.dirname(dockerfile)
         command = ['docker', 'build', '-f', dockerfile, '-t', fqdn_image, container_context]
         ret = runner.run(command)
 
