@@ -6,9 +6,9 @@ import subprocess
 from contextlib import contextmanager
 
 
-def run(command, fqdn_image=None, environment=None, interactive=False, net='host', volumes=None, workdir=None):
+def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net='host', volumes=None, workdir=None):
     if fqdn_image is not None:
-        return _run_nested(fqdn_image, environment, command, interactive, net, volumes, workdir)
+        return _run_nested(fqdn_image, environment, command, interactive, name, net, volumes, workdir)
 
     return _run(command)
 
@@ -22,7 +22,7 @@ def _run(cmd):
 
 
 # pylint: disable=too-many-locals
-def _run_nested(fqdn_image, environment, command, interactive, net='host', volumes=None, workdir=None):
+def _run_nested(fqdn_image, environment, command, interactive, name, net='host', volumes=None, workdir=None):
     cwd = os.getcwd()
     workspace = os.path.dirname(cwd)
     project = os.path.basename(cwd)
@@ -30,6 +30,8 @@ def _run_nested(fqdn_image, environment, command, interactive, net='host', volum
     docker_cmd = ['docker', 'run']
     if interactive:
         docker_cmd += ['-i']
+    if name:
+        docker_cmd += ['--name', name]
 
     docker_cmd += ['-t']
     docker_cmd += ['--rm']

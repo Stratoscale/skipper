@@ -160,10 +160,11 @@ def rmi(ctx, remote, image, tag):
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
 @click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False, envvar='SKIPPER_INTERACTIVE')
+@click.option('-n', '--name', help='Container name', default=None)
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.argument('command', nargs=-1, type=click.UNPROCESSED, required=True)
 @click.pass_context
-def run(ctx, interactive, env, command):
+def run(ctx, interactive, name, env, command):
     '''
     Run arbitrary commands
     '''
@@ -177,6 +178,7 @@ def run(ctx, interactive, env, command):
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
                       interactive=interactive,
+                      name=name,
                       net=ctx.obj['build_container_net'],
                       volumes=ctx.obj.get('volumes'),
                       workdir=ctx.obj.get('workdir'))
@@ -184,11 +186,12 @@ def run(ctx, interactive, env, command):
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
 @click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False, envvar='SKIPPER_INTERACTIVE')
+@click.option('-n', '--name', help='Container name', default=None)
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.option('-f', 'makefile', help='Makefile to use', default='Makefile')
 @click.argument('make_params', nargs=-1, type=click.UNPROCESSED, required=False)
 @click.pass_context
-def make(ctx, interactive, env, makefile, make_params):
+def make(ctx, interactive, name, env, makefile, make_params):
     '''
     Execute makefile target(s)
     '''
@@ -203,6 +206,7 @@ def make(ctx, interactive, env, makefile, make_params):
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
                       interactive=interactive,
+                      name=name,
                       net=ctx.obj['build_container_net'],
                       volumes=ctx.obj.get('volumes'),
                       workdir=ctx.obj.get('workdir'))
@@ -210,8 +214,9 @@ def make(ctx, interactive, env, makefile, make_params):
 
 @cli.command()
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
+@click.option('-n', '--name', help='Container name', default=None)
 @click.pass_context
-def shell(ctx, env):
+def shell(ctx, env, name):
     '''
     Start a shell
     '''
@@ -225,6 +230,7 @@ def shell(ctx, env):
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
                       interactive=True,
+                      name=name,
                       net=ctx.obj['build_container_net'],
                       volumes=ctx.obj.get('volumes'),
                       workdir=ctx.obj.get('workdir'))
