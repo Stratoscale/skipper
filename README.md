@@ -62,6 +62,11 @@ You can also build mutliple images with single command:
 skipper build development service2
 ```
 
+A context path can be added to the build command, The build’s context is the files at a specified location PATH, the default is current directory:
+```bash
+skipper buid service1 --container-context /path/to/context/dir
+```
+
 If no image is specifed skipper will build all detected images:
 ```bash
 skipper build
@@ -133,6 +138,7 @@ Skipper allows you to define commonly used parameters in a configuration file `s
 registry: some-registry 
 build-container-image: development
 build-container-tag: latest
+container-context: /path/to/context/dir
 
 make: 
     makefile: Makefile.arm32
