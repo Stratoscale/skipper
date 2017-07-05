@@ -66,12 +66,13 @@ def build(ctx, images_to_build, container_context):
             continue
 
         fqdn_image = image + ':' + tag
-        if not container_context:
-            if ctx.obj['container_context']:
-                container_context = ctx.obj['container_context']
-            else:
-                container_context = os.path.dirname(dockerfile)
-        command = ['docker', 'build', '-f', dockerfile, '-t', fqdn_image, container_context]
+        if container_context is not None:
+            build_context = container_context
+        elif ctx.obj['container_context']:
+            build_context = ctx.obj['container_context']
+        else:
+            build_context = os.path.dirname(dockerfile)
+        command = ['docker', 'build', '-f', dockerfile, '-t', fqdn_image, build_context]
         ret = runner.run(command)
 
         if ret != 0:
