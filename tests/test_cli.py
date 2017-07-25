@@ -3,6 +3,7 @@ import os
 import httplib
 import unittest
 import click
+import six
 from click import testing
 from skipper import cli
 from skipper import config
@@ -130,7 +131,7 @@ class TestCLI(unittest.TestCase):
             'make': ['-f', 'Makefile', 'all'],
         }
 
-        for subcmd, subcmd_params in subcmd_params_map.iteritems():
+        for subcmd, subcmd_params in six.iteritems(subcmd_params_map):
             result = self._invoke_cli(
                 global_params=None,
                 subcmd=subcmd,
@@ -861,7 +862,7 @@ class TestCLI(unittest.TestCase):
             subcmd='run',
             subcmd_params=run_params
         )
-        env = ["%s=%s" % (key, value) for key, value in CONFIG_ENV_EVALUATION.iteritems()]
+        env = ["%s=%s" % (key, value) for key, value in six.iteritems(CONFIG_ENV_EVALUATION)]
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
                                                         interactive=False, name=None, net='host', volumes=None, workdir=None)
@@ -880,7 +881,7 @@ class TestCLI(unittest.TestCase):
             subcmd='run',
             subcmd_params=run_params
         )
-        env = ["%s=%s" % (key, value) for key, value in CONFIG_ENV_EVALUATION.iteritems()] + ENV
+        env = ["%s=%s" % (key, value) for key, value in six.iteritems(CONFIG_ENV_EVALUATION)] + ENV
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
                                                         interactive=False, name=None, net='host', volumes=None, workdir=None)

@@ -3,6 +3,7 @@ import logging
 import os.path
 import tabulate
 import click
+import six
 from pkg_resources import get_distribution
 from skipper import git
 from skipper import runner
@@ -46,7 +47,7 @@ def build(ctx, images_to_build, container_context):
     utils.logger.debug("Executing build command")
 
     valid_images = ctx.obj.get('containers') or utils.get_images_from_dockerfiles()
-    valid_images = {image: os.path.abspath(dockerfile) for image, dockerfile in valid_images.iteritems()}
+    valid_images = {image: os.path.abspath(dockerfile) for image, dockerfile in six.iteritems(valid_images)}
     valid_images_to_build = {}
     if not images_to_build:
         valid_images_to_build = valid_images
@@ -58,7 +59,7 @@ def build(ctx, images_to_build, container_context):
             valid_images_to_build[image] = valid_images[image]
 
     tag = git.get_hash()
-    for image, dockerfile in valid_images_to_build.iteritems():
+    for image, dockerfile in six.iteritems(valid_images_to_build):
         utils.logger.info('Building image: %(image)s', dict(image=image))
 
         if not os.path.exists(dockerfile):
@@ -296,7 +297,7 @@ def _validate_project_image(image):
 
 def _expend_env(ctx, extra_env):
     environment = []
-    for key, value in ctx.obj['env'].iteritems():
+    for key, value in six.iteritems(ctx.obj['env']):
         utils.logger.debug("Adding %s=%s to environment", key, value)
         environment.append("{}={}".format(key, value))
     return environment + list(extra_env)
