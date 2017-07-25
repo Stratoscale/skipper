@@ -2,6 +2,7 @@ from string import Template
 from collections import defaultdict
 import os
 import yaml
+import six
 
 
 def load_defaults():
@@ -18,7 +19,7 @@ def load_defaults():
 
 
 def _normalize_config(config, normalized_config):
-    for key, value in config.iteritems():
+    for key, value in six.iteritems(config):
         if isinstance(value, dict):
             normalized_config[key] = {}
             _normalize_config(value, normalized_config[key])
