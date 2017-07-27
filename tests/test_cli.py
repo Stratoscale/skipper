@@ -19,6 +19,7 @@ BUILD_CONTAINER_FQDN_IMAGE = REGISTRY + '/' + BUILD_CONTAINER_IMAGE + ':' + BUIL
 
 ENV = ["KEY1=VAL1", "KEY2=VAL2"]
 
+SKIPPER_CONF_CONTAINER_CONTEXT = '/some/context'
 SKIPPER_CONF_BUILD_CONTAINER_IMAGE = 'skipper-conf-build-container-image'
 SKIPPER_CONF_BUILD_CONTAINER_TAG = 'skipper-conf-build-container-tag'
 SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE = REGISTRY + '/' + SKIPPER_CONF_BUILD_CONTAINER_IMAGE + ':' + SKIPPER_CONF_BUILD_CONTAINER_TAG
@@ -94,6 +95,25 @@ SKIPPER_CONF_WITH_GIT_REV = {
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
+}
+
+SKIPPER_CONF_WITH_CONTEXT = {
+    'registry': REGISTRY,
+    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
+    'container-context': SKIPPER_CONF_CONTAINER_CONTEXT
+}
+
+SKIPPER_CONF_WITH_CONTEXT_NO_TAG = {
+    'registry': REGISTRY,
+    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
+    'container-context': SKIPPER_CONF_CONTAINER_CONTEXT
 }
 
 
@@ -190,6 +210,55 @@ class TestCLI(unittest.TestCase):
             '/home/user/work/project'
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
+
+    @mock.patch('skipper.utils.get_images_from_dockerfiles', autospec=True,
+                return_value={'image1': '/home/user/work/project/Dockerfile.image1',
+                              'image2': '/home/user/work/project/Dockerfile.image2'})
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('os.path.exists', autospec=True, return_value=True)
+    @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT)
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('skipper.runner.run', autospec=True, return_value=0)
+    def test_build_with_context_from_config_file(self, skipper_runner_run_mock, *args):
+        build_params = ['image1']
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='build',
+            subcmd_params=build_params
+        )
+        expected_command = [
+            'docker',
+            'build',
+            '-f', '/home/user/work/project/Dockerfile.image1',
+            '-t', 'image1:1234567',
+            SKIPPER_CONF_CONTAINER_CONTEXT
+        ]
+        skipper_runner_run_mock.assert_called_once_with(expected_command)
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('os.path.exists', autospec=True, return_value=True)
+    @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT_NO_TAG)
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('subprocess.check_output', autospec=True, return_value='')
+    @mock.patch('skipper.runner.run', autospec=True, return_value=0)
+    def test_make_without_build_container_tag_with_context(self, skipper_runner_run_mock, *args):
+        global_params = self.global_params[:-2]
+        makefile = 'Makefile'
+        target = 'all'
+        make_params = ['-f', makefile, target]
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            global_params=global_params,
+            subcmd='make',
+            subcmd_params=make_params
+        )
+        expected_commands = [
+            mock.call(['docker', 'build', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image',
+                       SKIPPER_CONF_CONTAINER_CONTEXT]),
+            mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
+                      interactive=False, name=None, net='host', volumes=None, workdir=None),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
 
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
     @mock.patch('os.path.exists', autospec=True, return_value=False)

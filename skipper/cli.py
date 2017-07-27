@@ -174,7 +174,8 @@ def run(ctx, interactive, name, env, command):
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'],
-                                               ctx.obj['git_revision'])
+                                               ctx.obj['git_revision'],
+                                               ctx.obj['container_context'])
     return runner.run(list(command),
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
@@ -201,7 +202,8 @@ def make(ctx, interactive, name, env, makefile, make_params):
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'],
-                                               ctx.obj['git_revision'])
+                                               ctx.obj['git_revision'],
+                                               ctx.obj['container_context'])
     command = ['make', '-f', makefile] + list(make_params)
     return runner.run(command,
                       fqdn_image=build_container,
@@ -226,7 +228,8 @@ def shell(ctx, env, name):
     build_container = _prepare_build_container(ctx.obj['registry'],
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'],
-                                               ctx.obj['git_revision'])
+                                               ctx.obj['git_revision'],
+                                               ctx.obj['container_context'])
     return runner.run(['bash'],
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
@@ -246,7 +249,7 @@ def version():
     click.echo(get_distribution("strato-skipper").version)  # pylint: disable=no-member
 
 
-def _prepare_build_container(registry, image, tag, git_revision=False):
+def _prepare_build_container(registry, image, tag, git_revision=False, container_context=None):
 
     if tag is not None:
 
@@ -271,7 +274,11 @@ def _prepare_build_container(registry, image, tag, git_revision=False):
 
     docker_file = utils.image_to_dockerfile(image)
     utils.logger.info("Building image using docker file: %(docker_file)s", dict(docker_file=docker_file))
-    ret = runner.run(['docker', 'build', '-t', image, '-f', docker_file, '.'])
+    if container_context is not None:
+        build_context = container_context
+    else:
+        build_context = '.'
+    ret = runner.run(['docker', 'build', '-t', image, '-f', docker_file, build_context])
     if ret != 0:
         exit('Failed to build image: %(image)s' % dict(image=image))
 
