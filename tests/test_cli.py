@@ -1,6 +1,6 @@
 import mock
 import os
-import httplib
+from six.moves import http_client
 import unittest
 import click
 import six
@@ -795,7 +795,7 @@ class TestCLI(unittest.TestCase):
             'name': 'my_image',
             'tags': ['latest', 'aaaaaaa', 'bbbbbbb', 'build-container-tag']
         }
-        requests_response_mock.status_code = httplib.OK
+        requests_response_mock.status_code = http_client.OK
         requests_get_mock.return_value = requests_response_mock
 
         command = ['ls', '-l']

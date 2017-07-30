@@ -2,7 +2,7 @@ import glob
 import json
 import logging
 import subprocess
-import httplib
+from six.moves import http_client
 import requests
 import urllib3
 
@@ -51,7 +51,7 @@ def remote_image_exist(registry, image, tag):
     url = IMAGE_TAGS_URL % dict(registry=registry, image=image)
     response = requests.get(url=url, verify=False)
 
-    if response.status_code != httplib.OK:
+    if response.status_code != http_client.OK:
         return False
 
     info = response.json()
