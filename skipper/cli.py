@@ -85,9 +85,10 @@ def build(ctx, images_to_build, container_context):
 
 @cli.command()
 @click.option('--namespace', help='Namespace to push into')
+@click.option('--force', help="Push image even if it's already in the registry", is_flag=True, default=False)
 @click.argument('image')
 @click.pass_context
-def push(ctx, namespace, image):
+def push(ctx, namespace, force, image):
     '''
     Push a container
     '''
@@ -104,12 +105,20 @@ def push(ctx, namespace, image):
         utils.logger.error('Failed to tag image: %(tag)s as fqdn', dict(tag=image_name, fqdn=fqdn_image))
         sys.exit(ret)
 
-    utils.logger.debug("Pushing to registry %(registry)s", dict(registry=ctx.obj['registry']))
-    command = ['docker', 'push', fqdn_image]
-    ret = runner.run(command)
-    if ret != 0:
-        utils.logger.error('Failed to push image: %(tag)s', dict(tag=fqdn_image))
-        sys.exit(ret)
+    repo_name = utils.generate_fqdn_image(None, namespace, image, tag=None)
+
+    images_info = utils.get_remote_images_info([repo_name], ctx.obj['registry'])
+    tags = [info[-1] for info in images_info]
+    if tag in tags:
+        if not force:
+            utils.logger.info("Image %(image)s is already in registry %(registry)s, not pushing",
+                              dict(image=fqdn_image, registry=ctx.obj['registry']))
+        else:
+            utils.logger.warning("Image %(image)s is already in registry %(registry)s, pushing anyway",
+                                 dict(image=fqdn_image, registry=ctx.obj['registry']))
+            _push_to_registry(ctx.obj['registry'], fqdn_image)
+    else:
+        _push_to_registry(ctx.obj['registry'], fqdn_image)
 
     utils.logger.debug("Removing tag %(tag)s", dict(tag=fqdn_image))
     command = ['docker', 'rmi', fqdn_image]
@@ -248,6 +257,15 @@ def version():
     '''
     utils.logger.debug("Printing skipper version")
     click.echo(get_distribution("strato-skipper").version)  # pylint: disable=no-member
+
+
+def _push_to_registry(registry, fqdn_image):
+    utils.logger.debug("Pushing to registry %(registry)s", dict(registry=registry))
+    command = ['docker', 'push', fqdn_image]
+    ret = runner.run(command)
+    if ret != 0:
+        utils.logger.error('Failed to push image: %(tag)s', dict(tag=fqdn_image))
+        sys.exit(ret)
 
 
 def _prepare_build_container(registry, image, tag, git_revision=False, container_context=None):

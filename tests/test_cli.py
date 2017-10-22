@@ -403,10 +403,19 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('requests.get', autospec=True)
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_push(self, skipper_runner_run_mock, *args):
+    def test_push(self, skipper_runner_run_mock, requests_get_mock, *args):
         skipper_runner_run_mock.side_effect = [0, 0]
         push_params = ['my_image']
+        with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
+            requests_response_mock = requests_response_class_mock.return_value
+            requests_response_mock.json.return_value = {
+                'name': 'my_image',
+                'tags': ['latest', 'aaaaaaa', 'bbbbbbb']
+            }
+            requests_get_mock.return_value = requests_response_mock
+
         self._invoke_cli(
             global_params=self.global_params,
             subcmd='push',
@@ -420,10 +429,70 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('requests.get', autospec=True)
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_push_fail(self, skipper_runner_run_mock, *args):
+    def test_push_already_in_registry(self, skipper_runner_run_mock, requests_get_mock, *args):
+        skipper_runner_run_mock.side_effect = [0, 0]
+        push_params = ['my_image']
+        with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
+            requests_response_mock = requests_response_class_mock.return_value
+            requests_response_mock.json.return_value = {
+                'name': 'my_image',
+                'tags': ['latest', 'aaaaaaa', 'bbbbbbb', "1234567"]
+            }
+            requests_get_mock.return_value = requests_response_mock
+
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='push',
+            subcmd_params=push_params
+        )
+        expected_commands = [
+            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
+
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('requests.get', autospec=True)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_push_already_in_registry_with_force(self, skipper_runner_run_mock, requests_get_mock, *args):
+        skipper_runner_run_mock.side_effect = [0, 0]
+        push_params = ['my_image', "--force"]
+        with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
+            requests_response_mock = requests_response_class_mock.return_value
+            requests_response_mock.json.return_value = {
+                'name': 'my_image',
+                'tags': ['latest', 'aaaaaaa', 'bbbbbbb']
+            }
+            requests_get_mock.return_value = requests_response_mock
+
+        self._invoke_cli(
+            global_params=self.global_params,
+            subcmd='push',
+            subcmd_params=push_params
+        )
+        expected_commands = [
+            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
+            mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
+
+    @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('requests.get', autospec=True)
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_push_fail(self, skipper_runner_run_mock, requests_get_mock, *args):
         skipper_runner_run_mock.side_effect = [0, 1]
         push_params = ['my_image']
+        with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
+            requests_response_mock = requests_response_class_mock.return_value
+            requests_response_mock.json.return_value = {
+                'name': 'my_image',
+                'tags': ['latest', 'aaaaaaa', 'bbbbbbb']
+            }
+            requests_get_mock.return_value = requests_response_mock
+
         result = self._invoke_cli(
             global_params=self.global_params,
             subcmd='push',
@@ -453,10 +522,19 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('requests.get', autospec=True)
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_push_rmi_fail(self, skipper_runner_run_mock, *args):
+    def test_push_rmi_fail(self, skipper_runner_run_mock, requests_get_mock, *args):
         skipper_runner_run_mock.side_effect = [0, 0, 1]
         push_params = ['my_image']
+        with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
+            requests_response_mock = requests_response_class_mock.return_value
+            requests_response_mock.json.return_value = {
+                'name': 'my_image',
+                'tags': ['latest', 'aaaaaaa', 'bbbbbbb']
+            }
+            requests_get_mock.return_value = requests_response_mock
+
         result = self._invoke_cli(
             global_params=self.global_params,
             subcmd='push',
@@ -471,10 +549,19 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('requests.get', autospec=True)
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_push_to_namespace(self, skipper_runner_run_mock, *args):
+    def test_push_to_namespace(self, skipper_runner_run_mock, requests_get_mock, *args):
         skipper_runner_run_mock.side_effect = [0, 0]
         push_params = ['--namespace', 'my_namespace', 'my_image']
+        with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
+            requests_response_mock = requests_response_class_mock.return_value
+            requests_response_mock.json.return_value = {
+                'name': 'my_image',
+                'tags': ['latest', 'aaaaaaa', 'bbbbbbb']
+            }
+            requests_get_mock.return_value = requests_response_mock
+
         self._invoke_cli(
             global_params=self.global_params,
             subcmd='push',
@@ -491,10 +578,19 @@ class TestCLI(unittest.TestCase):
     @mock.patch('os.path.exists', autospec=True, return_value=True)
     @mock.patch('yaml.load', autospec=True, return_value=SKIPPER_CONF)
     @mock.patch('skipper.git.get_hash', autospec=True, return_value='1234567')
+    @mock.patch('requests.get', autospec=True)
     @mock.patch('skipper.runner.run', autospec=True)
-    def test_push_with_defaults_from_config_file(self, skipper_runner_run_mock, *args):
+    def test_push_with_defaults_from_config_file(self, skipper_runner_run_mock, requests_get_mock, *args):
         skipper_runner_run_mock.side_effect = [0, 0]
         push_params = ['my_image']
+        with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
+            requests_response_mock = requests_response_class_mock.return_value
+            requests_response_mock.json.return_value = {
+                'name': 'my_image',
+                'tags': ['latest', 'aaaaaaa', 'bbbbbbb']
+            }
+            requests_get_mock.return_value = requests_response_mock
+
         self._invoke_cli(
             defaults=config.load_defaults(),
             subcmd='push',
