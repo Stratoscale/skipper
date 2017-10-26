@@ -18,6 +18,13 @@ git clone http://github.com/Stratoscale/skipper
 sudo make install
 ```
 
+## Python3 Environment
+Skipper supports building and running in Python3 environment
+Set your locale to UTF-8:
+```bash
+export LC_ALL="en_US.UTF-8"
+export LANG="en_US.UTF-8"
+```
 ## Usage
 
 Skipper can serve as your primary tool for your daily development tasks:
