@@ -94,14 +94,14 @@ def _network(net):
 
 def _create_network(net):
     logging.debug("Creating network %(net)s", dict(net=net))
-    subprocess.check_output(['docker', 'network', 'create', net])
+    subprocess.check_output(['docker', 'network', 'create', net]).decode()
 
 
 def _destroy_network(net):
     logging.debug("Deleting network %(net)s", dict(net=net))
-    subprocess.check_output(['docker', 'network', 'rm', net])
+    subprocess.check_output(['docker', 'network', 'rm', net]).decode()
 
 
 def _network_exists(net):
-    result = subprocess.check_output(['docker', 'network', 'ls', '-q', '-f', 'NAME=%s' % net])
+    result = subprocess.check_output(['docker', 'network', 'ls', '-q', '-f', 'NAME=%s' % net]).decode()
     return len(result) > 0
