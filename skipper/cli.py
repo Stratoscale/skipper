@@ -1,14 +1,15 @@
-import sys
 import logging
 import os.path
-import tabulate
+import sys
+
 import click
 import six
+import tabulate
 from pkg_resources import get_distribution
+
 from skipper import git
 from skipper import runner
 from skipper import utils
-
 
 DOCKER_TAG_FOR_CACHE = "cache"
 
