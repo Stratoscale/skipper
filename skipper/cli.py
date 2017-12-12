@@ -10,6 +10,9 @@ from skipper import runner
 from skipper import utils
 
 
+DOCKER_TAG_FOR_CACHE = "cache"
+
+
 @click.group()
 @click.option('-v', '--verbose', help='Increase verbosity', is_flag=True, default=False)
 @click.option('--registry', help='URL of the docker registry')
@@ -18,9 +21,9 @@ from skipper import utils
 @click.option('--build-container-net', help='Network to connect the build container', default='host')
 @click.pass_context
 def cli(ctx, registry, build_container_image, build_container_tag, build_container_net, verbose):
-    '''
+    """
     Easily dockerize your Git repository
-    '''
+    """
     logging_level = logging.DEBUG if verbose else logging.INFO
     utils.configure_logging(name='skipper', level=logging_level)
 
@@ -39,11 +42,12 @@ def cli(ctx, registry, build_container_image, build_container_tag, build_contain
 @cli.command()
 @click.argument('images_to_build', nargs=-1, metavar='[IMAGE...]')
 @click.option('--container-context', help='Container context path', default=None)
+@click.option('-c', '--cache', help='Use cache image', is_flag=True, default=False, envvar='SKIPPER_USE_CACHE_IMAGE')
 @click.pass_context
-def build(ctx, images_to_build, container_context):
-    '''
+def build(ctx, images_to_build, container_context, cache):
+    """
     Build a container
-    '''
+    """
     utils.logger.debug("Executing build command")
 
     valid_images = ctx.obj.get('containers') or utils.get_images_from_dockerfiles()
@@ -74,6 +78,10 @@ def build(ctx, images_to_build, container_context):
         else:
             build_context = os.path.dirname(dockerfile)
         command = ['docker', 'build', '-f', dockerfile, '-t', fqdn_image, build_context]
+        if cache:
+            cache_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
+            runner.run(['docker', 'pull', cache_image])
+            command.extend(['--cache-from', cache_image])
         ret = runner.run(command)
 
         if ret != 0:
@@ -89,24 +97,30 @@ def build(ctx, images_to_build, container_context):
 @click.argument('image')
 @click.pass_context
 def push(ctx, namespace, force, image):
-    '''
+    """
     Push a container
-    '''
+    """
     utils.logger.debug("Executing push command")
     _validate_global_params(ctx, 'registry')
     tag = git.get_hash()
     image_name = image + ':' + tag
-    fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace, image, tag)
 
+    ret = _push(ctx, force, image, image_name, namespace, tag)
+    if ret != 0:
+        return ret
+    ret = _push(ctx, force, image, image_name, namespace, DOCKER_TAG_FOR_CACHE)
+    return ret
+
+
+def _push(ctx, force, image, image_name, namespace, tag):
+    fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace, image, tag)
     utils.logger.debug("Adding tag %(tag)s", dict(tag=fqdn_image))
     command = ['docker', 'tag', image_name, fqdn_image]
     ret = runner.run(command)
     if ret != 0:
         utils.logger.error('Failed to tag image: %(tag)s as fqdn', dict(tag=image_name, fqdn=fqdn_image))
         sys.exit(ret)
-
     repo_name = utils.generate_fqdn_image(None, namespace, image, tag=None)
-
     images_info = utils.get_remote_images_info([repo_name], ctx.obj['registry'])
     tags = [info[-1] for info in images_info]
     if tag in tags:
@@ -119,7 +133,6 @@ def push(ctx, namespace, force, image):
             _push_to_registry(ctx.obj['registry'], fqdn_image)
     else:
         _push_to_registry(ctx.obj['registry'], fqdn_image)
-
     utils.logger.debug("Removing tag %(tag)s", dict(tag=fqdn_image))
     command = ['docker', 'rmi', fqdn_image]
     ret = runner.run(command)
@@ -132,9 +145,9 @@ def push(ctx, namespace, force, image):
 @click.option('-r', '--remote', help='List also remote images', is_flag=True, default=False)
 @click.pass_context
 def images(ctx, remote):
-    '''
+    """
     List images
-    '''
+    """
     utils.logger.debug("Executing images command")
 
     valid_images = ctx.obj.get('containers') or utils.get_images_from_dockerfiles()
@@ -157,9 +170,9 @@ def images(ctx, remote):
 @click.argument('tag')
 @click.pass_context
 def rmi(ctx, remote, image, tag):
-    '''
+    """
     Delete an image from local docker or from registry
-    '''
+    """
     utils.logger.debug("Executing rmi command")
     _validate_project_image(image)
     if remote:
@@ -176,9 +189,9 @@ def rmi(ctx, remote, image, tag):
 @click.argument('command', nargs=-1, type=click.UNPROCESSED, required=True)
 @click.pass_context
 def run(ctx, interactive, name, env, command):
-    '''
+    """
     Run arbitrary commands
-    '''
+    """
     utils.logger.debug("Executing run command")
     _validate_global_params(ctx, 'build_container_image')
     build_container = _prepare_build_container(ctx.obj['registry'],
@@ -204,9 +217,9 @@ def run(ctx, interactive, name, env, command):
 @click.argument('make_params', nargs=-1, type=click.UNPROCESSED, required=False)
 @click.pass_context
 def make(ctx, interactive, name, env, makefile, make_params):
-    '''
+    """
     Execute makefile target(s)
-    '''
+    """
     utils.logger.debug("Executing make command")
     _validate_global_params(ctx, 'build_container_image')
     build_container = _prepare_build_container(ctx.obj['registry'],
@@ -230,9 +243,9 @@ def make(ctx, interactive, name, env, makefile, make_params):
 @click.option('-n', '--name', help='Container name', default=None)
 @click.pass_context
 def shell(ctx, env, name):
-    '''
+    """
     Start a shell
-    '''
+    """
     utils.logger.debug("Starting a shell")
     _validate_global_params(ctx, 'build_container_image')
     build_container = _prepare_build_container(ctx.obj['registry'],
@@ -252,9 +265,9 @@ def shell(ctx, env, name):
 
 @cli.command()
 def version():
-    '''
+    """
     Output skipper version
-    '''
+    """
     utils.logger.debug("Printing skipper version")
     click.echo(get_distribution("strato-skipper").version)  # pylint: disable=no-member
 
