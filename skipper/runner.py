@@ -55,7 +55,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net='host',
 
     volumes.extend([
         '%(workspace)s:%(workspace)s:rw,Z' % dict(workspace=workspace),
-        '/var/lib/osmosis:/var/lib/osmosis:rw,Z' % dict(workspace=workspace),
+        '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
         '/var/run/docker.sock:/var/run/docker.sock:Z',
         '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
     ])

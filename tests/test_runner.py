@@ -1,6 +1,5 @@
 import mock
 import os
-import subprocess
 import unittest
 from skipper import runner
 
@@ -37,13 +36,13 @@ class TestRunner(unittest.TestCase):
         runner.run(command)
         popen_mock.assert_called_once_with(command)
 
-    @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
-    @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
+    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
+    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
     @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_simple_command_nested_network_exist(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock, *args):
+    def test_run_simple_command_nested_network_exist(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
         check_output_mock.side_effect = ['d3be68b723d3\n', '']
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
@@ -71,13 +70,13 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
 
-    @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
-    @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
+    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
+    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
     @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_simple_command_nested_network_not_exist(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock, *args):
+    def test_run_simple_command_nested_network_not_exist(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
         check_output_mock.side_effect = ['', 'new-net-hash', '']
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
@@ -105,13 +104,13 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
 
-    @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
-    @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
+    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
+    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
     @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_simple_command_nested_with_env(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock, *args):
+    def test_run_simple_command_nested_with_env(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
         check_output_mock.side_effect = ['d3be68b723d3\n', '']
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
@@ -141,13 +140,13 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(expected_docker_command)
 
-    @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
-    @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
+    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
+    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
     @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_simple_command_nested_interactive(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock, *args):
+    def test_run_simple_command_nested_interactive(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
         check_output_mock.side_effect = ['d3be68b723d3\n', '']
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
@@ -176,13 +175,13 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
 
-    @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
-    @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
+    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
+    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
     @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_complex_command_nested(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock, *args):
+    def test_run_complex_command_nested(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
         check_output_mock.side_effect = ['d3be68b723d3\n', '']
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
@@ -210,13 +209,13 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
 
-    @mock.patch('getpass.getuser', autospec=True, return_value='testuser')
-    @mock.patch('os.getcwd', autospec=True, return_value=PROJECT_DIR)
+    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
+    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
     @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_complex_command_nested_with_env(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock, *args):
+    def test_run_complex_command_nested_with_env(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
         check_output_mock.side_effect = ['d3be68b723d3\n', '']
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
