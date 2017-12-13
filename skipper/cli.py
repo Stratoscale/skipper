@@ -89,16 +89,20 @@ def build(ctx, images_to_build, container_context, cache):
             utils.logger.error('Failed to build image: %(image)s', dict(image=image))
             return ret
 
+        if cache:
+            cache_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
+            runner.run(['docker', 'tag', image, cache_image])
+            runner.run(['docker', 'push', cache_image])
+
     return 0
 
 
 @cli.command()
 @click.option('--namespace', help='Namespace to push into')
 @click.option('--force', help="Push image even if it's already in the registry", is_flag=True, default=False)
-@click.option('-c', '--cache', help='Use cache image', is_flag=True, default=False, envvar='SKIPPER_USE_CACHE_IMAGE')
 @click.argument('image')
 @click.pass_context
-def push(ctx, namespace, force, cache, image):
+def push(ctx, namespace, force, image):
     """
     Push a container
     """
@@ -110,8 +114,6 @@ def push(ctx, namespace, force, cache, image):
     ret = _push(ctx, force, image, image_name, namespace, tag)
     if ret != 0:
         return ret
-    if cache:
-        ret = _push(ctx, True, image, image_name, namespace, DOCKER_TAG_FOR_CACHE)
     return ret
 
 
