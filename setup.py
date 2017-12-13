@@ -1,5 +1,6 @@
 import os
 import sys
+from setuptools import find_packages
 from distutils.core import setup
 
 # Workaround: bdist_wheel doesn't support absolute paths in data_files

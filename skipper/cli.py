@@ -187,9 +187,10 @@ def rmi(ctx, remote, image, tag):
 @click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False, envvar='SKIPPER_INTERACTIVE')
 @click.option('-n', '--name', help='Container name', default=None)
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
+@click.option('-c', '--cache', help='Use cache image', is_flag=True, default=False, envvar='SKIPPER_USE_CACHE_IMAGE')
 @click.argument('command', nargs=-1, type=click.UNPROCESSED, required=True)
 @click.pass_context
-def run(ctx, interactive, name, env, command):
+def run(ctx, interactive, name, env, cache, command):
     """
     Run arbitrary commands
     """
@@ -199,7 +200,8 @@ def run(ctx, interactive, name, env, command):
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'],
                                                ctx.obj['git_revision'],
-                                               ctx.obj['container_context'])
+                                               ctx.obj['container_context'],
+                                               cache)
     return runner.run(list(command),
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
@@ -215,9 +217,10 @@ def run(ctx, interactive, name, env, command):
 @click.option('-n', '--name', help='Container name', default=None)
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.option('-f', 'makefile', help='Makefile to use', default='Makefile')
+@click.option('-c', '--cache', help='Use cache image', is_flag=True, default=False, envvar='SKIPPER_USE_CACHE_IMAGE')
 @click.argument('make_params', nargs=-1, type=click.UNPROCESSED, required=False)
 @click.pass_context
-def make(ctx, interactive, name, env, makefile, make_params):
+def make(ctx, interactive, name, env, makefile, cache, make_params):
     """
     Execute makefile target(s)
     """
@@ -227,7 +230,8 @@ def make(ctx, interactive, name, env, makefile, make_params):
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'],
                                                ctx.obj['git_revision'],
-                                               ctx.obj['container_context'])
+                                               ctx.obj['container_context'],
+                                               cache)
     command = ['make', '-f', makefile] + list(make_params)
     return runner.run(command,
                       fqdn_image=build_container,
@@ -242,8 +246,9 @@ def make(ctx, interactive, name, env, makefile, make_params):
 @cli.command()
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.option('-n', '--name', help='Container name', default=None)
+@click.option('-c', '--cache', help='Use cache image', is_flag=True, default=False, envvar='SKIPPER_USE_CACHE_IMAGE')
 @click.pass_context
-def shell(ctx, env, name):
+def shell(ctx, env, name, cache):
     """
     Start a shell
     """
@@ -253,7 +258,8 @@ def shell(ctx, env, name):
                                                ctx.obj['build_container_image'],
                                                ctx.obj['build_container_tag'],
                                                ctx.obj['git_revision'],
-                                               ctx.obj['container_context'])
+                                               ctx.obj['container_context'],
+                                               cache)
     return runner.run(['bash'],
                       fqdn_image=build_container,
                       environment=_expend_env(ctx, env),
@@ -282,7 +288,7 @@ def _push_to_registry(registry, fqdn_image):
         sys.exit(ret)
 
 
-def _prepare_build_container(registry, image, tag, git_revision=False, container_context=None):
+def _prepare_build_container(registry, image, tag, git_revision, container_context, use_cache):
 
     if tag is not None:
 
@@ -311,13 +317,24 @@ def _prepare_build_container(registry, image, tag, git_revision=False, container
         build_context = container_context
     else:
         build_context = '.'
-    ret = runner.run(['docker', 'build', '-t', image, '-f', docker_file, build_context])
+
+    command = ['docker', 'build', '-t', image, '-f', docker_file, build_context]
+    if use_cache:
+        cache_image = utils.generate_fqdn_image(registry, namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
+        runner.run(['docker', 'pull', cache_image])
+        command.extend(['--cache-from', cache_image])
+    ret = runner.run(command)
     if ret != 0:
         exit('Failed to build image: %(image)s' % dict(image=image))
 
     if git_revision and not git.uncommitted_changes():
         utils.logger.info("Tagging image with git revision: %(tag)s", dict(tag=tag))
         runner.run(['docker', 'tag', image, tagged_image_name])
+
+    if use_cache:
+        cache_image = utils.generate_fqdn_image(registry, namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
+        runner.run(['docker', 'tag', image, cache_image])
+        runner.run(['docker', 'push', cache_image])
 
     return image
 

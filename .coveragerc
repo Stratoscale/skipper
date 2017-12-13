@@ -5,4 +5,4 @@ exclude_lines =
     import
 
 omit = tests/*
-fail_under = 95
+fail_under = 93
