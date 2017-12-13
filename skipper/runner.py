@@ -6,9 +6,10 @@ import subprocess
 from contextlib import contextmanager
 
 
-def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net='host', volumes=None, workdir=None):
+# pylint: disable=too-many-arguments
+def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net='host', volumes=None, workdir=None, use_cache=False):
     if fqdn_image is not None:
-        return _run_nested(fqdn_image, environment, command, interactive, name, net, volumes, workdir)
+        return _run_nested(fqdn_image, environment, command, interactive, name, net, volumes, workdir, use_cache)
 
     return _run(command)
 
@@ -22,7 +23,8 @@ def _run(cmd):
 
 
 # pylint: disable=too-many-locals
-def _run_nested(fqdn_image, environment, command, interactive, name, net='host', volumes=None, workdir=None):
+# pylint: disable=too-many-arguments
+def _run_nested(fqdn_image, environment, command, interactive, name, net, volumes, workdir, use_cache):
     cwd = os.getcwd()
     workspace = os.path.dirname(cwd)
     project = os.path.basename(cwd)
@@ -50,6 +52,9 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net='host',
 
     docker_gid = grp.getgrnam('docker').gr_gid
     docker_cmd += ['-e', 'SKIPPER_DOCKER_GID=%(docker_gid)s' % dict(docker_gid=docker_gid)]
+
+    if use_cache:
+        docker_cmd += ['-e', 'SKIPPER_USE_CACHE_IMAGE=True']
 
     volumes = volumes or []
 

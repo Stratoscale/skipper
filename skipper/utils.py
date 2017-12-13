@@ -42,7 +42,7 @@ def local_image_exist(image, tag):
         '--format', '{{.ID}}',
         name
     ]
-    output = subprocess.check_output(command)
+    output = subprocess.check_output(command).decode()
     return output != ''
 
 
@@ -66,7 +66,7 @@ def get_local_images_info(images):
     ]
     images_info = []
     for image in images:
-        output = subprocess.check_output(command + [image])
+        output = subprocess.check_output(command + [image]).decode()
         if output == '':
             continue
         image_info = [json.loads(record) for record in output.splitlines()]

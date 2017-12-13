@@ -11,7 +11,7 @@ def get_hash(short=False):
     if uncommitted_changes():
         logging.warning("*** Uncommitted changes present - Build container version might be outdated ***")
 
-    return subprocess.check_output(git_command).strip()
+    return subprocess.check_output(git_command).strip().decode()
 
 
 def uncommitted_changes():

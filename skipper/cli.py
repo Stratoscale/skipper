@@ -209,7 +209,8 @@ def run(ctx, interactive, name, env, cache, command):
                       name=name,
                       net=ctx.obj['build_container_net'],
                       volumes=ctx.obj.get('volumes'),
-                      workdir=ctx.obj.get('workdir'))
+                      workdir=ctx.obj.get('workdir'),
+                      use_cache=cache)
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
@@ -240,7 +241,8 @@ def make(ctx, interactive, name, env, makefile, cache, make_params):
                       name=name,
                       net=ctx.obj['build_container_net'],
                       volumes=ctx.obj.get('volumes'),
-                      workdir=ctx.obj.get('workdir'))
+                      workdir=ctx.obj.get('workdir'),
+                      use_cache=cache)
 
 
 @cli.command()
@@ -267,7 +269,8 @@ def shell(ctx, env, name, cache):
                       name=name,
                       net=ctx.obj['build_container_net'],
                       volumes=ctx.obj.get('volumes'),
-                      workdir=ctx.obj.get('workdir'))
+                      workdir=ctx.obj.get('workdir'),
+                      use_cache=cache)
 
 
 @cli.command()
