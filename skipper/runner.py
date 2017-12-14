@@ -34,7 +34,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net='host',
         docker_cmd += ['--name', name]
 
     docker_cmd += ['-t']
-    docker_cmd += ['--rm']
+    docker_cmd += ['--rm'] if not os.environ.get("KEEP_CONTAINERS", False) else []
     docker_cmd += ['--privileged']
 
     docker_cmd += ['--net', net]
