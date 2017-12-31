@@ -91,7 +91,7 @@ def build(ctx, images_to_build, container_context, cache):
 
         if cache:
             cache_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
-            runner.run(['docker', 'tag', image, cache_image])
+            runner.run(['docker', 'tag', fqdn_image, cache_image])
             runner.run(['docker', 'push', cache_image])
 
     return 0
