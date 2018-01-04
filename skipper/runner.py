@@ -1,9 +1,11 @@
-import grp
 import getpass
+import grp
 import logging
 import os
 import subprocess
 from contextlib import contextmanager
+
+from retry import retry
 
 
 # pylint: disable=too-many-arguments
@@ -102,6 +104,7 @@ def _create_network(net):
     subprocess.check_output(['docker', 'network', 'create', net]).decode()
 
 
+@retry(delay=0.1)
 def _destroy_network(net):
     logging.debug("Deleting network %(net)s", dict(net=net))
     subprocess.check_output(['docker', 'network', 'rm', net]).decode()
