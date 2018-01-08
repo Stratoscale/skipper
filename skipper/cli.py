@@ -325,7 +325,7 @@ def _prepare_build_container(registry, image, tag, git_revision, container_conte
     else:
         build_context = '.'
 
-    command = ['docker', 'build', '-t', image, '-f', docker_file, build_context]
+    command = ['docker', 'build', '-t', tagged_image_name, '-f', docker_file, build_context]
     if use_cache:
         cache_image = utils.generate_fqdn_image(registry, namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
         runner.run(['docker', 'pull', cache_image])

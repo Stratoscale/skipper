@@ -53,7 +53,7 @@ class TestRunner(unittest.TestCase):
         expected_nested_command = [
             'docker', 'run',
             '-t',
-            '--rm',
+            '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
@@ -87,7 +87,7 @@ class TestRunner(unittest.TestCase):
         expected_nested_command = [
             'docker', 'run',
             '-t',
-            '--rm',
+            '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
@@ -121,7 +121,7 @@ class TestRunner(unittest.TestCase):
         expected_docker_command = [
             'docker', 'run',
             '-t',
-            '--rm',
+            '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', 'host',
             '-e', 'KEY1=VAL1',
@@ -158,7 +158,7 @@ class TestRunner(unittest.TestCase):
             'docker', 'run',
             '-i',
             '-t',
-            '--rm',
+            '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
@@ -192,7 +192,7 @@ class TestRunner(unittest.TestCase):
         expected_nested_command = [
             'docker', 'run',
             '-t',
-            '--rm',
+            '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
@@ -226,7 +226,7 @@ class TestRunner(unittest.TestCase):
         expected_nested_command = [
             'docker', 'run',
             '-t',
-            '--rm',
+            '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', 'host',
             '-e', 'KEY1=VAL1',
