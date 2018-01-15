@@ -30,6 +30,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     cwd = os.getcwd()
     workspace = os.path.dirname(cwd)
     project = os.path.basename(cwd)
+    homedir = os.path.expanduser('~')
 
     docker_cmd = ['docker', 'run']
     if interactive:
@@ -56,6 +57,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     user_id = os.getuid()
     docker_cmd += ['-e', 'SKIPPER_USERNAME=%(user)s' % dict(user=user)]
     docker_cmd += ['-e', 'SKIPPER_UID=%(user_id)s' % dict(user_id=user_id)]
+    docker_cmd += ['-e', 'HOME=%(homedir)s' % dict(homedir=homedir)]
 
     docker_gid = grp.getgrnam('docker').gr_gid
     docker_cmd += ['-e', 'SKIPPER_DOCKER_GID=%(docker_gid)s' % dict(docker_gid=docker_gid)]
@@ -67,6 +69,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
 
     volumes.extend([
         '%(workspace)s:%(workspace)s:rw,Z' % dict(workspace=workspace),
+        '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=homedir),
         '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
         '/var/run/docker.sock:/var/run/docker.sock:Z',
         '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',

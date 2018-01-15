@@ -13,6 +13,7 @@ TAG = '1234567'
 FQDN_IMAGE = REGISTRY + '/' + IMAGE + ':' + TAG
 
 WORKDIR = '/home/adir/work'
+HOME_DIR = '/home/adir'
 PROJECT = 'proj'
 PROJECT_DIR = os.path.join(WORKDIR, PROJECT)
 
@@ -42,6 +43,7 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
@@ -62,8 +64,10 @@ class TestRunner(unittest.TestCase):
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
+            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
+            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -76,6 +80,7 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
@@ -96,8 +101,10 @@ class TestRunner(unittest.TestCase):
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
+            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
+            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -110,6 +117,7 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
@@ -132,8 +140,10 @@ class TestRunner(unittest.TestCase):
             '-e', 'KEY2=VAL2',
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
+            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
+            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -146,6 +156,7 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
@@ -167,8 +178,10 @@ class TestRunner(unittest.TestCase):
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
+            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
+            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -181,6 +194,7 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True,)
     @mock.patch('subprocess.Popen', autospec=False)
@@ -201,8 +215,10 @@ class TestRunner(unittest.TestCase):
             '--net', 'host',
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
+            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
+            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -215,6 +231,7 @@ class TestRunner(unittest.TestCase):
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
     @mock.patch('os.getuid', autospec=True)
     @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
@@ -237,8 +254,10 @@ class TestRunner(unittest.TestCase):
             '-e', 'KEY2=VAL2',
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
+            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
+            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
