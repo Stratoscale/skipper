@@ -20,6 +20,10 @@ ENV = ["KEY1=VAL1", "KEY2=VAL2"]
 
 
 class TestRunner(unittest.TestCase):
+
+    def setUp(self):
+        os.environ['KEEP_CONTAINERS'] = 'True'
+
     @mock.patch('subprocess.Popen', autospec=False)
     def test_run_simple_command_not_nested(self, popen_mock):
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
