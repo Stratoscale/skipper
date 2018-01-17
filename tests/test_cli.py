@@ -183,6 +183,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'docker',
             'build',
+            '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             '/home/user/work/project'
@@ -206,6 +207,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'docker',
             'build',
+            '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             '/home/user/work/project'
@@ -230,6 +232,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'docker',
             'build',
+            '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             SKIPPER_CONF_CONTAINER_CONTEXT
@@ -254,7 +257,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=make_params
         )
         expected_commands = [
-            mock.call(['docker', 'build', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image',
+            mock.call(['docker', 'build', '--network=host', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image',
                        SKIPPER_CONF_CONTAINER_CONTEXT]),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net='host', volumes=None, workdir=None, use_cache=False),
@@ -288,8 +291,10 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_commands = [
-            mock.call(['docker', 'build', '-f', '/home/user/work/project/Dockerfile.image1', '-t', 'image1:1234567', '/home/user/work/project']),
-            mock.call(['docker', 'build', '-f', '/home/user/work/project/Dockerfile.image2', '-t', 'image2:1234567', '/home/user/work/project']),
+            mock.call(['docker', 'build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image1', '-t', 'image1:1234567',
+                       '/home/user/work/project']),
+            mock.call(['docker', 'build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image2', '-t', 'image2:1234567',
+                       '/home/user/work/project']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands, any_order=True)
 
@@ -308,6 +313,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'docker',
             'build',
+            '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             '/home/user/work/project'
@@ -331,6 +337,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'docker',
             'build',
+            '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             '/home/user/work/project'
@@ -349,9 +356,9 @@ class TestCLI(unittest.TestCase):
             subcmd='build',
         )
         expected_commands = [
-            mock.call(['docker', 'build', '-f', '/home/user/work/project/Dockerfile.image1', '-t', 'image1:1234567',
+            mock.call(['docker', 'build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image1', '-t', 'image1:1234567',
                        '/home/user/work/project']),
-            mock.call(['docker', 'build', '-f', '/home/user/work/project/Dockerfile.image2', '-t', 'image2:1234567',
+            mock.call(['docker', 'build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image2', '-t', 'image2:1234567',
                        '/home/user/work/project']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands, any_order=True)
@@ -374,6 +381,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'docker',
             'build',
+            '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             '/home/user/work/project'
@@ -396,6 +404,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'docker',
             'build',
+            '--network=host',
             '-f', '/home/user/work/project/app1/Dockerfile',
             '-t', 'image1:1234567',
             '/home/user/work/project/app1'
@@ -1119,7 +1128,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=run_params
         )
         expected_commands = [
-            mock.call(['docker', 'build', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image', '.']),
+            mock.call(['docker', 'build', '--network=host', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image', '.']),
             mock.call(command, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net='host', volumes=None, workdir=None, use_cache=False),
         ]
@@ -1294,7 +1303,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=make_params
         )
         expected_commands = [
-            mock.call(['docker', 'build', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image', '.']),
+            mock.call(['docker', 'build', '--network=host', '-t', 'build-container-image', '-f', 'Dockerfile.build-container-image', '.']),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net='host', volumes=None, workdir=None, use_cache=False),
         ]
