@@ -1,4 +1,3 @@
-import getpass
 import grp
 import logging
 import os
@@ -53,14 +52,12 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     for env in environment:
         docker_cmd += ['-e', env]
 
-    user = getpass.getuser()
-    user_id = os.getuid()
-    docker_cmd += ['-e', 'SKIPPER_USERNAME=%(user)s' % dict(user=user)]
-    docker_cmd += ['-e', 'SKIPPER_UID=%(user_id)s' % dict(user_id=user_id)]
     docker_cmd += ['-e', 'HOME=%(homedir)s' % dict(homedir=homedir)]
 
+    user_id = os.getuid()
     docker_gid = grp.getgrnam('docker').gr_gid
-    docker_cmd += ['-e', 'SKIPPER_DOCKER_GID=%(docker_gid)s' % dict(docker_gid=docker_gid)]
+
+    docker_cmd += ['-u', '%s:%s' % (user_id, docker_gid)]
 
     if use_cache:
         docker_cmd += ['-e', 'SKIPPER_USE_CACHE_IMAGE=True']
@@ -72,7 +69,6 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
         '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=homedir),
         '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
         '/var/run/docker.sock:/var/run/docker.sock:Z',
-        '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
     ])
     for volume in volumes:
         docker_cmd += ['-v', volume]
@@ -82,9 +78,8 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     else:
         docker_cmd += ['-w', '%(workdir)s' % dict(workdir=os.path.join(workspace, project))]
 
-    docker_cmd += ['--entrypoint', '/opt/skipper/skipper-entrypoint.sh']
     docker_cmd += [fqdn_image]
-    docker_cmd += [' '.join(command)]
+    docker_cmd += command
 
     with _network(net):
         ret = _run(docker_cmd)

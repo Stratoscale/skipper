@@ -62,20 +62,15 @@ class TestRunner(unittest.TestCase):
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', 'host',
-            '-e', 'SKIPPER_USERNAME=testuser',
-            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
+            '-u', '%s:978' % USER_ID,
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
-            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
-            command[0]
-        ]
+        ] + command
         popen_mock.assert_called_once_with(expected_nested_command)
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
@@ -99,20 +94,15 @@ class TestRunner(unittest.TestCase):
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', 'host',
-            '-e', 'SKIPPER_USERNAME=testuser',
-            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
+            '-u', '%s:978' % USER_ID,
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
-            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
-            command[0]
-        ]
+        ] + command
         popen_mock.assert_called_once_with(expected_nested_command)
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
@@ -138,20 +128,15 @@ class TestRunner(unittest.TestCase):
             '--net', 'host',
             '-e', 'KEY1=VAL1',
             '-e', 'KEY2=VAL2',
-            '-e', 'SKIPPER_USERNAME=testuser',
-            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
+            '-u', '%s:978' % USER_ID,
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
-            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
-            command[0]
-        ]
+        ] + command
         popen_mock.assert_called_once_with(expected_docker_command)
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
@@ -176,20 +161,15 @@ class TestRunner(unittest.TestCase):
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', 'host',
-            '-e', 'SKIPPER_USERNAME=testuser',
-            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
+            '-u', '%s:978' % USER_ID,
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
-            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
-            command[0]
-        ]
+        ] + command
         popen_mock.assert_called_once_with(expected_nested_command)
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
@@ -213,20 +193,15 @@ class TestRunner(unittest.TestCase):
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', 'host',
-            '-e', 'SKIPPER_USERNAME=testuser',
-            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
+            '-u', '%s:978' % USER_ID,
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
-            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
-            ' '.join(command)
-        ]
+        ] + command
         popen_mock.assert_called_once_with(expected_nested_command)
 
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
@@ -252,18 +227,13 @@ class TestRunner(unittest.TestCase):
             '--net', 'host',
             '-e', 'KEY1=VAL1',
             '-e', 'KEY2=VAL2',
-            '-e', 'SKIPPER_USERNAME=testuser',
-            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
+            '-u', '%s:978' % USER_ID,
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
-            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
-            ' '.join(command)
-        ]
+        ] + command
         popen_mock.assert_called_once_with(expected_nested_command)
