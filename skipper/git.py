@@ -1,8 +1,13 @@
+import os.path
 import logging
 import subprocess
 
 
 def get_hash(short=False):
+    if not os.path.exists('.git'):
+        logging.warning('*** Not working in a git repository ***')
+        return 'none'
+
     git_command = ['git', 'rev-parse']
     if short:
         git_command += ['--short']
