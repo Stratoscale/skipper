@@ -1,4 +1,5 @@
 import logging
+import os
 import os.path
 import sys
 
@@ -360,7 +361,23 @@ def _validate_project_image(image):
 
 def _expend_env(ctx, extra_env):
     environment = []
-    for key, value in six.iteritems(ctx.obj['env']):
-        utils.logger.debug("Adding %s=%s to environment", key, value)
-        environment.append("{}={}".format(key, value))
+    env = ctx.obj['env']
+    # env is allowed to be of type list and of type dict
+    if isinstance(env, dict):
+        for key, value in six.iteritems(env):
+            utils.logger.debug("Adding %s=%s to environment", key, value)
+            environment.append("{}={}".format(key, value))
+    elif isinstance(env, list):
+        for item in env:
+            if '=' in item:
+                # if the items is of the form 'a=b', add it to the environment list
+                environment.append(item)
+            else:
+                # if the items is just a name of environment variable, try to get it
+                # from the host's environment variables
+                if item in os.environ:
+                    environment.append('{}={}'.format(item, os.environ[item]))
+    else:
+        raise TypeError('Type {} not supported for key env, use dict or list instead'.format(type(env)))
+
     return environment + list(extra_env)
