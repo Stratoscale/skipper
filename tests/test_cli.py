@@ -54,6 +54,24 @@ SKIPPER_CONF_WITH_ENV = {
     },
     'env': CONFIG_ENV
 }
+SKIPPER_CONF_WITH_ENV_LIST = {
+    'registry': REGISTRY,
+    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
+    'env': ['key1=value1', 'key2']
+}
+SKIPPER_CONF_WITH_ENV_WRONG_TYPE = {
+    'registry': REGISTRY,
+    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
+    'env': 'wrong-env-type',
+}
 SKIPPER_CONF_WITH_CONTAINERS = {
     'registry': REGISTRY,
     'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
@@ -1054,6 +1072,62 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
                                                         interactive=False, name=None, net='host', volumes=None, workdir=None, use_cache=False)
+
+    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch('os.environ', {})
+    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_LIST))
+    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_env_list(self, skipper_runner_run_mock):
+        os.environ['VAL4'] = "val4-evaluation"
+        command = ['ls', '-l']
+        run_params = ['-e', ENV[0], '-e', ENV[1]] + command
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        env = ['key1=value1'] + ENV
+        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
+                                                        interactive=False, name=None, net='host', volumes=None, workdir=None, use_cache=False)
+
+    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch('os.environ', {'key2': 'value2'})
+    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_LIST))
+    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_env_list_get_from_env(self, skipper_runner_run_mock):
+        os.environ['VAL4'] = "val4-evaluation"
+        command = ['ls', '-l']
+        run_params = ['-e', ENV[0], '-e', ENV[1]] + command
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        env = ['key1=value1', 'key2=value2'] + ENV
+        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
+                                                        interactive=False, name=None, net='host', volumes=None, workdir=None, use_cache=False)
+
+    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_WRONG_TYPE))
+    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_env_wrong_type(self, skipper_runner_run_mock):
+        os.environ['VAL4'] = "val4-evaluation"
+        command = ['ls', '-l']
+        run_params = ['-e', ENV[0], '-e', ENV[1]] + command
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        self.assertEqual(len(skipper_runner_run_mock.mock_calls), 0)
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
