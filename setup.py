@@ -1,6 +1,6 @@
 import os
 import sys
-from setuptools import find_packages
+import setuptools 
 
 # Workaround: bdist_wheel doesn't support absolute paths in data_files
 # (see: https://bitbucket.org/pypa/wheel/issues/92). 
