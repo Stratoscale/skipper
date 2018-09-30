@@ -70,6 +70,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     volumes.extend([
         '%(workspace)s:%(workspace)s:rw,Z' % dict(workspace=workspace),
         '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=homedir),
+        '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=homedir),
         '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
         '/var/run/docker.sock:/var/run/docker.sock:Z',
         '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
