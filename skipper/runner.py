@@ -76,6 +76,23 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
         '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
     ])
     for volume in volumes:
+        if ":" not in volume:
+            raise ValueError("Volume entry is badly-formatted - %s" % volume)
+
+        # If the local directory of a mount entry doesn't exist, docker will by
+        # default create a directory in that path. Docker runs in systemd context,
+        # with root-privileges, so the container will have no permissions to write
+        # to that directory. To prevent that, we'll create the directory in advance,
+        # with the user's permissions
+        localdir = volume.split(":")[0]
+        if not os.path.exists(localdir.strip()):
+            try:
+                os.makedirs(localdir)
+            except OSError:
+                # If we have no permissions to create the directory, we'll just let
+                # docker create it with root-privileges
+                pass
+
         docker_cmd += ['-v', volume]
 
     if workdir:
