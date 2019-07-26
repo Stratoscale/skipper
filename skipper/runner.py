@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 from contextlib import contextmanager
+import sys
 
 from retry import retry
 
@@ -78,6 +79,11 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     for volume in volumes:
         if ":" not in volume:
             raise ValueError("Volume entry is badly-formatted - %s" % volume)
+
+        # For OSX, map anything in /var/lib or /etc to /private
+        if sys.platform == 'darwin':
+            if volume.startswith('/etc/') or volume.startswith('/var/lib/'):
+                volume = '/private' + volume
 
         # If the local directory of a mount entry doesn't exist, docker will by
         # default create a directory in that path. Docker runs in systemd context,
