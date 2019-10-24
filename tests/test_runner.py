@@ -273,3 +273,9 @@ class TestRunner(unittest.TestCase):
             ' '.join(command)
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
+
+    def test_handle_volumes_bind_mount_with_bad_volume_mount(self):
+        docker_cmd = ['docker', 'run']
+        volumes = ['bad volume mount']
+        with self.assertRaises(ValueError):
+            runner.handle_volumes_bind_mount(docker_cmd, HOME_DIR, volumes, WORKDIR)
