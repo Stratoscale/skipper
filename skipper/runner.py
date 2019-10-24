@@ -66,8 +66,25 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     if use_cache:
         docker_cmd += ['-e', 'SKIPPER_USE_CACHE_IMAGE=True']
 
-    volumes = volumes or []
+    docker_cmd = handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace)
 
+    if workdir:
+        docker_cmd += ['-w', workdir]
+    else:
+        docker_cmd += ['-w', '%(workdir)s' % dict(workdir=os.path.join(workspace, project))]
+
+    docker_cmd += ['--entrypoint', '/opt/skipper/skipper-entrypoint.sh']
+    docker_cmd += [fqdn_image]
+    docker_cmd += [' '.join(command)]
+
+    with _network(net):
+        ret = _run(docker_cmd)
+
+    return ret
+
+
+def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
+    volumes = volumes or []
     volumes.extend([
         '%(workspace)s:%(workspace)s:rw,Z' % dict(workspace=workspace),
         '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=homedir),
@@ -100,20 +117,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
                 pass
 
         docker_cmd += ['-v', volume]
-
-    if workdir:
-        docker_cmd += ['-w', workdir]
-    else:
-        docker_cmd += ['-w', '%(workdir)s' % dict(workdir=os.path.join(workspace, project))]
-
-    docker_cmd += ['--entrypoint', '/opt/skipper/skipper-entrypoint.sh']
-    docker_cmd += [fqdn_image]
-    docker_cmd += [' '.join(command)]
-
-    with _network(net):
-        ret = _run(docker_cmd)
-
-    return ret
+    return docker_cmd
 
 
 @contextmanager
