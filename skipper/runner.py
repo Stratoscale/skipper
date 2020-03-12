@@ -39,6 +39,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     cmd = ['run']
     if interactive:
         cmd += ['-i']
+        cmd += ['-e', 'SKIPPER_INTERACTIVE=True']
     if name:
         cmd += ['--name', name]
 
