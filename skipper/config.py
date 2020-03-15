@@ -10,7 +10,7 @@ def load_defaults():
     defaults = {}
     if os.path.exists(skipper_conf):
         with open(skipper_conf) as confile:
-            config = yaml.load(confile)
+            config = yaml.safe_load(confile)
             containers = config.pop('containers', None)
         _normalize_config(config, defaults)
         if containers is not None:

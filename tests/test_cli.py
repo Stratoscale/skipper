@@ -237,7 +237,7 @@ class TestCLI(unittest.TestCase):
                               'image2': '/home/user/work/project/Dockerfile.image2'}))
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_build_with_context_from_config_file(self, skipper_runner_run_mock):
@@ -259,7 +259,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT_NO_TAG))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT_NO_TAG))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=''))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
@@ -386,7 +386,7 @@ class TestCLI(unittest.TestCase):
                               'image2': '/home/user/work/project/Dockerfile.image2'}))
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_build_with_defaults_from_config_file(self, skipper_runner_run_mock):
@@ -409,7 +409,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.abspath', mock.MagicMock(autospec=True, return_value='/home/user/work/project/app1/Dockerfile'))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTAINERS))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTAINERS))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_build_with_defaults_from_config_file_including_containers(self, skipper_runner_run_mock):
@@ -603,7 +603,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('requests.get', autospec=True)
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1020,7 +1020,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_from_config_file(self, skipper_runner_run_mock):
@@ -1037,7 +1037,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_and_env_from_config_file(self, skipper_runner_run_mock):
@@ -1056,7 +1056,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_env_overriding_config_file(self, skipper_runner_run_mock):
@@ -1076,7 +1076,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('os.environ', {})
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_LIST))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_LIST))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_env_list(self, skipper_runner_run_mock):
@@ -1096,7 +1096,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('os.environ', {'key2': 'value2'})
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_LIST))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_LIST))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_env_list_get_from_env(self, skipper_runner_run_mock):
@@ -1115,7 +1115,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_WRONG_TYPE))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_WRONG_TYPE))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_env_wrong_type(self, skipper_runner_run_mock):
@@ -1227,7 +1227,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_VOLUMES))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_VOLUMES))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_from_config_file_including_volumes(self, skipper_runner_run_mock):
@@ -1245,7 +1245,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_WORKDIR))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_WORKDIR))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_from_config_file_including_workdir(self, skipper_runner_run_mock):
@@ -1263,7 +1263,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.git.uncommitted_changes', mock.MagicMock(return_value=True))
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1282,7 +1282,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.git.uncommitted_changes', mock.MagicMock(return_value=False))
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1346,7 +1346,7 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_make_with_defaults_from_config_file(self, skipper_runner_run_mock):
