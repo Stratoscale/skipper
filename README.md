@@ -172,7 +172,7 @@ Your configuration file can contain environment variables, Skipper will set the 
 ````
 env:
     VAR: value
-```
+````
 
 
 ###Variable substitution:
@@ -195,4 +195,27 @@ env:
     VAR: $$VAR_NOT_INTERPOLATED
 ````
 
+###Volumes:
+Skipper can bind-mount a host directory into the container.
+you can add volumes in the configuration file:
+````
+volumes:
+  - /tmp:/tmp:rw
+  - ${HOME}/.netrc:/root/.netrc
+  - ${HOME}/.gocache:/tmp/.gocache
+````
 
+###Workdir:
+Skipper default to the the project directory as the working directory for the `run`, `make` and `shell` commands,
+you can override the workdir by specifying it in the configuration file:
+````
+workdir: /path/to/workdir
+````
+
+###Workspace:
+Skipper default to the the project base directory (e.g. /path/to/project/../) as the workspace for the `run`, `make` and `shell` commands,
+Note that the workspace directory is mounted by default.
+you can override the workspace directory by specifying it in the configuration file
+````
+workdir: $PWD
+````
