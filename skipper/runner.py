@@ -10,9 +10,11 @@ from retry import retry
 
 
 # pylint: disable=too-many-arguments
-def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net='host', volumes=None, workdir=None, use_cache=False):
+def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net='host', volumes=None,
+        workdir=None, use_cache=False, workspace=None):
     if fqdn_image is not None:
-        return _run_nested(fqdn_image, environment, command, interactive, name, net, volumes, workdir, use_cache)
+        return _run_nested(fqdn_image, environment, command, interactive, name, net, volumes,
+                           workdir, use_cache, workspace)
 
     return _run(command)
 
@@ -27,10 +29,10 @@ def _run(cmd):
 
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-arguments
-def _run_nested(fqdn_image, environment, command, interactive, name, net, volumes, workdir, use_cache):
+def _run_nested(fqdn_image, environment, command, interactive, name, net, volumes, workdir, use_cache, workspace):
     cwd = os.getcwd()
-    workspace = os.path.dirname(cwd)
-    project = os.path.basename(cwd)
+    if workspace is None:
+        workspace = os.path.dirname(cwd)
     homedir = os.path.expanduser('~')
 
     docker_cmd = ['docker', 'run']
@@ -71,7 +73,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     if workdir:
         docker_cmd += ['-w', workdir]
     else:
-        docker_cmd += ['-w', '%(workdir)s' % dict(workdir=os.path.join(workspace, project))]
+        docker_cmd += ['-w', '%(workdir)s' % dict(workdir=cwd)]
 
     docker_cmd += ['--entrypoint', '/opt/skipper/skipper-entrypoint.sh']
     docker_cmd += [fqdn_image]
