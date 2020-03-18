@@ -161,7 +161,7 @@ Using the above configuration file, we now can run a simplified version of the m
 skipper make tests
 ```
 
-###Environment variables:
+### Environment variables:
 For `shell`, `run` & `make` commands:
 You can use `-e` in order to pass environment variables to the container.
 ````
@@ -175,7 +175,7 @@ env:
 ````
 
 
-###Variable substitution:
+### Variable substitution:
 Skipper uses the variable values from the shell environment in which skipper is run.
 It’s possible to use environment variables in your shell to populate values
 For example, suppose the shell contains EXTERNAL_PORT=5000 and you supply this configuration:
@@ -195,7 +195,7 @@ env:
     VAR: $$VAR_NOT_INTERPOLATED
 ````
 
-###Volumes:
+### Volumes:
 Skipper can bind-mount a host directory into the container.
 you can add volumes in the configuration file:
 ````
@@ -205,14 +205,14 @@ volumes:
   - ${HOME}/.gocache:/tmp/.gocache
 ````
 
-###Workdir:
+### Workdir:
 Skipper default to the the project directory as the working directory for the `run`, `make` and `shell` commands,
 you can override the workdir by specifying it in the configuration file:
 ````
 workdir: /path/to/workdir
 ````
 
-###Workspace:
+### Workspace:
 Skipper default to the the project base directory (e.g. /path/to/project/../) as the workspace for the `run`, `make` and `shell` commands,
 Note that the workspace directory is mounted by default.
 you can override the workspace directory by specifying it in the configuration file
