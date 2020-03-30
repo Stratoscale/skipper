@@ -82,7 +82,8 @@ def build(ctx, images_to_build, container_context, cache):
             build_context = ctx.obj['container_context']
         else:
             build_context = os.path.dirname(dockerfile)
-        command = ['build', '--network=host', '-f', dockerfile, '-t', fqdn_image, build_context]
+        command = ['build', '--network=host', '--build-arg', 'TAG={}'.format(tag),
+                   '-f', dockerfile, '-t', fqdn_image, build_context]
         if cache:
             cache_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
             runner.run(['pull', cache_image])
