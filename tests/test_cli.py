@@ -6,7 +6,7 @@ import click
 import six
 from click import testing
 from skipper import cli
-from skipper import config
+from skipper import config, utils
 
 REGISTRY = 'registry.io:5000'
 IMAGE = 'image'
@@ -146,6 +146,8 @@ SKIPPER_CONF_WITH_CONTEXT_NO_TAG = {
 
 class TestCLI(unittest.TestCase):
     def setUp(self):
+        self.runtime = "docker"
+        utils.CONTAINER_RUNTIME_COMMAND = self.runtime
         self._runner = testing.CliRunner()
         self.global_params = [
             '--registry', REGISTRY,
@@ -208,7 +210,6 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_command = [
-            'docker',
             'build',
             '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
@@ -233,7 +234,6 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_command = [
-            'docker',
             'build',
             '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
@@ -259,7 +259,6 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_command = [
-            'docker',
             'build',
             '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
@@ -286,7 +285,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=make_params
         )
         expected_commands = [
-            mock.call(['docker', 'build', '--network=host', '-t', 'build-container-image', '-f',
+            mock.call(['build', '--network=host', '-t', 'build-container-image', '-f',
                        'Dockerfile.build-container-image',
                        SKIPPER_CONF_CONTAINER_CONTEXT]),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
@@ -323,10 +322,10 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_commands = [
-            mock.call(['docker', 'build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image1', '-t',
+            mock.call(['build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image1', '-t',
                        'image1:1234567',
                        '/home/user/work/project']),
-            mock.call(['docker', 'build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image2', '-t',
+            mock.call(['build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image2', '-t',
                        'image2:1234567',
                        '/home/user/work/project']),
         ]
@@ -346,7 +345,6 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_command = [
-            'docker',
             'build',
             '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
@@ -371,7 +369,6 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_command = [
-            'docker',
             'build',
             '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
@@ -393,10 +390,10 @@ class TestCLI(unittest.TestCase):
             subcmd='build',
         )
         expected_commands = [
-            mock.call(['docker', 'build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image1', '-t',
+            mock.call(['build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image1', '-t',
                        'image1:1234567',
                        '/home/user/work/project']),
-            mock.call(['docker', 'build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image2', '-t',
+            mock.call(['build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image2', '-t',
                        'image2:1234567',
                        '/home/user/work/project']),
         ]
@@ -419,7 +416,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_command = [
-            'docker',
+
             'build',
             '--network=host',
             '-f', '/home/user/work/project/Dockerfile.image1',
@@ -443,7 +440,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_command = [
-            'docker',
+
             'build',
             '--network=host',
             '-f', '/home/user/work/project/app1/Dockerfile',
@@ -472,9 +469,9 @@ class TestCLI(unittest.TestCase):
             subcmd_params=push_params
         )
         expected_commands = [
-            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
-            mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
-            mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
+            mock.call(['tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['push', 'registry.io:5000/my_image:1234567']),
+            mock.call(['rmi', 'registry.io:5000/my_image:1234567']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -498,8 +495,8 @@ class TestCLI(unittest.TestCase):
             subcmd_params=push_params
         )
         expected_commands = [
-            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
-            mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
+            mock.call(['tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['rmi', 'registry.io:5000/my_image:1234567']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -523,9 +520,9 @@ class TestCLI(unittest.TestCase):
             subcmd_params=push_params
         )
         expected_commands = [
-            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
-            mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
-            mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
+            mock.call(['tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['push', 'registry.io:5000/my_image:1234567']),
+            mock.call(['rmi', 'registry.io:5000/my_image:1234567']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -550,8 +547,8 @@ class TestCLI(unittest.TestCase):
         )
         self.assertEqual(result.exit_code, 1)
         expected_commands = [
-            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
-            mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
+            mock.call(['tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['push', 'registry.io:5000/my_image:1234567']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -567,7 +564,7 @@ class TestCLI(unittest.TestCase):
         )
         self.assertEqual(result.exit_code, 1)
         expected_commands = [
-            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -592,9 +589,9 @@ class TestCLI(unittest.TestCase):
         )
         self.assertEqual(result.exit_code, 0)
         expected_commands = [
-            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
-            mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
-            mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
+            mock.call(['tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['push', 'registry.io:5000/my_image:1234567']),
+            mock.call(['rmi', 'registry.io:5000/my_image:1234567']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -618,9 +615,9 @@ class TestCLI(unittest.TestCase):
             subcmd_params=push_params
         )
         expected_commands = [
-            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_namespace/my_image:1234567']),
-            mock.call(['docker', 'push', 'registry.io:5000/my_namespace/my_image:1234567']),
-            mock.call(['docker', 'rmi', 'registry.io:5000/my_namespace/my_image:1234567']),
+            mock.call(['tag', 'my_image:1234567', 'registry.io:5000/my_namespace/my_image:1234567']),
+            mock.call(['push', 'registry.io:5000/my_namespace/my_image:1234567']),
+            mock.call(['rmi', 'registry.io:5000/my_namespace/my_image:1234567']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -647,9 +644,9 @@ class TestCLI(unittest.TestCase):
             subcmd_params=push_params
         )
         expected_commands = [
-            mock.call(['docker', 'tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
-            mock.call(['docker', 'push', 'registry.io:5000/my_image:1234567']),
-            mock.call(['docker', 'rmi', 'registry.io:5000/my_image:1234567']),
+            mock.call(['tag', 'my_image:1234567', 'registry.io:5000/my_image:1234567']),
+            mock.call(['push', 'registry.io:5000/my_image:1234567']),
+            mock.call(['rmi', 'registry.io:5000/my_image:1234567']),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -928,8 +925,8 @@ class TestCLI(unittest.TestCase):
         tabulate_mock.assert_called_once_with([], headers=['REGISTRY', 'IMAGE', 'TAG'], tablefmt='grid')
 
     @mock.patch('glob.glob', mock.MagicMock(autospec=True, return_value=['Dockerfile.my_image']))
-    @mock.patch('subprocess.check_call', autospec=True)
-    def test_rmi_local(self, subprocess_check_call_mock):
+    @mock.patch('subprocess.check_output', autospec=True)
+    def test_rmi_local(self, subprocess_check_output_mock):
         self._invoke_cli(
             global_params=self.global_params,
             subcmd='rmi',
@@ -939,9 +936,9 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'docker',
             'rmi',
-            'my_image:1234567'
+            u'my_image:1234567'
         ]
-        subprocess_check_call_mock.assert_called_once_with(expected_command)
+        subprocess_check_output_mock.assert_called_once_with(expected_command)
 
     @mock.patch('glob.glob', mock.MagicMock(autospec=True, return_value=['Dockerfile.' + IMAGE]))
     @mock.patch('requests.delete', autospec=True)
@@ -1247,7 +1244,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=run_params
         )
         expected_commands = [
-            mock.call(['docker', 'build', '--network=host', '-t', 'build-container-image', '-f',
+            mock.call(['build', '--network=host', '-t', 'build-container-image', '-f',
                        'Dockerfile.build-container-image', '.']),
             mock.call(command, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net='host', volumes=None, workdir=None, workspace=None,
@@ -1449,7 +1446,7 @@ class TestCLI(unittest.TestCase):
             subcmd_params=make_params
         )
         expected_commands = [
-            mock.call(['docker', 'build', '--network=host', '-t', 'build-container-image', '-f',
+            mock.call(['build', '--network=host', '-t', 'build-container-image', '-f',
                        'Dockerfile.build-container-image', '.']),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net='host', volumes=None, workdir=None, workspace=None,

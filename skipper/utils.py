@@ -1,7 +1,9 @@
+import os
 import glob
 import json
 import logging
 import subprocess
+from distutils.spawn import find_executable
 from six.moves import http_client
 import requests
 import urllib3
@@ -10,8 +12,12 @@ import urllib3
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
 IMAGE_TAGS_URL = REGISTRY_BASE_URL + '%(image)s/tags/list'
 MANIFEST_URL = REGISTRY_BASE_URL + '%(image)s/manifests/%(reference)s'
+DOCKER = "docker"
+PODMAN = "podman"
 
 logger = None   # pylint: disable=invalid-name
+
+CONTAINER_RUNTIME_COMMAND = os.getenv("CONTAINER_RUNTIME_COMMAND")
 
 
 def configure_logging(name, level):
@@ -37,12 +43,11 @@ def get_images_from_dockerfiles():
 def local_image_exist(image, tag):
     name = image + ':' + tag
     command = [
-        'docker',
         'images',
         '--format', '{{.ID}}',
         name
     ]
-    output = subprocess.check_output(command).decode()
+    output = run_container_command(command)
     return output != ''
 
 
@@ -60,13 +65,12 @@ def remote_image_exist(registry, image, tag):
 
 def get_local_images_info(images):
     command = [
-        'docker',
         'images',
         '--format', '{"name": "{{.Repository}}", "tag": "{{.Tag}}"}',
     ]
     images_info = []
     for image in images:
-        output = subprocess.check_output(command + [image]).decode()
+        output = run_container_command(command + [image])
         if output == '':
             continue
         image_info = [json.loads(record) for record in output.splitlines()]
@@ -117,7 +121,7 @@ def delete_image_from_registry(registry, image, tag):
 
 def delete_local_image(image, tag):
     name = image + ':' + tag
-    subprocess.check_call(['docker', 'rmi', name])
+    run_container_command(['rmi', name])
 
 
 def generate_fqdn_image(registry, namespace, image, tag='latest'):
@@ -137,3 +141,26 @@ def image_to_dockerfile(image):
 
 def dockerfile_to_image(dockerfile):
     return dockerfile.replace('Dockerfile.', '')
+
+
+def is_tool(name):
+    """Check whether `name` is on PATH and marked as executable."""
+    return find_executable(name) is not None
+
+
+def get_runtime_command():
+    global CONTAINER_RUNTIME_COMMAND  # pylint: disable=global-statement
+    if not CONTAINER_RUNTIME_COMMAND:
+        if is_tool(DOCKER):
+            CONTAINER_RUNTIME_COMMAND = DOCKER
+        elif is_tool(PODMAN):
+            CONTAINER_RUNTIME_COMMAND = PODMAN
+        else:
+            raise Exception("Nor %s nor %s are installed" % (PODMAN, DOCKER))
+    return CONTAINER_RUNTIME_COMMAND
+
+
+def run_container_command(args):
+    cmd = [get_runtime_command()]
+    cmd.extend(args)
+    return str(subprocess.check_output(cmd).decode().strip())

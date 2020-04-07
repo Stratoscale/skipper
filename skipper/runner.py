@@ -5,8 +5,8 @@ import os
 import subprocess
 from contextlib import contextmanager
 import sys
-
 from retry import retry
+from skipper import utils
 
 
 # pylint: disable=too-many-arguments
@@ -19,8 +19,10 @@ def run(command, fqdn_image=None, environment=None, interactive=False, name=None
     return _run(command)
 
 
-def _run(cmd):
+def _run(cmd_args):
     logger = logging.getLogger('skipper')
+    cmd = [utils.get_runtime_command()]
+    cmd.extend(cmd_args)
     logger.debug(' '.join(cmd))
     proc = subprocess.Popen(cmd)
     proc.wait()
@@ -34,53 +36,53 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     if workspace is None:
         workspace = os.path.dirname(cwd)
     homedir = os.path.expanduser('~')
-
-    docker_cmd = ['docker', 'run']
+    cmd = ['run']
     if interactive:
-        docker_cmd += ['-i']
+        cmd += ['-i']
     if name:
-        docker_cmd += ['--name', name]
+        cmd += ['--name', name]
 
-    docker_cmd += ['-t']
+    cmd += ['-t']
 
     if os.environ.get("KEEP_CONTAINERS", False):
-        docker_cmd += ['-e', 'KEEP_CONTAINERS=True']
+        cmd += ['-e', 'KEEP_CONTAINERS=True']
     else:
-        docker_cmd += ['--rm']
+        cmd += ['--rm']
 
-    docker_cmd += ['--privileged']
+    cmd += ['--privileged']
 
-    docker_cmd += ['--net', net]
+    cmd += ['--net', net]
 
     environment = environment or []
     for env in environment:
-        docker_cmd += ['-e', env]
+        cmd += ['-e', env]
 
     user = getpass.getuser()
     user_id = os.getuid()
-    docker_cmd += ['-e', 'SKIPPER_USERNAME=%(user)s' % dict(user=user)]
-    docker_cmd += ['-e', 'SKIPPER_UID=%(user_id)s' % dict(user_id=user_id)]
-    docker_cmd += ['-e', 'HOME=%(homedir)s' % dict(homedir=homedir)]
+    cmd += ['-e', 'SKIPPER_USERNAME=%(user)s' % dict(user=user)]
+    cmd += ['-e', 'SKIPPER_UID=%(user_id)s' % dict(user_id=user_id)]
+    cmd += ['-e', 'HOME=%(homedir)s' % dict(homedir=homedir)]
 
-    docker_gid = grp.getgrnam('docker').gr_gid
-    docker_cmd += ['-e', 'SKIPPER_DOCKER_GID=%(docker_gid)s' % dict(docker_gid=docker_gid)]
+    if utils.get_runtime_command() == "docker":
+        docker_gid = grp.getgrnam('docker').gr_gid
+        cmd += ['-e', 'SKIPPER_DOCKER_GID=%(docker_gid)s' % dict(docker_gid=docker_gid)]
 
     if use_cache:
-        docker_cmd += ['-e', 'SKIPPER_USE_CACHE_IMAGE=True']
+        cmd += ['-e', 'SKIPPER_USE_CACHE_IMAGE=True']
 
-    docker_cmd = handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace)
+    cmd = handle_volumes_bind_mount(cmd, homedir, volumes, workspace)
 
     if workdir:
-        docker_cmd += ['-w', workdir]
+        cmd += ['-w', workdir]
     else:
-        docker_cmd += ['-w', '%(workdir)s' % dict(workdir=cwd)]
+        cmd += ['-w', '%(workdir)s' % dict(workdir=cwd)]
 
-    docker_cmd += ['--entrypoint', '/opt/skipper/skipper-entrypoint.sh']
-    docker_cmd += [fqdn_image]
-    docker_cmd += [' '.join(command)]
+    cmd += ['--entrypoint', '/opt/skipper/skipper-entrypoint.sh']
+    cmd += [fqdn_image]
+    cmd += [' '.join(command)]
 
     with _network(net):
-        ret = _run(docker_cmd)
+        ret = _run(cmd)
 
     return ret
 
@@ -134,15 +136,20 @@ def _network(net):
 
 def _create_network(net):
     logging.debug("Creating network %(net)s", dict(net=net))
-    subprocess.check_output(['docker', 'network', 'create', net]).decode()
+    utils.run_container_command(['network', 'create', net])
 
 
-@retry(delay=0.1)
+@retry(delay=0.1, tries=10)
 def _destroy_network(net):
     logging.debug("Deleting network %(net)s", dict(net=net))
-    subprocess.check_output(['docker', 'network', 'rm', net]).decode()
+    utils.run_container_command(['network', 'rm', net])
 
 
 def _network_exists(net):
-    result = subprocess.check_output(['docker', 'network', 'ls', '-q', '-f', 'NAME=%s' % net]).decode()
-    return len(result) > 0
+    cmd = ['network', 'ls']
+    if utils.get_runtime_command() == "docker":
+        cmd.extend(["-f", "NAME=%s" % net])
+    else:
+        cmd.append("-q")
+    result = utils.run_container_command(cmd)
+    return net in result
