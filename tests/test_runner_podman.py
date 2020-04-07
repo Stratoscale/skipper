@@ -21,14 +21,13 @@ PROJECT_DIR = os.path.join(WORKDIR, PROJECT)
 ENV = ["KEY1=VAL1", "KEY2=VAL2"]
 
 
-class TestRunner(unittest.TestCase):
+class TestRunnerPodman(unittest.TestCase):
 
-    NET_LS = 'NETWORK ID          NAME                DRIVER              SCOPE\n' \
-             '8c954c27cf41        host                host                local\n'
-    NET_NOT_EXISTS = 'NETWORK ID          NAME                DRIVER              SCOPE\n'
+    NET_LS = 'podnam\nhost\n'
+    NET_NOT_EXISTS = ''
 
     def setUp(self):
-        self.runtime = "docker"
+        self.runtime = "podman"
         utils.CONTAINER_RUNTIME_COMMAND = self.runtime
         os.environ['KEEP_CONTAINERS'] = 'True'
 
@@ -52,19 +51,17 @@ class TestRunner(unittest.TestCase):
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
     @mock.patch('os.getuid', autospec=True)
-    @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
     @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_simple_command_nested_network_exist(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
+    def test_run_simple_command_nested_network_exist(self, check_output_mock, popen_mock, os_getuid_mock):
         check_output_mock.side_effect = [self.NET_LS, '']
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
-        grp_getgrnam_mock.return_value.gr_gid = 978
         os_getuid_mock.return_value = USER_ID
         command = ['pwd']
         runner.run(command, FQDN_IMAGE)
         expected_nested_command = [
-            'docker', 'run',
+            self.runtime, 'run',
             '-t',
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
@@ -72,7 +69,6 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
@@ -90,19 +86,17 @@ class TestRunner(unittest.TestCase):
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
     @mock.patch('os.getuid', autospec=True)
-    @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
     @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_simple_command_nested_network_not_exist(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
+    def test_run_simple_command_nested_network_not_exist(self, check_output_mock, popen_mock, os_getuid_mock):
         check_output_mock.side_effect = [self.NET_NOT_EXISTS, 'new-net-hash', '']
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
-        grp_getgrnam_mock.return_value.gr_gid = 978
         os_getuid_mock.return_value = USER_ID
         command = ['pwd']
         runner.run(command, FQDN_IMAGE)
         expected_nested_command = [
-            'docker', 'run',
+            self.runtime, 'run',
             '-t',
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
@@ -110,7 +104,6 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
@@ -128,19 +121,52 @@ class TestRunner(unittest.TestCase):
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
     @mock.patch('os.getuid', autospec=True)
-    @mock.patch('grp.getgrnam', autospec=True)
     @mock.patch('subprocess.Popen', autospec=False)
     @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_simple_command_nested_with_env(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
+    def test_run_complex_command_nested(self, check_output_mock, popen_mock, os_getuid_mock):
         check_output_mock.side_effect = [self.NET_LS, '']
         popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
         popen_mock.return_value.poll.return_value = -1
-        grp_getgrnam_mock.return_value.gr_gid = 978
         os_getuid_mock.return_value = USER_ID
-        command = ['pwd']
+        command = ['ls', '-l']
+        runner.run(command, FQDN_IMAGE)
+        expected_nested_command = [
+            self.runtime, 'run',
+            '-t',
+            '-e', 'KEEP_CONTAINERS=True',
+            '--privileged',
+            '--net', 'host',
+            '-e', 'SKIPPER_USERNAME=testuser',
+            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
+            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
+            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
+            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
+            '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
+            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
+            '-w', PROJECT_DIR,
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
+            FQDN_IMAGE,
+            ' '.join(command)
+        ]
+        popen_mock.assert_called_once_with(expected_nested_command)
+
+    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
+    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
+    @mock.patch('os.getuid', autospec=True)
+    @mock.patch('subprocess.Popen', autospec=False)
+    @mock.patch('subprocess.check_output', autospec=False)
+    def test_run_complex_command_nested_with_env(self, check_output_mock, popen_mock, os_getuid_mock):
+        check_output_mock.side_effect = [self.NET_LS, '']
+        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
+        popen_mock.return_value.poll.return_value = -1
+        os_getuid_mock.return_value = USER_ID
+        command = ['ls', '-l']
         runner.run(command, FQDN_IMAGE, ENV)
-        expected_docker_command = [
-            'docker', 'run',
+        expected_nested_command = [
+            self.runtime, 'run',
             '-t',
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
@@ -150,84 +176,6 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
-            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
-            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
-            '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
-            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
-            '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
-            '-w', PROJECT_DIR,
-            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
-            FQDN_IMAGE,
-            command[0]
-        ]
-        popen_mock.assert_called_once_with(expected_docker_command)
-
-    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
-    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
-    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
-    @mock.patch('os.getuid', autospec=True)
-    @mock.patch('grp.getgrnam', autospec=True)
-    @mock.patch('subprocess.Popen', autospec=False)
-    @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_simple_command_nested_interactive(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
-        check_output_mock.side_effect = [self.NET_LS, '']
-        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
-        popen_mock.return_value.poll.return_value = -1
-        grp_getgrnam_mock.return_value.gr_gid = 978
-        os_getuid_mock.return_value = USER_ID
-        command = ['pwd']
-        runner.run(command, FQDN_IMAGE, interactive=True)
-        expected_nested_command = [
-            'docker', 'run',
-            '-i',
-            '-t',
-            '-e', 'KEEP_CONTAINERS=True',
-            '--privileged',
-            '--net', 'host',
-            '-e', 'SKIPPER_USERNAME=testuser',
-            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
-            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
-            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
-            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
-            '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
-            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
-            '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
-            '-w', PROJECT_DIR,
-            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
-            FQDN_IMAGE,
-            command[0]
-        ]
-        popen_mock.assert_called_once_with(expected_nested_command)
-
-    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
-    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
-    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
-    @mock.patch('os.getuid', autospec=True)
-    @mock.patch('grp.getgrnam', autospec=True,)
-    @mock.patch('subprocess.Popen', autospec=False)
-    @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_complex_command_nested(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
-        check_output_mock.side_effect = [self.NET_LS, '']
-        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
-        popen_mock.return_value.poll.return_value = -1
-        grp_getgrnam_mock.return_value.gr_gid = 978
-        os_getuid_mock.return_value = USER_ID
-        command = ['ls', '-l']
-        runner.run(command, FQDN_IMAGE)
-        expected_nested_command = [
-            'docker', 'run',
-            '-t',
-            '-e', 'KEEP_CONTAINERS=True',
-            '--privileged',
-            '--net', 'host',
-            '-e', 'SKIPPER_USERNAME=testuser',
-            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
-            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
@@ -240,51 +188,3 @@ class TestRunner(unittest.TestCase):
             ' '.join(command)
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
-
-    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
-    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
-    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
-    @mock.patch('os.getuid', autospec=True)
-    @mock.patch('grp.getgrnam', autospec=True)
-    @mock.patch('subprocess.Popen', autospec=False)
-    @mock.patch('subprocess.check_output', autospec=False)
-    def test_run_complex_command_nested_with_env(self, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock):
-        check_output_mock.side_effect = [self.NET_LS, '']
-        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
-        popen_mock.return_value.poll.return_value = -1
-        grp_getgrnam_mock.return_value.gr_gid = 978
-        os_getuid_mock.return_value = USER_ID
-        command = ['ls', '-l']
-        runner.run(command, FQDN_IMAGE, ENV, name="test")
-        expected_nested_command = [
-            'docker', 'run',
-            '--name',
-            'test',
-            '-t',
-            '-e', 'KEEP_CONTAINERS=True',
-            '--privileged',
-            '--net', 'host',
-            '-e', 'KEY1=VAL1',
-            '-e', 'KEY2=VAL2',
-            '-e', 'SKIPPER_USERNAME=testuser',
-            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
-            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-e', 'SKIPPER_DOCKER_GID=978',
-            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
-            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
-            '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
-            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
-            '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '-v', '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
-            '-w', PROJECT_DIR,
-            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
-            FQDN_IMAGE,
-            ' '.join(command)
-        ]
-        popen_mock.assert_called_once_with(expected_nested_command)
-
-    def test_handle_volumes_bind_mount_with_bad_volume_mount(self):
-        docker_cmd = ['docker', 'run']
-        volumes = ['bad volume mount']
-        with self.assertRaises(ValueError):
-            runner.handle_volumes_bind_mount(docker_cmd, HOME_DIR, volumes, WORKDIR)

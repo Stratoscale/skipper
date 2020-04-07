@@ -11,13 +11,19 @@ fi
 
 chown ${SKIPPER_USERNAME}:${SKIPPER_USERNAME} /home/${SKIPPER_USERNAME}
 
-if [ $(getent group docker) ]; then
-	groupmod -o -g ${SKIPPER_DOCKER_GID} docker
-else
-	groupadd -g ${SKIPPER_DOCKER_GID} --non-unique docker
+if ! [ -z "${SKIPPER_DOCKER_GID}" ];then
+  if [ $(getent group docker) ]; then
+    groupmod -o -g ${SKIPPER_DOCKER_GID} docker
+  else
+    groupadd -g ${SKIPPER_DOCKER_GID} --non-unique docker
+  fi
 fi
 
-usermod -G root,docker ${SKIPPER_USERNAME}
+if grep -q docker /etc/group; then
+   usermod -G root,docker ${SKIPPER_USERNAME}
+else
+   usermod -G root ${SKIPPER_USERNAME}
+fi
+
 
 su -m ${SKIPPER_USERNAME} -c "$@"
-

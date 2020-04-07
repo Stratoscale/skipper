@@ -80,10 +80,10 @@ def build(ctx, images_to_build, container_context, cache):
             build_context = ctx.obj['container_context']
         else:
             build_context = os.path.dirname(dockerfile)
-        command = ['docker', 'build', '--network=host', '-f', dockerfile, '-t', fqdn_image, build_context]
+        command = ['build', '--network=host', '-f', dockerfile, '-t', fqdn_image, build_context]
         if cache:
             cache_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
-            runner.run(['docker', 'pull', cache_image])
+            runner.run(['pull', cache_image])
             command.extend(['--cache-from', cache_image])
         ret = runner.run(command)
 
@@ -93,8 +93,8 @@ def build(ctx, images_to_build, container_context, cache):
 
         if cache:
             cache_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
-            runner.run(['docker', 'tag', fqdn_image, cache_image])
-            runner.run(['docker', 'push', cache_image])
+            runner.run(['tag', fqdn_image, cache_image])
+            runner.run(['push', cache_image])
 
     return 0
 
@@ -122,7 +122,7 @@ def push(ctx, namespace, force, image):
 def _push(ctx, force, image, image_name, namespace, tag):
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace, image, tag)
     utils.logger.debug("Adding tag %(tag)s", dict(tag=fqdn_image))
-    command = ['docker', 'tag', image_name, fqdn_image]
+    command = ['tag', image_name, fqdn_image]
     ret = runner.run(command)
     if ret != 0:
         utils.logger.error('Failed to tag image: %(tag)s as fqdn', dict(tag=image_name, fqdn=fqdn_image))
@@ -141,7 +141,7 @@ def _push(ctx, force, image, image_name, namespace, tag):
     else:
         _push_to_registry(ctx.obj['registry'], fqdn_image)
     utils.logger.debug("Removing tag %(tag)s", dict(tag=fqdn_image))
-    command = ['docker', 'rmi', fqdn_image]
+    command = ['rmi', fqdn_image]
     ret = runner.run(command)
     if ret != 0:
         utils.logger.warning('Failed to remove image tag: %(tag)s', dict(tag=fqdn_image))
@@ -293,7 +293,7 @@ def version():
 
 def _push_to_registry(registry, fqdn_image):
     utils.logger.debug("Pushing to registry %(registry)s", dict(registry=registry))
-    command = ['docker', 'push', fqdn_image]
+    command = ['push', fqdn_image]
     ret = runner.run(command)
     if ret != 0:
         utils.logger.error('Failed to push image: %(tag)s', dict(tag=fqdn_image))
@@ -330,10 +330,10 @@ def _prepare_build_container(registry, image, tag, git_revision, container_conte
     else:
         build_context = '.'
 
-    command = ['docker', 'build', '--network=host', '-t', tagged_image_name, '-f', docker_file, build_context]
+    command = ['build', '--network=host', '-t', tagged_image_name, '-f', docker_file, build_context]
     if use_cache:
         cache_image = utils.generate_fqdn_image(registry, namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
-        runner.run(['docker', 'pull', cache_image])
+        runner.run(['pull', cache_image])
         command.extend(['--cache-from', cache_image])
     ret = runner.run(command)
     if ret != 0:
@@ -341,12 +341,12 @@ def _prepare_build_container(registry, image, tag, git_revision, container_conte
 
     if git_revision and not git.uncommitted_changes():
         utils.logger.info("Tagging image with git revision: %(tag)s", dict(tag=tag))
-        runner.run(['docker', 'tag', image, tagged_image_name])
+        runner.run(['tag', image, tagged_image_name])
 
     if use_cache:
         cache_image = utils.generate_fqdn_image(registry, namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
-        runner.run(['docker', 'tag', image, cache_image])
-        runner.run(['docker', 'push', cache_image])
+        runner.run(['tag', image, cache_image])
+        runner.run(['push', cache_image])
 
     return image
 
