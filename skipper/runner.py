@@ -7,6 +7,7 @@ from contextlib import contextmanager
 import sys
 from retry import retry
 from skipper import utils
+import pkg_resources
 
 
 # pylint: disable=too-many-arguments
@@ -86,6 +87,8 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
 
     return ret
 
+def get_extra_file(filename):
+    return pkg_resources.resource_filename("skipper", "data/%s" % filename)
 
 def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
     volumes = volumes or []
@@ -95,7 +98,7 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
         '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=homedir),
         '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
         '/var/run/docker.sock:/var/run/docker.sock:Z',
-        '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
+        '%s:/opt/skipper/skipper-entrypoint.sh:Z' % get_extra_file("skipper-entrypoint.sh"),
     ])
     for volume in volumes:
         if ":" not in volume:
