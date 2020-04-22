@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import logging
 import os
 import os.path
@@ -285,10 +287,21 @@ def shell(ctx, env, name, cache):
 @cli.command()
 def version():
     """
-    Output skipper version
+    output skipper version
     """
-    utils.logger.debug("Printing skipper version")
+    utils.logger.debug("printing skipper version")
     click.echo(get_distribution("strato-skipper").version)  # pylint: disable=no-member
+
+
+@cli.command()
+def completion():
+    """
+    output bash completion script
+    """
+    completion_file_path = utils.get_extra_file("skipper-complete.sh")
+
+    with open(completion_file_path, 'r') as fin:
+        print(fin.read(), end="")
 
 
 def _push_to_registry(registry, fqdn_image):

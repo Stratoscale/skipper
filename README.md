@@ -18,6 +18,11 @@ git clone http://github.com/Stratoscale/skipper
 sudo make install
 ```
 
+Configure bash completion for skipper by sourcing the completion script in your ~/.bashrc file:
+``` bash
+echo 'source <(skipper completion)' >>~/.bashrc
+```
+
 ## Python3 Environment
 Skipper supports building and running in Python3 environment
 Set your locale to UTF-8:
