@@ -1,3 +1,4 @@
+[![Actions Status](https://github.com/Stratoscale/skipper/workflows/build/badge.svg)](https://github.com/Stratoscale/skipper/actions)
 # Skipper
 
 ## Introduction
