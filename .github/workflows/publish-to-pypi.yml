@@ -1,0 +1,31 @@
+name: Releases
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v1
+    - name: Set up Python 2.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 2.7.17
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        sudo pip install strato-skipper
+        mkdir -p ~/.docker
+        echo "{}" > ~/.docker/config.json
+        touch ${HOME}/.gitconfig
+    - name: test
+      run: |
+        skipper make all
+    - name: Publish distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        password: ${{ secrets.pypi_password }}
