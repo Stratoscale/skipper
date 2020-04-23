@@ -7,6 +7,7 @@ from distutils.spawn import find_executable
 from six.moves import http_client
 import requests
 import urllib3
+import pkg_resources
 
 
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
@@ -158,6 +159,10 @@ def get_runtime_command():
         else:
             raise Exception("Nor %s nor %s are installed" % (PODMAN, DOCKER))
     return CONTAINER_RUNTIME_COMMAND
+
+
+def get_extra_file(filename):
+    return pkg_resources.resource_filename("skipper", "data/%s" % filename)
 
 
 def run_container_command(args):

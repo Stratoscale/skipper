@@ -117,7 +117,7 @@ _get_makefile() {
 }
 
 _skipper_completion() {
-    local COMMANDS="build push images rmi run make shell"
+    local COMMANDS="build push images rmi run make shell completion"
     local -A OPTS=(
         [GLOBAL]="-v --verbose --registry --build-container-image --build-container-tag --help"
         [BUILD]="--help"

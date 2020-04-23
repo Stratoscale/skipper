@@ -95,7 +95,7 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
         '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=homedir),
         '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
         '/var/run/docker.sock:/var/run/docker.sock:Z',
-        '/opt/skipper/skipper-entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
+        '%s:/opt/skipper/skipper-entrypoint.sh:Z' % utils.get_extra_file("skipper-entrypoint.sh"),
     ])
     for volume in volumes:
         if ":" not in volume:
