@@ -9,12 +9,13 @@ on:
       - master
 
 jobs:
+
   remove-label:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
     - name: remove label
       uses: actions/github-script@0.9.0
-      if: github.event_name == 'pull_request'
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
@@ -46,20 +47,70 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v1
-    - name: Set up Python 2.7
+    - name: Set up Python 3.x
       uses: actions/setup-python@v1
       with:
-        python-version: 2.7.17
+        python-version: 3.x
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        sudo pip install strato-skipper
+        pip install --user strato-skipper
         mkdir -p ~/.docker
         echo "{}" > ~/.docker/config.json
         touch ${HOME}/.gitconfig
+        echo "::add-path::$HOME/.local/bin"
     - name: test
       run: |
         skipper make all
+
+  test-user-install:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '2.x', '3.x']
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Test install
+      run: |
+        mkdir -p ~/.docker
+        echo "{}" > ~/.docker/config.json
+        pip install --user .
+        echo "::add-path::$HOME/.local/bin"
+    - name: Test usage
+      run: |
+        skipper make clean
+
+  test-root-install:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '2.x', '3.x']
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Test install
+      run: |
+        mkdir -p ~/.docker
+        echo "{}" > ~/.docker/config.json
+        sudo pip install .
+        echo "::add-path::$HOME/.local/bin"
+    - name: Test usage
+      run: |
+        skipper make clean
+
+  label:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: [ build, test-user-install, test-root-install, remove-label ]
+    steps:
     - name: apply label
       uses: actions/github-script@0.9.0
       if: github.event_name == 'pull_request'
