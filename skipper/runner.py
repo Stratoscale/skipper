@@ -126,7 +126,9 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
 
 @contextmanager
 def _network(net):
-    if _network_exists(net):
+    if utils.get_runtime_command() != "docker":
+        yield
+    elif _network_exists(net):
         yield
     else:
         _create_network(net)
