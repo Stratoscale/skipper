@@ -89,14 +89,26 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
 
 def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
     volumes = volumes or []
-    volumes.extend([
-        '%(workspace)s:%(workspace)s:rw,Z' % dict(workspace=workspace),
-        '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=homedir),
-        '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=homedir),
-        '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
-        '/var/run/docker.sock:/var/run/docker.sock:Z',
-        '%s:/opt/skipper/skipper-entrypoint.sh:Z' % utils.get_extra_file("skipper-entrypoint.sh"),
-    ])
+    if utils.get_runtime_command() == utils.PODMAN:
+        volumes.extend([
+            '%(workspace)s:%(workspace)s:rw,shared' % dict(workspace=workspace),
+            '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=homedir),
+            '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=homedir),
+            '/var/run/docker.sock:/var/run/docker.sock:rw',
+            '%s:/opt/skipper/skipper-entrypoint.sh:rw' % utils.get_extra_file("skipper-entrypoint.sh"),
+        ])
+        if os.path.exists('/var/lib/osmosis'):
+            volumes.append('/var/lib/osmosis:/var/lib/osmosis:rw')
+    else:
+        volumes.extend([
+            '%(workspace)s:%(workspace)s:rw,Z' % dict(workspace=workspace),
+            '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=homedir),
+            '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=homedir),
+            '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
+            '/var/run/docker.sock:/var/run/docker.sock:Z',
+            '%s:/opt/skipper/skipper-entrypoint.sh:Z' % utils.get_extra_file("skipper-entrypoint.sh"),
+            ])
+
     for volume in volumes:
         if ":" not in volume:
             raise ValueError("Volume entry is badly-formatted - %s" % volume)
@@ -126,7 +138,9 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
 
 @contextmanager
 def _network(net):
-    if _network_exists(net):
+    if utils.get_runtime_command() != "docker":
+        yield
+    elif _network_exists(net):
         yield
     else:
         _create_network(net)
@@ -146,10 +160,6 @@ def _destroy_network(net):
 
 
 def _network_exists(net):
-    cmd = ['network', 'ls']
-    if utils.get_runtime_command() == "docker":
-        cmd.extend(["-f", "NAME=%s" % net])
-    else:
-        cmd.append("-q")
+    cmd = ['network', 'ls', "-f", "NAME=%s" % net]
     result = utils.run_container_command(cmd)
     return net in result
