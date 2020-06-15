@@ -9,6 +9,7 @@ import click
 import six
 import tabulate
 from pkg_resources import get_distribution
+from pbr import packaging, version
 
 from skipper import git
 from skipper import runner
@@ -105,18 +106,23 @@ def build(ctx, images_to_build, container_context, cache):
 @cli.command()
 @click.option('--namespace', help='Namespace to push into')
 @click.option('--force', help="Push image even if it's already in the registry", is_flag=True, default=False)
+@click.option('--pbr', help="Use PBR to tag the image", is_flag=True, default=False)
 @click.argument('image')
 @click.pass_context
-def push(ctx, namespace, force, image):
+def push(ctx, namespace, force, pbr, image):
     """
     Push a container
     """
     utils.logger.debug("Executing push command")
     _validate_global_params(ctx, 'registry')
     tag = git.get_hash()
+    tag_to_push = tag
+    if pbr:
+        # Format = pbr_version.short_hash
+        tag_to_push = "{}.{}".format(packaging._get_version_from_git().replace('dev', ''), tag[:8])
     image_name = image + ':' + tag
 
-    ret = _push(ctx, force, image, image_name, namespace, tag)
+    ret = _push(ctx, force, image, image_name, namespace, tag_to_push)
     if ret != 0:
         return ret
     return ret
