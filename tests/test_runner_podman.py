@@ -21,6 +21,7 @@ PROJECT_DIR = os.path.join(WORKDIR, PROJECT)
 ENV = ["KEY1=VAL1", "KEY2=VAL2"]
 
 
+@mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
 class TestRunnerPodman(unittest.TestCase):
 
     def setUp(self):
@@ -67,11 +68,11 @@ class TestRunnerPodman(unittest.TestCase):
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-v', '%(workdir)s:%(workdir)s:rw,shared' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
-            '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
+            '-v', '%(workdir)s:%(workdir)s:rw,shared' % dict(workdir=WORKDIR),
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:rw',
+            '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
@@ -104,11 +105,11 @@ class TestRunnerPodman(unittest.TestCase):
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-v', '%(workdir)s:%(workdir)s:rw,shared' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
-            '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
+            '-v', '%(workdir)s:%(workdir)s:rw,shared' % dict(workdir=WORKDIR),
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:rw',
+            '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
@@ -141,11 +142,11 @@ class TestRunnerPodman(unittest.TestCase):
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-v', '%(workdir)s:%(workdir)s:rw,shared' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
-            '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
+            '-v', '%(workdir)s:%(workdir)s:rw,shared' % dict(workdir=WORKDIR),
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:rw',
+            '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
@@ -180,11 +181,11 @@ class TestRunnerPodman(unittest.TestCase):
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
-            '-v', '%(workdir)s:%(workdir)s:rw,shared' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
-            '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
+            '-v', '%(workdir)s:%(workdir)s:rw,shared' % dict(workdir=WORKDIR),
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:rw',
+            '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
