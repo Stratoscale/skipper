@@ -48,6 +48,7 @@ class TestRunner(unittest.TestCase):
         runner.run(command)
         popen_mock.assert_called_once_with([self.runtime] + command)
 
+    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
@@ -76,9 +77,9 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
-            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -89,6 +90,7 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
 
+    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
@@ -117,9 +119,9 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
-            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -130,6 +132,7 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
 
+    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
@@ -159,9 +162,9 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
-            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -172,6 +175,7 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(expected_docker_command)
 
+    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
@@ -201,9 +205,9 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
-            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -214,6 +218,7 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
 
+    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
@@ -241,9 +246,9 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
-            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -254,6 +259,7 @@ class TestRunner(unittest.TestCase):
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
 
+    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
     @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
     @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
@@ -285,9 +291,9 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
-            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
             '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
@@ -296,6 +302,61 @@ class TestRunner(unittest.TestCase):
             FQDN_IMAGE,
             ' '.join(command)
         ]
+        popen_mock.assert_called_once_with(expected_nested_command)
+
+    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
+    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
+    @mock.patch('skipper.runner.utils.create_path_and_add_data', autospec=True)
+    @mock.patch('os.path.exists', autospec=True)
+    @mock.patch('os.getuid', autospec=True)
+    @mock.patch('grp.getgrnam', autospec=True)
+    @mock.patch('subprocess.Popen', autospec=False)
+    @mock.patch('subprocess.check_output', autospec=False)
+    @mock.patch('pkg_resources.resource_filename', autospec=False)
+    def test_run_complex_command_nested_with_special_case_verification(self, resource_filename_mock, check_output_mock,
+                                                                       popen_mock, grp_getgrnam_mock, os_getuid_mock,
+                                                                       path_exists_mock, create_path_and_add_data_mock):
+
+        path_exists_mock.return_value = False
+        resource_filename_mock.return_value = "entrypoint.sh"
+        check_output_mock.side_effect = [self.NET_LS, '']
+        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
+        popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
+        os_getuid_mock.return_value = USER_ID
+        command = ['ls', '-l']
+        volumes = ["%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json"]
+        runner.run(command, FQDN_IMAGE, ENV, name="test", volumes=volumes)
+        expected_nested_command = [
+            'docker', 'run',
+            '--name',
+            'test',
+            '-t',
+            '-e', 'KEEP_CONTAINERS=True',
+            '--privileged',
+            '--net', 'host',
+            '-e', 'KEY1=VAL1',
+            '-e', 'KEY2=VAL2',
+            '-e', 'SKIPPER_USERNAME=testuser',
+            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
+            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
+            '-e', 'SKIPPER_DOCKER_GID=978',
+            '-v', '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json',
+            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
+            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
+            '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
+            '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
+            '-w', PROJECT_DIR,
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
+            FQDN_IMAGE,
+            ' '.join(command)
+        ]
+        calls = [mock.call(full_path="%(homedir)s/.docker/config.json", data="{}", is_file=True),
+                 mock.call(full_path="/home/adir/.gitconfig", data="", is_file=True)]
+        create_path_and_add_data_mock.assert_has_calls(calls)
         popen_mock.assert_called_once_with(expected_nested_command)
 
     def test_handle_volumes_bind_mount_with_bad_volume_mount(self):
