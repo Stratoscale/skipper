@@ -169,3 +169,12 @@ def run_container_command(args):
     cmd = [get_runtime_command()]
     cmd.extend(args)
     return str(subprocess.check_output(cmd).decode().strip())
+
+
+def create_path_and_add_data(full_path, data, is_file):
+    directory = os.path.dirname(full_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    if is_file:
+        with open(full_path, "w") as _file:
+            _file.write(data)

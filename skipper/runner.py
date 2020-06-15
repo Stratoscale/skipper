@@ -94,9 +94,10 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
             '%(workspace)s:%(workspace)s:rw,shared' % dict(workspace=workspace),
             '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=homedir),
             '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=homedir),
-            '/var/run/docker.sock:/var/run/docker.sock:rw',
             '%s:/opt/skipper/skipper-entrypoint.sh:rw' % utils.get_extra_file("skipper-entrypoint.sh"),
         ])
+        if os.path.exists('/var/run/docker.sock'):
+            volumes.append('/var/run/docker.sock:/var/run/docker.sock:rw')
         if os.path.exists('/var/lib/osmosis'):
             volumes.append('/var/lib/osmosis:/var/lib/osmosis:rw')
     else:
@@ -118,6 +119,12 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
             if volume.startswith('/etc/') or volume.startswith('/var/lib/'):
                 volume = '/private' + volume
 
+        # if part of host directory is empty, skipping this mount
+        if not volume.split(":")[0]:
+            continue
+
+        _special_case_mounts(volume)
+
         # If the local directory of a mount entry doesn't exist, docker will by
         # default create a directory in that path. Docker runs in systemd context,
         # with root-privileges, so the container will have no permissions to write
@@ -134,6 +141,18 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
 
         docker_cmd += ['-v', volume]
     return docker_cmd
+
+
+# We have couple of special case mounts
+# 1. gitconfig file - it is required by skipper but may not exists, we don't want to create folder if it doesn't exist
+# that's why we create it as file
+# 2. .docker/config.json - if it is required and doesn't exists we want to create is as file with {} as data
+def _special_case_mounts(volume):
+    host_path = volume.split(":")[0]
+    if ".gitconfig" in host_path and not os.path.exists(host_path):
+        utils.create_path_and_add_data(host_path, data="", is_file=True)
+    elif "docker/config.json" in host_path and not os.path.exists(host_path):
+        utils.create_path_and_add_data(host_path, data="{}", is_file=True)
 
 
 @contextmanager
