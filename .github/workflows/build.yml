@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - master
+      - upstream
   pull_request:
     branches:
+      - upstream
       - master
 
 jobs:
