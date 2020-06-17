@@ -92,6 +92,12 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
     volumes.extend(['%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=homedir),
                     '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=homedir)])
 
+    # required for docker login
+    if os.path.exists('%(homedir)s/.docker/config.json' % dict(homedir=homedir)):
+        volumes.append('%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=homedir))
+    if os.path.exists('/etc/docker'):
+        volumes.append('/etc/docker:/etc/docker:ro')
+
     if utils.get_runtime_command() == utils.PODMAN:
         volumes.extend([
             '%(workspace)s:%(workspace)s:rw,shared' % dict(workspace=workspace),
