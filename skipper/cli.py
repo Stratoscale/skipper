@@ -9,7 +9,7 @@ import click
 import six
 import tabulate
 from pkg_resources import get_distribution
-from pbr import packaging, version
+from pbr import packaging
 
 from skipper import git
 from skipper import runner
@@ -31,7 +31,6 @@ def cli(ctx, registry, build_container_image, build_container_tag, build_contain
     """
     logging_level = logging.DEBUG if verbose else logging.INFO
     utils.configure_logging(name='skipper', level=logging_level)
-
     ctx.obj['registry'] = registry
     ctx.obj['build_container_image'] = build_container_image
     ctx.obj['build_container_net'] = build_container_net
@@ -43,6 +42,7 @@ def cli(ctx, registry, build_container_image, build_container_tag, build_contain
     ctx.obj['workdir'] = ctx.default_map.get('workdir')
     ctx.obj['workspace'] = ctx.default_map.get('workspace', None)
     ctx.obj['container_context'] = ctx.default_map.get('container_context')
+    utils.set_remote_registry_login_info(registry, ctx.obj)
 
 
 @cli.command()
@@ -119,6 +119,7 @@ def push(ctx, namespace, force, pbr, image):
     tag_to_push = tag
     if pbr:
         # Format = pbr_version.short_hash
+        # pylint: disable=protected-access
         tag_to_push = "{}.{}".format(packaging._get_version_from_git().replace('dev', ''), tag[:8])
     image_name = image + ':' + tag
 
@@ -137,7 +138,8 @@ def _push(ctx, force, image, image_name, namespace, tag):
         utils.logger.error('Failed to tag image: %(tag)s as fqdn', dict(tag=image_name, fqdn=fqdn_image))
         sys.exit(ret)
     repo_name = utils.generate_fqdn_image(None, namespace, image, tag=None)
-    images_info = utils.get_remote_images_info([repo_name], ctx.obj['registry'])
+    images_info = utils.get_remote_images_info([repo_name], ctx.obj['registry'],
+                                               ctx.obj.get('username'), ctx.obj.get('password'))
     tags = [info[-1] for info in images_info]
     if tag in tags:
         if not force:
@@ -173,7 +175,8 @@ def images(ctx, remote):
     if remote:
         _validate_global_params(ctx, 'registry')
         try:
-            images_info += utils.get_remote_images_info(images_names, ctx.obj['registry'])
+            images_info += utils.get_remote_images_info(images_names, ctx.obj['registry'],
+                                                        ctx.obj.get('username'), ctx.obj.get('password'))
         except Exception as exp:
             raise click.exceptions.ClickException('Got unknow error from remote registry %(error)s' % dict(error=exp.message))
 
@@ -193,7 +196,8 @@ def rmi(ctx, remote, image, tag):
     _validate_project_image(image)
     if remote:
         _validate_global_params(ctx, 'registry')
-        utils.delete_image_from_registry(ctx.obj['registry'], image, tag)
+        utils.delete_image_from_registry(ctx.obj['registry'], image, tag,
+                                         ctx.obj.get('username'), ctx.obj.get('password'))
     else:
         utils.delete_local_image(image, tag)
 
@@ -216,6 +220,8 @@ def run(ctx, interactive, name, env, cache, command):
                                                ctx.obj['build_container_tag'],
                                                ctx.obj['git_revision'],
                                                ctx.obj['container_context'],
+                                               ctx.obj['username'],
+                                               ctx.obj['password'],
                                                cache)
     return runner.run(list(command),
                       fqdn_image=build_container,
@@ -248,6 +254,8 @@ def make(ctx, interactive, name, env, makefile, cache, make_params):
                                                ctx.obj['build_container_tag'],
                                                ctx.obj['git_revision'],
                                                ctx.obj['container_context'],
+                                               ctx.obj['username'],
+                                               ctx.obj['password'],
                                                cache)
     command = ['make', '-f', makefile] + list(make_params)
     return runner.run(command,
@@ -278,6 +286,8 @@ def shell(ctx, env, name, cache):
                                                ctx.obj['build_container_tag'],
                                                ctx.obj['git_revision'],
                                                ctx.obj['container_context'],
+                                               ctx.obj['username'],
+                                               ctx.obj['password'],
                                                cache)
     return runner.run(['bash'],
                       fqdn_image=build_container,
@@ -320,7 +330,7 @@ def _push_to_registry(registry, fqdn_image):
         sys.exit(ret)
 
 
-def _prepare_build_container(registry, image, tag, git_revision, container_context, use_cache):
+def _prepare_build_container(registry, image, tag, git_revision, container_context, username, password, use_cache):
 
     if tag is not None:
 
@@ -330,7 +340,7 @@ def _prepare_build_container(registry, image, tag, git_revision, container_conte
             utils.logger.info("Using build container: %(image_name)s", dict(image_name=tagged_image_name))
             return tagged_image_name
 
-        if utils.remote_image_exist(registry, image, tag):
+        if utils.remote_image_exist(registry, image, tag, username, password):
             fqdn_image = utils.generate_fqdn_image(registry, None, image, tag)
             utils.logger.info("Using build container: %(fqdn_image)s", dict(fqdn_image=fqdn_image))
             return fqdn_image
