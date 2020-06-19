@@ -119,8 +119,7 @@ def get_image_digest(registry, image, tag, username, password):
 def delete_image_from_registry(registry, image, tag, username, password):
     digest = get_image_digest(registry, image, tag, username, password)
     url = MANIFEST_URL % dict(registry=registry, image=image, reference=digest)
-    headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
-    response = requests.delete(url=url, headers=headers, verify=False, auth=HttpBearerAuth(username, password))
+    response = requests.delete(url=url, verify=False, auth=HttpBearerAuth(username, password))
     if not response.ok:
         raise Exception(response.content)
 

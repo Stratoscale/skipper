@@ -212,6 +212,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'build',
             '--network=host',
+            '--build-arg', 'TAG=1234567',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             '/home/user/work/project'
@@ -236,6 +237,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'build',
             '--network=host',
+            '--build-arg', 'TAG=1234567',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             '/home/user/work/project'
@@ -261,6 +263,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'build',
             '--network=host',
+            '--build-arg', 'TAG=1234567',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             SKIPPER_CONF_CONTAINER_CONTEXT
@@ -285,7 +288,8 @@ class TestCLI(unittest.TestCase):
             subcmd_params=make_params
         )
         expected_commands = [
-            mock.call(['build', '--network=host', '-t', 'build-container-image', '-f',
+            mock.call(['build', '--network=host',
+                       '-t', 'build-container-image', '-f',
                        'Dockerfile.build-container-image',
                        SKIPPER_CONF_CONTAINER_CONTEXT]),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
@@ -322,10 +326,12 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_commands = [
-            mock.call(['build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image1', '-t',
+            mock.call(['build', '--network=host', '--build-arg', 'TAG=1234567',
+                       '-f', '/home/user/work/project/Dockerfile.image1', '-t',
                        'image1:1234567',
                        '/home/user/work/project']),
-            mock.call(['build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image2', '-t',
+            mock.call(['build', '--network=host', '--build-arg', 'TAG=1234567',
+                       '-f', '/home/user/work/project/Dockerfile.image2', '-t',
                        'image2:1234567',
                        '/home/user/work/project']),
         ]
@@ -347,6 +353,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'build',
             '--network=host',
+            '--build-arg', 'TAG=1234567',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             '/home/user/work/project'
@@ -371,6 +378,7 @@ class TestCLI(unittest.TestCase):
         expected_command = [
             'build',
             '--network=host',
+            '--build-arg', 'TAG=1234567',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             '/home/user/work/project'
@@ -390,10 +398,12 @@ class TestCLI(unittest.TestCase):
             subcmd='build',
         )
         expected_commands = [
-            mock.call(['build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image1', '-t',
+            mock.call(['build', '--network=host', '--build-arg', 'TAG=1234567',
+                       '-f', '/home/user/work/project/Dockerfile.image1', '-t',
                        'image1:1234567',
                        '/home/user/work/project']),
-            mock.call(['build', '--network=host', '-f', '/home/user/work/project/Dockerfile.image2', '-t',
+            mock.call(['build', '--network=host', '--build-arg', 'TAG=1234567',
+                       '-f', '/home/user/work/project/Dockerfile.image2', '-t',
                        'image2:1234567',
                        '/home/user/work/project']),
         ]
@@ -416,9 +426,8 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_command = [
-
             'build',
-            '--network=host',
+            '--network=host', '--build-arg', 'TAG=1234567',
             '-f', '/home/user/work/project/Dockerfile.image1',
             '-t', 'image1:1234567',
             '/home/user/work/project'
@@ -440,9 +449,8 @@ class TestCLI(unittest.TestCase):
             subcmd_params=build_params
         )
         expected_command = [
-
             'build',
-            '--network=host',
+            '--network=host', '--build-arg', 'TAG=1234567',
             '-f', '/home/user/work/project/app1/Dockerfile',
             '-t', 'image1:1234567',
             '/home/user/work/project/app1'
@@ -702,11 +710,13 @@ class TestCLI(unittest.TestCase):
         ]
         tabulate_mock.assert_called_once_with(expected_table, headers=['REGISTRY', 'IMAGE', 'TAG'], tablefmt='grid')
 
+    @mock.patch('skipper.utils.HttpBearerAuth', autospec=True)
     @mock.patch('glob.glob', mock.MagicMock(autospec=True, return_value=['Dockerfile.my_image']))
     @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('requests.get', autospec=True)
     @mock.patch('subprocess.check_output', autospec=True)
-    def test_images_with_all_results(self, subprocess_check_output_mock, requests_get_mock, tabulate_mock):
+    def test_images_with_all_results(self, subprocess_check_output_mock, requests_get_mock, tabulate_mock,
+                                     requests_bearer_auth_mock):
         subprocess_check_output_mock.return_value = '{"name": "my_image", "tag": "aaaaaaa"}'
 
         with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
@@ -734,6 +744,7 @@ class TestCLI(unittest.TestCase):
         expected_url = 'https://%(registry)s/v2/my_image/tags/list' % dict(registry=REGISTRY)
         requests_get_mock.assert_called_once_with(
             url=expected_url,
+            auth=requests_bearer_auth_mock(),
             verify=False
         )
 
@@ -746,11 +757,13 @@ class TestCLI(unittest.TestCase):
         tabulate_mock.assert_called_once_with(expected_images_results, headers=['REGISTRY', 'IMAGE', 'TAG'],
                                               tablefmt='grid')
 
+    @mock.patch('skipper.utils.HttpBearerAuth', autospec=True)
     @mock.patch('glob.glob', mock.MagicMock(autospec=True, return_value=['Dockerfile.my_image']))
     @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('requests.get', autospec=True)
     @mock.patch('subprocess.check_output', autospec=True, return_value='')
-    def test_images_with_remote_results_only(self, subprocess_check_output_mock, requests_get_mock, tabulate_mock):
+    def test_images_with_remote_results_only(self, subprocess_check_output_mock, requests_get_mock, tabulate_mock,
+                                             requests_bearer_auth_mock):
         with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
             requests_response_mock = requests_response_class_mock.return_value
             requests_response_mock.json.return_value = {
@@ -776,7 +789,8 @@ class TestCLI(unittest.TestCase):
         expected_url = 'https://%(registry)s/v2/my_image/tags/list' % dict(registry=REGISTRY)
         requests_get_mock.assert_called_once_with(
             url=expected_url,
-            verify=False
+            verify=False,
+            auth=requests_bearer_auth_mock()
         )
 
         expected_images_results = [
@@ -787,11 +801,13 @@ class TestCLI(unittest.TestCase):
         tabulate_mock.assert_called_once_with(expected_images_results, headers=['REGISTRY', 'IMAGE', 'TAG'],
                                               tablefmt='grid')
 
+    @mock.patch('skipper.utils.HttpBearerAuth', autospec=True)
     @mock.patch('glob.glob', mock.MagicMock(autospec=True, return_value=['Dockerfile.my_image']))
     @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('requests.get', autospec=True)
     @mock.patch('subprocess.check_output', autospec=True, return_value='')
-    def test_images_with_missing_remote_results(self, subprocess_check_output_mock, requests_get_mock, tabulate_mock):
+    def test_images_with_missing_remote_results(self, subprocess_check_output_mock, requests_get_mock, tabulate_mock,
+                                                requests_bearer_auth_mock):
         with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
             requests_response_mock = requests_response_class_mock.return_value
             requests_response_mock.ok = False
@@ -818,19 +834,21 @@ class TestCLI(unittest.TestCase):
         expected_url = 'https://%(registry)s/v2/my_image/tags/list' % dict(registry=REGISTRY)
         requests_get_mock.assert_called_once_with(
             url=expected_url,
-            verify=False
+            verify=False,
+            auth=requests_bearer_auth_mock()
         )
 
         expected_images_results = []
         tabulate_mock.assert_called_once_with(expected_images_results, headers=['REGISTRY', 'IMAGE', 'TAG'],
                                               tablefmt='grid')
 
+    @mock.patch('skipper.utils.HttpBearerAuth', autospec=True)
     @mock.patch('glob.glob', mock.MagicMock(autospec=True, return_value=['Dockerfile.my_image']))
     @mock.patch('tabulate.tabulate', autospec=True)
     @mock.patch('requests.get', autospec=True)
     @mock.patch('subprocess.check_output', autospec=True)
     def test_images_with_local_result_and_missing_remote_results(self, subprocess_check_output_mock, requests_get_mock,
-                                                                 tabulate_mock):
+                                                                 tabulate_mock, requests_bearer_auth_mock):
         subprocess_check_output_mock.return_value = '{"name": "my_image", "tag": "aaaaaaa"}'
 
         with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
@@ -859,7 +877,8 @@ class TestCLI(unittest.TestCase):
         expected_url = 'https://%(registry)s/v2/my_image/tags/list' % dict(registry=REGISTRY)
         requests_get_mock.assert_called_once_with(
             url=expected_url,
-            verify=False
+            verify=False,
+            auth=requests_bearer_auth_mock()
         )
 
         expected_images_results = [
@@ -869,11 +888,13 @@ class TestCLI(unittest.TestCase):
         tabulate_mock.assert_called_once_with(expected_images_results, headers=['REGISTRY', 'IMAGE', 'TAG'],
                                               tablefmt='grid')
 
+    @mock.patch('skipper.utils.HttpBearerAuth', autospec=True)
     @mock.patch('glob.glob', mock.MagicMock(autospec=True, return_value=['Dockerfile.my_image']))
     @mock.patch('tabulate.tabulate', mock.MagicMock(autospec=True))
     @mock.patch('requests.get', autospec=True)
     @mock.patch('subprocess.check_output', autospec=True, return_value='')
-    def test_images_with_with_remote_error(self, subprocess_check_output_mock, requests_get_mock):
+    def test_images_with_with_remote_error(self, subprocess_check_output_mock, requests_get_mock,
+                                           requests_bearer_auth_mock):
         with mock.patch('requests.Response', autospec=True) as requests_response_class_mock:
             requests_response_mock = requests_response_class_mock.return_value
             requests_response_mock.ok = False
@@ -900,7 +921,8 @@ class TestCLI(unittest.TestCase):
         expected_url = 'https://%(registry)s/v2/my_image/tags/list' % dict(registry=REGISTRY)
         requests_get_mock.assert_called_once_with(
             url=expected_url,
-            verify=False
+            verify=False,
+            auth=requests_bearer_auth_mock()
         )
 
         self.assertIsInstance(result.exception, click.exceptions.ClickException)
@@ -940,10 +962,11 @@ class TestCLI(unittest.TestCase):
         ]
         subprocess_check_output_mock.assert_called_once_with(expected_command)
 
+    @mock.patch('skipper.utils.HttpBearerAuth', autospec=True)
     @mock.patch('glob.glob', mock.MagicMock(autospec=True, return_value=['Dockerfile.' + IMAGE]))
     @mock.patch('requests.delete', autospec=True)
     @mock.patch('requests.get', autospec=True)
-    def test_rmi_remote(self, requests_get_mock, requests_delete_mock):
+    def test_rmi_remote(self, requests_get_mock, requests_delete_mock, requests_bearer_auth_mock):
         requests_get_mock.side_effect = [mock.Mock(headers={'Docker-Content-Digest': 'digest'})]
         requests_delete_mock.side_effect = [mock.Mock(ok=True)]
         self._invoke_cli(
@@ -955,15 +978,18 @@ class TestCLI(unittest.TestCase):
         url = 'https://%(registry)s/v2/%(image)s/manifests/%(reference)s' % dict(registry=REGISTRY, image=IMAGE,
                                                                                  reference=TAG)
         headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
-        requests_get_mock.assert_called_once_with(url=url, headers=headers, verify=False)
+        requests_get_mock.assert_called_once_with(url=url, headers=headers, verify=False,
+                                                  auth=requests_bearer_auth_mock())
         url = 'https://%(registry)s/v2/%(image)s/manifests/%(reference)s' % dict(registry=REGISTRY, image=IMAGE,
                                                                                  reference='digest')
-        requests_delete_mock.assert_called_once_with(url=url, verify=False)
+        requests_delete_mock.assert_called_once_with(url=url, verify=False,
+                                                     auth=requests_bearer_auth_mock())
 
+    @mock.patch('skipper.utils.HttpBearerAuth', autospec=True)
     @mock.patch('glob.glob', mock.MagicMock(autospec=True, return_value=['Dockerfile.' + IMAGE]))
     @mock.patch('requests.delete', autospec=True)
     @mock.patch('requests.get', autospec=True)
-    def test_rmi_remote_fail(self, requests_get_mock, requests_delete_mock):
+    def test_rmi_remote_fail(self, requests_get_mock, requests_delete_mock, requests_bearer_auth_mock):
         requests_get_mock.side_effect = [mock.Mock(headers={'Docker-Content-Digest': 'digest'})]
         requests_delete_mock.side_effect = [mock.Mock(ok=False)]
         result = self._invoke_cli(
@@ -976,10 +1002,11 @@ class TestCLI(unittest.TestCase):
         url = 'https://%(registry)s/v2/%(image)s/manifests/%(reference)s' % dict(registry=REGISTRY, image=IMAGE,
                                                                                  reference=TAG)
         headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
-        requests_get_mock.assert_called_once_with(url=url, headers=headers, verify=False)
+        requests_get_mock.assert_called_once_with(url=url, headers=headers, verify=False,
+                                                  auth=requests_bearer_auth_mock())
         url = 'https://%(registry)s/v2/%(image)s/manifests/%(reference)s' % dict(registry=REGISTRY, image=IMAGE,
                                                                                  reference='digest')
-        requests_delete_mock.assert_called_once_with(url=url, verify=False)
+        requests_delete_mock.assert_called_once_with(url=url, verify=False, auth=requests_bearer_auth_mock())
 
     @mock.patch('glob.glob', mock.MagicMock(autospec=True, return_value=['Dockerfile.' + IMAGE]))
     def test_validate_project_image(self):
@@ -1249,6 +1276,24 @@ class TestCLI(unittest.TestCase):
             mock.call(command, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net='host', volumes=None, workdir=None, workspace=None,
                       use_cache=False),
+        ]
+        skipper_runner_run_mock.assert_has_calls(expected_commands)
+
+    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=''))
+    @mock.patch('skipper.runner.run', autospec=True, return_value=0)
+    def test_run_without_build_container_tag_cached(self, skipper_runner_run_mock):
+        global_params = self.global_params[:-2]
+        command = ['ls', '-l']
+        run_params = ['--cache'] + command
+        self._invoke_cli(
+            global_params=global_params,
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        expected_commands = [
+            mock.call(command, fqdn_image='build-container-image', environment=[],
+                      interactive=False, name=None, net='host', volumes=None, workdir=None, workspace=None,
+                      use_cache=True),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
