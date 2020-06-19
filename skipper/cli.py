@@ -220,8 +220,8 @@ def run(ctx, interactive, name, env, cache, command):
                                                ctx.obj['build_container_tag'],
                                                ctx.obj['git_revision'],
                                                ctx.obj['container_context'],
-                                               ctx.obj['username'],
-                                               ctx.obj['password'],
+                                               ctx.obj.get('username'),
+                                               ctx.obj.get('password'),
                                                cache)
     return runner.run(list(command),
                       fqdn_image=build_container,
@@ -254,8 +254,8 @@ def make(ctx, interactive, name, env, makefile, cache, make_params):
                                                ctx.obj['build_container_tag'],
                                                ctx.obj['git_revision'],
                                                ctx.obj['container_context'],
-                                               ctx.obj['username'],
-                                               ctx.obj['password'],
+                                               ctx.obj.get('username'),
+                                               ctx.obj.get('password'),
                                                cache)
     command = ['make', '-f', makefile] + list(make_params)
     return runner.run(command,
@@ -286,8 +286,8 @@ def shell(ctx, env, name, cache):
                                                ctx.obj['build_container_tag'],
                                                ctx.obj['git_revision'],
                                                ctx.obj['container_context'],
-                                               ctx.obj['username'],
-                                               ctx.obj['password'],
+                                               ctx.obj.get('username'),
+                                               ctx.obj.get('password'),
                                                cache)
     return runner.run(['bash'],
                       fqdn_image=build_container,
