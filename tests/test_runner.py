@@ -79,10 +79,12 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR),
+            '-v', '/etc/docker:/etc/docker:ro',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
-            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
+            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
@@ -121,10 +123,12 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR),
+            '-v', '/etc/docker:/etc/docker:ro',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
-            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
+            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
@@ -164,10 +168,12 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR),
+            '-v', '/etc/docker:/etc/docker:ro',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
-            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
+            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
@@ -197,6 +203,7 @@ class TestRunner(unittest.TestCase):
         expected_nested_command = [
             'docker', 'run',
             '-i',
+            '-e', 'SKIPPER_INTERACTIVE=True',
             '-t',
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
@@ -207,10 +214,12 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR),
+            '-v', '/etc/docker:/etc/docker:ro',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
-            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
+            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
@@ -248,10 +257,12 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR),
+            '-v', '/etc/docker:/etc/docker:ro',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
-            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
+            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
@@ -293,10 +304,12 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR),
+            '-v', '/etc/docker:/etc/docker:ro',
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
-            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
+            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,
@@ -326,7 +339,7 @@ class TestRunner(unittest.TestCase):
         grp_getgrnam_mock.return_value.gr_gid = 978
         os_getuid_mock.return_value = USER_ID
         command = ['ls', '-l']
-        volumes = ["%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json"]
+        volumes = []
         runner.run(command, FQDN_IMAGE, ENV, name="test", volumes=volumes)
         expected_nested_command = [
             'docker', 'run',
@@ -342,11 +355,10 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'SKIPPER_DOCKER_GID=978',
-            '-v', '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json',
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
+            '-v', '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR),
             '-v', '%(workdir)s:%(workdir)s:rw,Z' % dict(workdir=WORKDIR),
-            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw,Z',
             '-v', '/var/run/docker.sock:/var/run/docker.sock:Z',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:Z',
             '-w', PROJECT_DIR,
@@ -354,9 +366,10 @@ class TestRunner(unittest.TestCase):
             FQDN_IMAGE,
             ' '.join(command)
         ]
-        calls = [mock.call(full_path="%(homedir)s/.docker/config.json", data="{}", is_file=True),
+        calls = [mock.call(full_path="%(homedir)s/.docker/config.json" % dict(homedir=HOME_DIR),
+                           data="{}", is_file=True),
                  mock.call(full_path="/home/adir/.gitconfig", data="", is_file=True)]
-        create_path_and_add_data_mock.assert_has_calls(calls)
+        create_path_and_add_data_mock.assert_has_calls(calls, any_order=True)
         popen_mock.assert_called_once_with(expected_nested_command)
 
     def test_handle_volumes_bind_mount_with_bad_volume_mount(self):
