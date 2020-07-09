@@ -65,8 +65,11 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     cmd += ['-e', 'HOME=%(homedir)s' % dict(homedir=homedir)]
 
     if utils.get_runtime_command() == "docker":
-        docker_gid = grp.getgrnam('docker').gr_gid
-        cmd += ['-e', 'SKIPPER_DOCKER_GID=%(docker_gid)s' % dict(docker_gid=docker_gid)]
+        try:
+            docker_gid = grp.getgrnam('docker').gr_gid
+            cmd += ['-e', 'SKIPPER_DOCKER_GID=%(docker_gid)s' % dict(docker_gid=docker_gid)]
+        except KeyError:
+            pass
 
     if use_cache:
         cmd += ['-e', 'SKIPPER_USE_CACHE_IMAGE=True']
