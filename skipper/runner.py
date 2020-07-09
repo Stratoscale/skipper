@@ -109,13 +109,13 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
             volumes.append('/var/lib/osmosis:/var/lib/osmosis:rw')
     else:
         volumes.extend([
-            '%(workspace)s:%(workspace)s:rw,Z' % dict(workspace=workspace),
-            '/var/run/docker.sock:/var/run/docker.sock:Z',
-            '%s:/opt/skipper/skipper-entrypoint.sh:Z' % utils.get_extra_file("skipper-entrypoint.sh"),
+            '%(workspace)s:%(workspace)s:rw' % dict(workspace=workspace),
+            '/var/run/docker.sock:/var/run/docker.sock:rw',
+            '%s:/opt/skipper/skipper-entrypoint.sh' % utils.get_extra_file("skipper-entrypoint.sh"),
             ])
         # Will fail on Mac
         if os.path.exists('/var/lib/osmosis'):
-            volumes.append('/var/lib/osmosis:/var/lib/osmosis:rw,Z')
+            volumes.append('/var/lib/osmosis:/var/lib/osmosis:rw')
 
     for volume in volumes:
         if ":" not in volume:
