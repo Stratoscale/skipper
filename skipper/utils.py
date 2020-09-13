@@ -100,7 +100,7 @@ def get_remote_image_info(image, registry, username, password):
         if info['tags']:
             image_info += [[registry, image, tag] for tag in info['tags']]
     else:
-        if info['errors'][0]['code'] == 'NAME_UNKNOWN':
+        if info['errors'][0]['code'] in ['NAME_UNKNOWN', 'NOT_FOUND']:
             pass
         else:
             raise Exception(info)
