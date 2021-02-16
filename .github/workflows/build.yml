@@ -27,7 +27,7 @@ jobs:
         mkdir -p ~/.docker
         echo "{}" > ~/.docker/config.json
         touch ${HOME}/.gitconfig
-        echo "::add-path::$HOME/.local/bin"
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
     - name: test
       run: |
         skipper make all
@@ -49,7 +49,7 @@ jobs:
         mkdir -p ~/.docker
         echo "{}" > ~/.docker/config.json
         pip install --user .
-        echo "::add-path::$HOME/.local/bin"
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
     - name: Test usage
       run: |
         skipper make clean
@@ -71,7 +71,7 @@ jobs:
         mkdir -p ~/.docker
         echo "{}" > ~/.docker/config.json
         sudo pip install .
-        echo "::add-path::$HOME/.local/bin"
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
     - name: Test usage
       run: |
         skipper make clean
