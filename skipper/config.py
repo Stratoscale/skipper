@@ -6,7 +6,8 @@ import six
 
 
 def load_defaults():
-    skipper_conf = 'skipper.yaml'
+    skipper_conf = os.environ.get('SKIPPER_CONF', 'skipper.yaml')
+
     defaults = {}
     if os.path.exists(skipper_conf):
         with open(skipper_conf) as confile:
