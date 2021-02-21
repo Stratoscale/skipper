@@ -10,6 +10,7 @@ import requests
 from requests_bearer import HttpBearerAuth
 import urllib3
 import pkg_resources
+import yaml
 
 
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
@@ -35,6 +36,11 @@ def configure_logging(name, level):
 
     logger.setLevel(level)
     logger.addHandler(console_handler)
+
+
+def load_yaml_file(path):
+    with open(path) as yaml_file:
+        return yaml.safe_load(yaml_file)
 
 
 def get_images_from_dockerfiles():

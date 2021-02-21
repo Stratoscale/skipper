@@ -24,8 +24,9 @@ DOCKER_TAG_FOR_CACHE = "cache"
 @click.option('--build-container-image', help='Image to use as build container')
 @click.option('--build-container-tag', help='Tag of the build container')
 @click.option('--build-container-net', help='Network to connect the build container', default='host')
+@click.option('--env-file', help='Environment variable yaml file to load', default=None)
 @click.pass_context
-def cli(ctx, registry, build_container_image, build_container_tag, build_container_net, verbose):
+def cli(ctx, registry, build_container_image, build_container_tag, build_container_net, env_file, verbose):
     """
     Easily dockerize your Git repository
     """
@@ -36,12 +37,17 @@ def cli(ctx, registry, build_container_image, build_container_tag, build_contain
     ctx.obj['build_container_net'] = build_container_net
     ctx.obj['git_revision'] = build_container_tag == 'git:revision'
     ctx.obj['build_container_tag'] = git.get_hash() if ctx.obj['git_revision'] else build_container_tag
-    ctx.obj['env'] = ctx.default_map.get('env', {})
     ctx.obj['containers'] = ctx.default_map.get('containers')
     ctx.obj['volumes'] = ctx.default_map.get('volumes')
     ctx.obj['workdir'] = ctx.default_map.get('workdir')
     ctx.obj['workspace'] = ctx.default_map.get('workspace', None)
     ctx.obj['container_context'] = ctx.default_map.get('container_context')
+
+    env = ctx.default_map.get('env', {})
+    if env_file:
+        env.update(utils.load_yaml_file(env_file))
+    ctx.obj['env'] = env
+
     utils.set_remote_registry_login_info(registry, ctx.obj)
 
 

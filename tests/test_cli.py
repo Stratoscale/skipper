@@ -53,6 +53,17 @@ SKIPPER_CONF_WITH_ENV = {
     },
     'env': CONFIG_ENV
 }
+
+SKIPPER_CONF_WITH_ENV_FILE = {
+    'registry': REGISTRY,
+    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
+    'env-file': '/home/default_env.yaml'
+}
+
 SKIPPER_CONF_WITH_ENV_LIST = {
     'registry': REGISTRY,
     'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
@@ -1115,6 +1126,47 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
                                                         interactive=False, name=None, net='host', volumes=None,
                                                         workdir=None, workspace=None, use_cache=False)
+
+    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('os.path.exists',
+                mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch('yaml.safe_load', mock.MagicMock(
+        autospec=True,
+        return_value=SKIPPER_CONF_WITH_ENV_FILE
+    ))
+    @mock.patch('skipper.utils.load_yaml_file', mock.MagicMock(
+        autospec=True,
+        return_value=CONFIG_ENV_EVALUATION
+    ))
+    @mock.patch('subprocess.check_output',
+                mock.MagicMock(autospec=True, return_value='1234567\n'))
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_defaults_and_env_from_yaml_file(
+            self,
+            skipper_runner_run_mock
+    ):
+        command = ['ls', '-l']
+        run_params = command
+        os.environ['VAL4'] = "val4-evaluation"
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        env = ["%s=%s" % (key, value) for key, value in
+               six.iteritems(CONFIG_ENV_EVALUATION)]
+        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(
+            command,
+            fqdn_image=expected_fqdn_image,
+            environment=env,
+            interactive=False,
+            name=None, net='host',
+            volumes=None,
+            workdir=None,
+            workspace=None,
+            use_cache=False
+        )
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
