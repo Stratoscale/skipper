@@ -11,10 +11,10 @@ from skipper import utils
 
 # pylint: disable=too-many-arguments
 def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net='host', volumes=None,
-        workdir=None, use_cache=False, workspace=None):
+        workdir=None, use_cache=False, workspace=None, env_file=None):
     if fqdn_image is not None:
         return _run_nested(fqdn_image, environment, command, interactive, name, net, volumes,
-                           workdir, use_cache, workspace)
+                           workdir, use_cache, workspace, env_file)
 
     return _run(command)
 
@@ -31,7 +31,8 @@ def _run(cmd_args):
 
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-arguments
-def _run_nested(fqdn_image, environment, command, interactive, name, net, volumes, workdir, use_cache, workspace):
+def _run_nested(fqdn_image, environment, command, interactive, name, net,
+                volumes, workdir, use_cache, workspace, env_file):
     cwd = os.getcwd()
     if workspace is None:
         workspace = os.path.dirname(cwd)
@@ -53,6 +54,9 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     cmd += ['--privileged']
 
     cmd += ['--net', net]
+
+    if env_file:
+        cmd += ['--env-file', env_file]
 
     environment = environment or []
     for env in environment:
