@@ -18,6 +18,7 @@ BUILD_CONTAINER_TAG = 'build-container-tag'
 BUILD_CONTAINER_FQDN_IMAGE = REGISTRY + '/' + BUILD_CONTAINER_IMAGE + ':' + BUILD_CONTAINER_TAG
 
 ENV = ["KEY1=VAL1", "KEY2=VAL2"]
+ENV_FILE_PATH = '/home/envfile.env'
 
 SKIPPER_CONF_CONTAINER_CONTEXT = '/some/context'
 SKIPPER_CONF_BUILD_CONTAINER_IMAGE = 'skipper-conf-build-container-image'
@@ -52,6 +53,15 @@ SKIPPER_CONF_WITH_ENV = {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
     'env': CONFIG_ENV
+}
+SKIPPER_CONF_WITH_ENV_FILE = {
+    'registry': REGISTRY,
+    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
+    'env-file': ENV_FILE_PATH
 }
 SKIPPER_CONF_WITH_ENV_LIST = {
     'registry': REGISTRY,
@@ -294,7 +304,7 @@ class TestCLI(unittest.TestCase):
                        SKIPPER_CONF_CONTAINER_CONTEXT]),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net='host', volumes=None, workdir=None,
-                      use_cache=False, workspace=None),
+                      use_cache=False, workspace=None, env_file=None),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -1030,7 +1040,8 @@ class TestCLI(unittest.TestCase):
         expected_image_name = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_image_name, environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=''))
     @mock.patch('requests.get', autospec=True)
@@ -1055,7 +1066,8 @@ class TestCLI(unittest.TestCase):
         expected_image_name = 'registry.io:5000/build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_image_name, environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=''))
     @mock.patch('skipper.runner.run', mock.MagicMock(autospec=True))
@@ -1094,7 +1106,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1114,7 +1127,39 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
+
+    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('os.path.exists',
+                mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch('yaml.safe_load', mock.MagicMock(
+        autospec=True, return_value=SKIPPER_CONF_WITH_ENV_FILE))
+    @mock.patch('subprocess.check_output',
+                mock.MagicMock(autospec=True, return_value='1234567\n'))
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_defaults_and_env_from_env_file(
+            self,
+            skipper_runner_run_mock
+    ):
+        command = ['ls', '-l']
+        run_params = command
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command,
+                                                        fqdn_image=expected_fqdn_image,
+                                                        environment=[],
+                                                        interactive=False,
+                                                        name=None, net='host',
+                                                        volumes=None,
+                                                        workdir=None,
+                                                        workspace=None,
+                                                        use_cache=False,
+                                                        env_file=ENV_FILE_PATH)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1134,7 +1179,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1155,7 +1201,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1176,7 +1223,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1208,7 +1256,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=ENV,
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1224,7 +1273,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=True, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
         del os.environ['SKIPPER_INTERACTIVE']
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1241,7 +1291,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
         del os.environ['SKIPPER_INTERACTIVE']
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1257,7 +1308,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=True, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=''))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
@@ -1275,7 +1327,7 @@ class TestCLI(unittest.TestCase):
                        'Dockerfile.build-container-image', '.']),
             mock.call(command, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net='host', volumes=None, workdir=None, workspace=None,
-                      use_cache=False),
+                      use_cache=False, env_file=None),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -1293,7 +1345,7 @@ class TestCLI(unittest.TestCase):
         expected_commands = [
             mock.call(command, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net='host', volumes=None, workdir=None, workspace=None,
-                      use_cache=True),
+                      use_cache=True, env_file=None),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -1313,7 +1365,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=False, name=None, net='non-default-net',
                                                         volumes=None, workdir=None, workspace=None,
-                                                        use_cache=False)
+                                                        use_cache=False, env_file=None)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1332,7 +1384,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=False, name=None, net='host',
                                                         volumes=['volume1', 'volume2'], workspace=None,
-                                                        workdir=None, use_cache=False)
+                                                        workdir=None, use_cache=False, env_file=None)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1350,7 +1402,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir='test-workdir', workspace=None, use_cache=False)
+                                                        workdir='test-workdir', workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1368,7 +1421,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace="/test/workspace", use_cache=False)
+                                                        workdir=None, workspace="/test/workspace", use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1387,7 +1441,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:1234567'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, use_cache=False, workspace=None)
+                                                        workdir=None, use_cache=False, workspace=None,
+                                                        env_file=None)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1406,7 +1461,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:1234567'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1424,7 +1480,8 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
                                                         environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1438,7 +1495,8 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
                                                         environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1455,7 +1513,8 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
                                                         environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1476,7 +1535,8 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
                                                         environment=[],
                                                         interactive=False, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=''))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
@@ -1495,7 +1555,7 @@ class TestCLI(unittest.TestCase):
                        'Dockerfile.build-container-image', '.']),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net='host', volumes=None, workdir=None, workspace=None,
-                      use_cache=False),
+                      use_cache=False, env_file=None),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
@@ -1509,7 +1569,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(['bash'], fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=True, name=None, net='host', volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False)
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
 
     @mock.patch('click.echo', autospec=True)
     @mock.patch('skipper.cli.get_distribution', autospec=True)

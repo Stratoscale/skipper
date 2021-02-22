@@ -24,14 +24,16 @@ DOCKER_TAG_FOR_CACHE = "cache"
 @click.option('--build-container-image', help='Image to use as build container')
 @click.option('--build-container-tag', help='Tag of the build container')
 @click.option('--build-container-net', help='Network to connect the build container', default='host')
+@click.option('--env-file', help='Environment variable file to load')
 @click.pass_context
-def cli(ctx, registry, build_container_image, build_container_tag, build_container_net, verbose):
+def cli(ctx, registry, build_container_image, build_container_tag, build_container_net, verbose, env_file):
     """
     Easily dockerize your Git repository
     """
     logging_level = logging.DEBUG if verbose else logging.INFO
     utils.configure_logging(name='skipper', level=logging_level)
     ctx.obj['registry'] = registry
+    ctx.obj['env_file'] = env_file
     ctx.obj['build_container_image'] = build_container_image
     ctx.obj['build_container_net'] = build_container_net
     ctx.obj['git_revision'] = build_container_tag == 'git:revision'
@@ -232,7 +234,8 @@ def run(ctx, interactive, name, env, cache, command):
                       volumes=ctx.obj.get('volumes'),
                       workdir=ctx.obj.get('workdir'),
                       use_cache=cache,
-                      workspace=ctx.obj.get('workspace'))
+                      workspace=ctx.obj.get('workspace'),
+                      env_file=ctx.obj.get('env_file'))
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True))
@@ -267,7 +270,8 @@ def make(ctx, interactive, name, env, makefile, cache, make_params):
                       volumes=ctx.obj.get('volumes'),
                       workdir=ctx.obj.get('workdir'),
                       use_cache=cache,
-                      workspace=ctx.obj.get('workspace'))
+                      workspace=ctx.obj.get('workspace'),
+                      env_file=ctx.obj.get('env_file'))
 
 
 @cli.command()
@@ -298,7 +302,8 @@ def shell(ctx, env, name, cache):
                       volumes=ctx.obj.get('volumes'),
                       workdir=ctx.obj.get('workdir'),
                       use_cache=cache,
-                      workspace=ctx.obj.get('workspace'))
+                      workspace=ctx.obj.get('workspace'),
+                      env_file=ctx.obj.get('env_file'))
 
 
 @cli.command()
