@@ -49,6 +49,7 @@ Skipper can serve as your primary tool for your daily development tasks:
   --build-container-image       Image to use as build container
   --build-container-tag         Tag of the build container
   --build-container-net         Network to connect the build container (default: net=host)
+  --env-file                    Environment variables file to pass to the container
   --help                        Show this message and exit.
 ```
 
@@ -160,6 +161,7 @@ containers:
     service2: path/to/service2/dockerfile
 env:
     VAR: value
+env_file: path/to/env_file.env
 ```
 
 Using the above configuration file, we now can run a simplified version of the make command described above:
@@ -178,6 +180,25 @@ Your configuration file can contain environment variables, Skipper will set the 
 ````
 env:
     VAR: value
+````
+
+You can add an environment variables file using `--env-file`.
+This file should use the syntax <key>=value (which sets the variable to the given value) or <key> 
+(which takes the value from the local environment), and # for comments.
+The variables defined in this file will be exported to the container.
+Such file can look like this:
+
+````
+$ cat env_file.env
+# This is a comment
+KEY1=value1
+KEY2=value2
+KEY3    
+````
+
+Skipper configuration file can include the environment variables file:
+````
+env_file: /path/to/env_file.env
 ````
 
 
