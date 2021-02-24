@@ -5,6 +5,7 @@ import os
 import os.path
 import sys
 
+from re import compile as compile_expression
 import click
 import six
 import tabulate
@@ -18,12 +19,47 @@ from skipper import utils
 DOCKER_TAG_FOR_CACHE = "cache"
 
 
+def _validate_publish(ctx, param, value):
+    # pylint: disable=unused-argument
+    if value:
+        matcher = compile_expression(r'^((\d+)(-(\d+))?):((\d+)(-(\d+))?)$')
+
+        for port_mapping in value:
+            _validate_port(matcher, port_mapping)
+
+    return value
+
+
+def _validate_port(matcher, port_forwarding):
+    match = matcher.match(port_forwarding)
+    if not match:
+        raise click.BadParameter("Publish need to be in format port:port or port-port:port-port")
+
+    host_port_start_range, host_port_end_range, container_port_start_range, container_port_end_range = match.group(2, 4, 6, 8)
+    _validate_port_out_of_range(host_port_start_range)
+    _validate_port_out_of_range(host_port_end_range)
+    _validate_port_out_of_range(container_port_start_range)
+    _validate_port_out_of_range(container_port_end_range)
+    _validate_port_range(host_port_start_range, host_port_end_range)
+    _validate_port_range(container_port_start_range, container_port_end_range)
+
+
+def _validate_port_range(start, end):
+    if start and end and end < start:
+        raise click.BadParameter("Invalid port range: {0} should be bigger than {1}".format(start, end))
+
+
+def _validate_port_out_of_range(port):
+    if port and not 1 <= int(port) <= 65535:
+        raise click.BadParameter("Invalid port number: port {0} is out of range".format(port))
+
+
 @click.group()
 @click.option('-v', '--verbose', help='Increase verbosity', is_flag=True, default=False)
 @click.option('--registry', help='URL of the docker registry')
 @click.option('--build-container-image', help='Image to use as build container')
 @click.option('--build-container-tag', help='Tag of the build container')
-@click.option('--build-container-net', help='Network to connect the build container', default='host')
+@click.option('--build-container-net', help='Network to connect the build container')
 @click.option('--env-file', help='Environment variable file to load')
 @click.pass_context
 def cli(ctx, registry, build_container_image, build_container_tag, build_container_net, verbose, env_file):
@@ -209,9 +245,10 @@ def rmi(ctx, remote, image, tag):
 @click.option('-n', '--name', help='Container name', default=None)
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.option('-c', '--cache', help='Use cache image', is_flag=True, default=False, envvar='SKIPPER_USE_CACHE_IMAGE')
+@click.option('-p', '--publish', multiple=True, help="Publish a port", callback=_validate_publish)
 @click.argument('command', nargs=-1, type=click.UNPROCESSED, required=True)
 @click.pass_context
-def run(ctx, interactive, name, env, cache, command):
+def run(ctx, interactive, name, env, publish, cache, command):
     """
     Run arbitrary commands
     """
@@ -231,6 +268,7 @@ def run(ctx, interactive, name, env, cache, command):
                       interactive=interactive,
                       name=name,
                       net=ctx.obj['build_container_net'],
+                      publish=publish,
                       volumes=ctx.obj.get('volumes'),
                       workdir=ctx.obj.get('workdir'),
                       use_cache=cache,
@@ -244,9 +282,10 @@ def run(ctx, interactive, name, env, cache, command):
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.option('-f', 'makefile', help='Makefile to use', default='Makefile')
 @click.option('-c', '--cache', help='Use cache image', is_flag=True, default=False, envvar='SKIPPER_USE_CACHE_IMAGE')
+@click.option('-p', '--publish', multiple=True, help="Publish a port", callback=_validate_publish)
 @click.argument('make_params', nargs=-1, type=click.UNPROCESSED, required=False)
 @click.pass_context
-def make(ctx, interactive, name, env, makefile, cache, make_params):
+def make(ctx, interactive, name, env, makefile, cache, publish, make_params):
     """
     Execute makefile target(s)
     """
@@ -267,6 +306,7 @@ def make(ctx, interactive, name, env, makefile, cache, make_params):
                       interactive=interactive,
                       name=name,
                       net=ctx.obj['build_container_net'],
+                      publish=publish,
                       volumes=ctx.obj.get('volumes'),
                       workdir=ctx.obj.get('workdir'),
                       use_cache=cache,
@@ -278,8 +318,9 @@ def make(ctx, interactive, name, env, makefile, cache, make_params):
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
 @click.option('-n', '--name', help='Container name', default=None)
 @click.option('-c', '--cache', help='Use cache image', is_flag=True, default=False, envvar='SKIPPER_USE_CACHE_IMAGE')
+@click.option('-p', '--publish', multiple=True, help="Publish a port", callback=_validate_publish)
 @click.pass_context
-def shell(ctx, env, name, cache):
+def shell(ctx, env, name, cache, publish):
     """
     Start a shell
     """
@@ -299,6 +340,7 @@ def shell(ctx, env, name, cache):
                       interactive=True,
                       name=name,
                       net=ctx.obj['build_container_net'],
+                      publish=publish,
                       volumes=ctx.obj.get('volumes'),
                       workdir=ctx.obj.get('workdir'),
                       use_cache=cache,

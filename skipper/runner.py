@@ -9,11 +9,21 @@ from retry import retry
 from skipper import utils
 
 
+def get_default_net():
+    # The host networking driver only works on Linux hosts, and is not supported on Docker Desktop for Mac,
+    # Docker Desktop for Windows, or Docker EE for Windows Server.
+    return 'host' if sys.platform != 'darwin' and sys.platform != 'win32' else 'bridge'
+
+
 # pylint: disable=too-many-arguments
-def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net='host', volumes=None,
+def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net=None, publish=(), volumes=None,
         workdir=None, use_cache=False, workspace=None, env_file=None):
+
+    if not net:
+        net = get_default_net()
+
     if fqdn_image is not None:
-        return _run_nested(fqdn_image, environment, command, interactive, name, net, volumes,
+        return _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes,
                            workdir, use_cache, workspace, env_file)
 
     return _run(command)
@@ -31,8 +41,7 @@ def _run(cmd_args):
 
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-arguments
-def _run_nested(fqdn_image, environment, command, interactive, name, net,
-                volumes, workdir, use_cache, workspace, env_file):
+def _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes, workdir, use_cache, workspace, env_file):
     cwd = os.getcwd()
     if workspace is None:
         workspace = os.path.dirname(cwd)
@@ -53,7 +62,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net,
 
     cmd += ['--privileged']
 
-    cmd += ['--net', net]
+    cmd = handle_networking(cmd, publish, net)
 
     if env_file:
         cmd += ['--env-file', env_file]
@@ -80,10 +89,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net,
 
     cmd = handle_volumes_bind_mount(cmd, homedir, volumes, workspace)
 
-    if workdir:
-        cmd += ['-w', workdir]
-    else:
-        cmd += ['-w', '%(workdir)s' % dict(workdir=cwd)]
+    cmd = handle_workdir(cmd, cwd, workdir)
 
     cmd += ['--entrypoint', '/opt/skipper/skipper-entrypoint.sh']
     cmd += [fqdn_image]
@@ -93,6 +99,25 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net,
         ret = _run(cmd)
 
     return ret
+
+
+def handle_workdir(cmd, cwd, workdir):
+    if workdir:
+        cmd += ['-w', workdir]
+    else:
+        cmd += ['-w', '%(workdir)s' % dict(workdir=cwd)]
+    return cmd
+
+
+def handle_networking(cmd, publish, net):
+    if publish:
+        for port_mapping in publish:
+            cmd += ['-p', port_mapping]
+
+    if net is not None:
+        cmd += ['--net', net]
+
+    return cmd
 
 
 def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):

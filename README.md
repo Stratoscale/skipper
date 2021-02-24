@@ -169,6 +169,17 @@ Using the above configuration file, we now can run a simplified version of the m
 skipper make tests
 ```
 
+### Published ports
+For `shell`, `run` & `make` commands:  
+By default, when you run skipper on a linux machine it will use the host network and no mapping required.  
+For macos and windows machines where the host network is unsupported or for a custom network, you can publish a port and make it available to services outside of the container using the --publish or -p flag. 
+
+````
+skipper make -p 123:123 tests
+skipper make -p 123-130:123-130 tests
+````
+
+
 ### Environment variables:
 For `shell`, `run` & `make` commands:
 You can use `-e` in order to pass environment variables to the container.
