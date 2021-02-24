@@ -1,7 +1,7 @@
-import mock
 import os
-from six.moves import http_client
 import unittest
+import mock
+from six.moves import http_client
 import click
 import six
 from click import testing
@@ -303,7 +303,7 @@ class TestCLI(unittest.TestCase):
                        'Dockerfile.build-container-image',
                        SKIPPER_CONF_CONTAINER_CONTEXT]),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
-                      interactive=False, name=None, net='host', volumes=None, workdir=None,
+                      interactive=False, name=None, net=None, publish=(), volumes=None, workdir=None,
                       use_cache=False, workspace=None, env_file=None),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
@@ -1039,7 +1039,8 @@ class TestCLI(unittest.TestCase):
         )
         expected_image_name = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_image_name, environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1065,7 +1066,8 @@ class TestCLI(unittest.TestCase):
         )
         expected_image_name = 'registry.io:5000/build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_image_name, environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1105,7 +1107,8 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1126,7 +1129,8 @@ class TestCLI(unittest.TestCase):
         env = ["%s=%s" % (key, value) for key, value in six.iteritems(CONFIG_ENV_EVALUATION)]
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1154,7 +1158,7 @@ class TestCLI(unittest.TestCase):
                                                         fqdn_image=expected_fqdn_image,
                                                         environment=[],
                                                         interactive=False,
-                                                        name=None, net='host',
+                                                        name=None, net=None, publish=(),
                                                         volumes=None,
                                                         workdir=None,
                                                         workspace=None,
@@ -1178,7 +1182,8 @@ class TestCLI(unittest.TestCase):
         env = ["%s=%s" % (key, value) for key, value in six.iteritems(CONFIG_ENV_EVALUATION)] + ENV
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1200,7 +1205,8 @@ class TestCLI(unittest.TestCase):
         env = ['key1=value1'] + ENV
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1222,7 +1228,8 @@ class TestCLI(unittest.TestCase):
         env = ['key1=value1', 'key2=value2'] + ENV
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1255,7 +1262,8 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=ENV,
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1272,7 +1280,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
-                                                        interactive=True, name=None, net='host', volumes=None,
+                                                        interactive=True, name=None, net=None, publish=(), volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
         del os.environ['SKIPPER_INTERACTIVE']
@@ -1290,7 +1298,8 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
         del os.environ['SKIPPER_INTERACTIVE']
@@ -1307,7 +1316,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
-                                                        interactive=True, name=None, net='host', volumes=None,
+                                                        interactive=True, name=None, net=None, publish=(), volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1326,7 +1335,7 @@ class TestCLI(unittest.TestCase):
             mock.call(['build', '--network=host', '-t', 'build-container-image', '-f',
                        'Dockerfile.build-container-image', '.']),
             mock.call(command, fqdn_image='build-container-image', environment=[],
-                      interactive=False, name=None, net='host', volumes=None, workdir=None, workspace=None,
+                      interactive=False, name=None, net=None, publish=(), volumes=None, workdir=None, workspace=None,
                       use_cache=False, env_file=None),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
@@ -1344,7 +1353,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_commands = [
             mock.call(command, fqdn_image='build-container-image', environment=[],
-                      interactive=False, name=None, net='host', volumes=None, workdir=None, workspace=None,
+                      interactive=False, name=None, net=None, publish=(), volumes=None, workdir=None, workspace=None,
                       use_cache=True, env_file=None),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
@@ -1364,8 +1373,144 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
                                                         interactive=False, name=None, net='non-default-net',
-                                                        volumes=None, workdir=None, workspace=None,
+                                                        publish=(), volumes=None, workdir=None, workspace=None,
                                                         use_cache=False, env_file=None)
+
+    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567'))
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_publish_single_port(self, skipper_runner_run_mock):
+        global_params = self.global_params
+        global_params += ['--build-container-net', 'non-default-net']
+
+        makefile = 'Makefile'
+        target = 'all'
+        make_params = ['-p', '123:123', '-f', makefile, target]
+
+        self._invoke_cli(
+            global_params=global_params,
+            subcmd='make',
+            subcmd_params=make_params
+        )
+
+        expected_command = ['make', '-f', makefile, target]
+
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
+                                                        environment=[],
+                                                        interactive=False, name=None, net=u'non-default-net',
+                                                        publish=(u'123:123',), volumes=None,
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
+
+    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567'))
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_publish_multiple_ports(self, skipper_runner_run_mock):
+        global_params = self.global_params
+        global_params += ['--build-container-net', 'non-default-net']
+
+        makefile = 'Makefile'
+        target = 'all'
+        make_params = ['-p', '123:123', '-p', '12:12', '-f', makefile, target]
+
+        self._invoke_cli(
+            global_params=global_params,
+            subcmd='make',
+            subcmd_params=make_params
+        )
+
+        expected_command = ['make', '-f', makefile, target]
+
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
+                                                        environment=[],
+                                                        interactive=False, name=None, net=u'non-default-net',
+                                                        publish=('123:123', '12:12'), volumes=None,
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
+
+    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567'))
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_publish_port_range(self, skipper_runner_run_mock):
+        global_params = self.global_params
+        global_params += ['--build-container-net', 'non-default-net']
+
+        makefile = 'Makefile'
+        target = 'all'
+        make_params = ['-p', '123:123', '-p', '12-13:12-13', '-f', makefile, target]
+
+        self._invoke_cli(
+            global_params=global_params,
+            subcmd='make',
+            subcmd_params=make_params
+        )
+
+        expected_command = ['make', '-f', makefile, target]
+
+        expected_fqdn_image = 'build-container-image:build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
+                                                        environment=[],
+                                                        interactive=False, name=None, net=u'non-default-net',
+                                                        publish=('123:123', '12-13:12-13'), volumes=None,
+                                                        workdir=None, workspace=None, use_cache=False,
+                                                        env_file=None)
+
+    def test_run_with_publish_textual_port(self):
+        global_params = self.global_params
+        global_params += ['--build-container-net', 'non-default-net']
+
+        makefile = 'Makefile'
+        target = 'all'
+        make_params = ['-p', '123:a1', '-p', '12:12', '-f', makefile, target]
+
+        result = self._invoke_cli(global_params=global_params, subcmd='make', subcmd_params=make_params)
+        self.assertIsInstance(result.exception, click.BadParameter)
+        self.assertEqual("Publish need to be in format port:port or port-port:port-port", result.exception.message)
+        self.assertEqual(-1, result.exit_code)
+
+    def test_run_with_publish_textual_port_range(self):
+        global_params = self.global_params
+        global_params += ['--build-container-net', 'non-default-net']
+
+        makefile = 'Makefile'
+        target = 'all'
+        make_params = ['-p', '123-1:1-a1', '-p', '12:12', '-f', makefile, target]
+
+        result = self._invoke_cli(global_params=global_params, subcmd='make', subcmd_params=make_params)
+        self.assertIsInstance(result.exception, click.BadParameter)
+        self.assertEqual("Publish need to be in format port:port or port-port:port-port", result.exception.message)
+        self.assertEqual(-1, result.exit_code)
+
+    def test_run_with_invalid_port_range(self):
+        global_params = self.global_params
+        global_params += ['--build-container-net', 'non-default-net']
+
+        makefile = 'Makefile'
+        target = 'all'
+        make_params = ['-p', '15-25:25-15', '-p', '12:12', '-f', makefile, target]
+
+        result = self._invoke_cli(global_params=global_params, subcmd='make', subcmd_params=make_params)
+        self.assertIsInstance(result.exception, click.BadParameter)
+        self.assertEqual("Invalid port range: 25 should be bigger than 15", result.exception.message)
+        self.assertEqual(-1, result.exit_code)
+
+        make_params = ['-p', '25-15:15-25', '-p', '12:12', '-f', makefile, target]
+        result = self._invoke_cli(global_params=global_params, subcmd='make', subcmd_params=make_params)
+        self.assertIsInstance(result.exception, click.BadParameter)
+        self.assertEqual("Invalid port range: 25 should be bigger than 15", result.exception.message)
+        self.assertEqual(-1, result.exit_code)
+
+    def test_run_with_publish_out_of_range_port(self):
+        global_params = self.global_params
+        global_params += ['--build-container-net', 'non-default-net']
+
+        makefile = 'Makefile'
+        target = 'all'
+        make_params = ['-p', '123:1', '-p', '12:121111111', '-f', makefile, target]
+
+        result = self._invoke_cli(global_params=global_params, subcmd='make', subcmd_params=make_params)
+        self.assertIsInstance(result.exception, click.BadParameter)
+        self.assertEqual("Invalid port number: port 121111111 is out of range", result.exception.message)
+        self.assertEqual(-1, result.exit_code)
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -1382,7 +1527,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
-                                                        interactive=False, name=None, net='host',
+                                                        interactive=False, name=None, net=None, publish=(),
                                                         volumes=['volume1', 'volume2'], workspace=None,
                                                         workdir=None, use_cache=False, env_file=None)
 
@@ -1401,7 +1546,8 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir='test-workdir', workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1420,7 +1566,8 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace="/test/workspace", use_cache=False,
                                                         env_file=None)
 
@@ -1440,7 +1587,8 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'skipper-conf-build-container-image:1234567'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, use_cache=False, workspace=None,
                                                         env_file=None)
 
@@ -1460,7 +1608,8 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'skipper-conf-build-container-image:1234567'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1479,7 +1628,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
                                                         environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1494,7 +1644,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
                                                         environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1512,7 +1663,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
                                                         environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1534,7 +1686,8 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(expected_command, fqdn_image=expected_fqdn_image,
                                                         environment=[],
-                                                        interactive=False, name=None, net='host', volumes=None,
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
@@ -1554,7 +1707,7 @@ class TestCLI(unittest.TestCase):
             mock.call(['build', '--network=host', '-t', 'build-container-image', '-f',
                        'Dockerfile.build-container-image', '.']),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
-                      interactive=False, name=None, net='host', volumes=None, workdir=None, workspace=None,
+                      interactive=False, name=None, net=None, publish=(), volumes=None, workdir=None, workspace=None,
                       use_cache=False, env_file=None),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
@@ -1568,7 +1721,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_fqdn_image = 'build-container-image:build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(['bash'], fqdn_image=expected_fqdn_image, environment=[],
-                                                        interactive=True, name=None, net='host', volumes=None,
+                                                        interactive=True, name=None, net=None, publish=(), volumes=None,
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=None)
 
