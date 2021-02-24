@@ -1,8 +1,9 @@
-import mock
 import os
 import unittest
+
+import mock
+
 from skipper import utils
-from skipper import runner
 
 
 class TestUtils(unittest.TestCase):
