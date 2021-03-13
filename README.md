@@ -49,7 +49,7 @@ Skipper can serve as your primary tool for your daily development tasks:
   --build-container-image       Image to use as build container
   --build-container-tag         Tag of the build container
   --build-container-net         Network to connect the build container (default: net=host)
-  --env-file                    Environment variables file to pass to the container
+  --env-file                    Environment variables file/s to pass to the container
   --help                        Show this message and exit.
 ```
 
@@ -193,7 +193,7 @@ env:
     VAR: value
 ````
 
-You can add an environment variables file using `--env-file`.
+You can add an environment variables file (or multiple files) using `--env-file`.
 This file should use the syntax <key>=value (which sets the variable to the given value) or <key> 
 (which takes the value from the local environment), and # for comments.
 The variables defined in this file will be exported to the container.
@@ -209,7 +209,9 @@ KEY3
 
 Skipper configuration file can include the environment variables file:
 ````
-env_file: /path/to/env_file.env
+env_file: 
+    - /path/to/env_file1.env
+    - /path/to/env_file2.env
 ````
 
 
