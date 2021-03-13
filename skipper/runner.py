@@ -17,7 +17,7 @@ def get_default_net():
 
 # pylint: disable=too-many-arguments
 def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net=None, publish=(), volumes=None,
-        workdir=None, use_cache=False, workspace=None, env_file=None):
+        workdir=None, use_cache=False, workspace=None, env_file=()):
 
     if not net:
         net = get_default_net()
@@ -64,8 +64,8 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
 
     cmd = handle_networking(cmd, publish, net)
 
-    if env_file:
-        cmd += ['--env-file', env_file]
+    for _file in env_file:
+        cmd += ['--env-file', _file]
 
     environment = environment or []
     for env in environment:

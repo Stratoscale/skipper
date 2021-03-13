@@ -21,6 +21,7 @@ PROJECT_DIR = os.path.join(WORKDIR, PROJECT)
 
 ENV = ["KEY1=VAL1", "KEY2=VAL2"]
 ENV_FILE_PATH = '/home/envfile.env'
+ENV_FILES = [ENV_FILE_PATH, ENV_FILE_PATH]
 
 
 def get_volume_mapping(volume_mapping):
@@ -216,7 +217,7 @@ class TestRunner(unittest.TestCase):
         grp_getgrnam_mock.return_value.gr_gid = 978
         os_getuid_mock.return_value = USER_ID
         command = ['pwd']
-        runner.run(command, FQDN_IMAGE, env_file=ENV_FILE_PATH)
+        runner.run(command, FQDN_IMAGE, env_file=[ENV_FILE_PATH])
         expected_docker_command = [
             'docker', 'run',
             '-t',
@@ -239,6 +240,63 @@ class TestRunner(unittest.TestCase):
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
             '-v', get_volume_mapping('entrypoint.sh:/opt/skipper/skipper-entrypoint.sh'),
             '-v', get_volume_mapping('/var/lib/osmosis:/var/lib/osmosis:rw'),
+            '-w', PROJECT_DIR,
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
+            FQDN_IMAGE,
+            command[0]
+        ]
+        popen_mock.assert_called_once_with(expected_docker_command)
+
+    @mock.patch('os.path.exists',
+                mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch('getpass.getuser',
+                mock.MagicMock(autospec=True, return_value='testuser'))
+    @mock.patch('os.getcwd',
+                mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch('os.path.expanduser',
+                mock.MagicMock(autospec=True, return_value=HOME_DIR))
+    @mock.patch('os.getuid', autospec=True)
+    @mock.patch('grp.getgrnam', autospec=True)
+    @mock.patch('subprocess.Popen', autospec=False)
+    @mock.patch('subprocess.check_output', autospec=False)
+    @mock.patch('pkg_resources.resource_filename', autospec=False)
+    def test_run_simple_command_nested_with_multiple_env_files(
+            self, resource_filename_mock, check_output_mock, popen_mock,
+            grp_getgrnam_mock, os_getuid_mock
+    ):
+        resource_filename_mock.return_value = "entrypoint.sh"
+        check_output_mock.side_effect = [self.NET_LS, '']
+        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb',
+                                                               'ccc', '']
+        popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
+        os_getuid_mock.return_value = USER_ID
+        command = ['pwd']
+        runner.run(command, FQDN_IMAGE, env_file=ENV_FILES)
+        expected_docker_command = [
+            'docker', 'run',
+            '-t',
+            '-e', 'KEEP_CONTAINERS=True',
+            '--privileged',
+            '--net', 'host',
+            '--env-file', ENV_FILE_PATH,
+            '--env-file', ENV_FILE_PATH,
+            '-e', 'SKIPPER_USERNAME=testuser',
+            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
+            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
+            '-e', 'SKIPPER_DOCKER_GID=978',
+            '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(
+                homedir=HOME_DIR),
+            '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(
+                homedir=HOME_DIR),
+            '-v',
+            '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(
+                      homedir=HOME_DIR),
+            '-v', '/etc/docker:/etc/docker:ro',
+            '-v', '%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR),
+            '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
+            '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh',
+            '-v', '/var/lib/osmosis:/var/lib/osmosis:rw',
             '-w', PROJECT_DIR,
             '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
             FQDN_IMAGE,

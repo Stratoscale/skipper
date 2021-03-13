@@ -60,7 +60,7 @@ def _validate_port_out_of_range(port):
 @click.option('--build-container-image', help='Image to use as build container')
 @click.option('--build-container-tag', help='Tag of the build container')
 @click.option('--build-container-net', help='Network to connect the build container')
-@click.option('--env-file', help='Environment variable file to load')
+@click.option('--env-file', multiple=True, help='Environment variable file(s) to load')
 @click.pass_context
 def cli(ctx, registry, build_container_image, build_container_tag, build_container_net, verbose, env_file):
     """
