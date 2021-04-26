@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 import mock
 from skipper import utils
@@ -66,6 +67,7 @@ class TestRunnerPodman(unittest.TestCase):
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', get_default_net(),
+            '-e', 'SKIPPER_PLATFORM=%(platform)s' % dict(platform=sys.platform),
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
@@ -105,6 +107,7 @@ class TestRunnerPodman(unittest.TestCase):
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', get_default_net(),
+            '-e', 'SKIPPER_PLATFORM=%(platform)s' % dict(platform=sys.platform),
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
@@ -144,6 +147,7 @@ class TestRunnerPodman(unittest.TestCase):
             '-e', 'KEEP_CONTAINERS=True',
             '--privileged',
             '--net', get_default_net(),
+            '-e', 'SKIPPER_PLATFORM=%(platform)s' % dict(platform=sys.platform),
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
@@ -185,6 +189,7 @@ class TestRunnerPodman(unittest.TestCase):
             '--net', get_default_net(),
             '-e', 'KEY1=VAL1',
             '-e', 'KEY2=VAL2',
+            '-e', 'SKIPPER_PLATFORM=%(platform)s' % dict(platform=sys.platform),
             '-e', 'SKIPPER_USERNAME=testuser',
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),

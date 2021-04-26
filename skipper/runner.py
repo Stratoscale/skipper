@@ -73,6 +73,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
 
     user = getpass.getuser()
     user_id = os.getuid()
+    cmd += ['-e', 'SKIPPER_PLATFORM=%(platform)s' % dict(platform=sys.platform)]
     cmd += ['-e', 'SKIPPER_USERNAME=%(user)s' % dict(user=user)]
     cmd += ['-e', 'SKIPPER_UID=%(user_id)s' % dict(user_id=user_id)]
     cmd += ['-e', 'HOME=%(homedir)s' % dict(homedir=homedir)]
