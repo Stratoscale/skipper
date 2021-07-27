@@ -235,6 +235,19 @@ env:
     VAR: $$VAR_NOT_INTERPOLATED
 ````
 
+### Shell Interpolation
+
+Skipper supports evaluating shell commands inside its configuration file using `$(command)` notation.
+e.g.
+
+```yaml
+env:
+    VAR: $(expr ${MY_NUMBER:-5} + 5)
+volumes:
+    - $(which myprogram):/myprogram
+```
+
+
 ### Volumes:
 Skipper can bind-mount a host directory into the container.
 you can add volumes in the configuration file:
