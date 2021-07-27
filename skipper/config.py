@@ -1,8 +1,11 @@
-from string import Template
-from collections import defaultdict
 import os
-import yaml
+from collections import defaultdict
+from re import findall
+from string import Template
+from subprocess import check_output
+
 import six
+import yaml
 
 
 def load_defaults():
@@ -32,4 +35,9 @@ def _normalize_config(config, normalized_config):
 
 
 def _interpolate_env_vars(key):
+    for match in findall(r'\$\(.+\)', key):
+        output = check_output("echo " + match, shell=True).strip()
+        if not output:
+            raise ValueError(match)
+        key = key.replace(match, output)
     return Template(key).substitute(defaultdict(lambda: "", os.environ))

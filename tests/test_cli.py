@@ -163,6 +163,33 @@ SKIPPER_CONF_WITH_CONTEXT_NO_TAG = {
     'container-context': SKIPPER_CONF_CONTAINER_CONTEXT
 }
 
+SKIPPER_CONF_WITH_SHELL_INTERPOLATION = {
+    'registry': REGISTRY,
+    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
+    'volumes': [
+        '$(which cat):/cat',
+    ],
+    'env': [
+        'KEY=$(expr ${MY_NUMBER:-5} + 5)'
+    ]
+}
+
+SKIPPER_CONF_WITH_INVALID_SHELL_INTERPOLATION = {
+    'registry': REGISTRY,
+    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
+    'volumes': [
+        '$(bla bla):/cat',
+    ]
+}
+
 
 class TestCLI(unittest.TestCase):
     def setUp(self):
@@ -1571,6 +1598,37 @@ class TestCLI(unittest.TestCase):
                                                         interactive=False, name=None, net=None, publish=(),
                                                         volumes=['volume1', 'volume2'], workspace=None,
                                                         workdir=None, use_cache=False, env_file=())
+
+    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_SHELL_INTERPOLATION))
+    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
+    @mock.patch('skipper.runner.run', autospec=True)
+    def test_run_with_defaults_from_config_file_including_interpolated_volumes(self, skipper_runner_run_mock):
+        command = ['ls', '-l']
+        run_params = command
+        self._invoke_cli(
+            defaults=config.load_defaults(),
+            subcmd='run',
+            subcmd_params=run_params
+        )
+        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
+        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=['KEY=10'],
+                                                        interactive=False, name=None, net=None, publish=(),
+                                                        volumes=['/bin/cat:/cat'], workspace=None,
+                                                        workdir=None, use_cache=False, env_file=())
+
+    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_INVALID_SHELL_INTERPOLATION))
+    def test_run_with_defaults_from_config_file_including_invalid_interploated_volumes_interpolated(self):
+        command = ['ls', '-l']
+        run_params = command
+
+        with self.assertRaises(ValueError):
+            self._invoke_cli(
+                defaults=config.load_defaults(),
+                subcmd='run',
+                subcmd_params=run_params
+            )
 
     @mock.patch('__builtin__.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
