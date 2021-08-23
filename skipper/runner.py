@@ -62,6 +62,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, volume
     cmd += ['-e', 'SKIPPER_USERNAME=%(user)s' % dict(user=user)]
     cmd += ['-e', 'SKIPPER_UID=%(user_id)s' % dict(user_id=user_id)]
     cmd += ['-e', 'HOME=%(homedir)s' % dict(homedir=homedir)]
+    cmd += ['-e', 'RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command())]
 
     if utils.get_runtime_command() == "docker":
         docker_gid = grp.getgrnam('docker').gr_gid
