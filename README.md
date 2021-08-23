@@ -272,3 +272,7 @@ you can override the workspace directory by specifying it in the configuration f
 ````
 workdir: $PWD
 ````
+
+### Skipper environment variables
+Skipper sets environemnt variables to inform the user about the underline system:
+CONTAINER_RUNTIME_COMMAND - The container conmmand used to run the skipper container. podman/docker
