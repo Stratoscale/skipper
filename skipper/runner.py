@@ -11,20 +11,22 @@ from skipper import utils
 
 # pylint: disable=too-many-arguments
 def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net='host', volumes=None,
-        workdir=None, use_cache=False, workspace=None):
+        workdir=None, use_cache=False, workspace=None, stdout_to_stderr=False):
     if fqdn_image is not None:
         return _run_nested(fqdn_image, environment, command, interactive, name, net, volumes,
                            workdir, use_cache, workspace)
 
-    return _run(command)
+    return _run(command, stdout_to_stderr=stdout_to_stderr)
 
 
-def _run(cmd_args):
+def _run(cmd_args, stdout_to_stderr=False):
     logger = logging.getLogger('skipper')
     cmd = [utils.get_runtime_command()]
     cmd.extend(cmd_args)
     logger.debug(' '.join(cmd))
-    proc = subprocess.Popen(cmd)
+    proc = (subprocess.Popen(cmd)
+            if not stdout_to_stderr else
+            subprocess.Popen(cmd, stdout=sys.stderr))
     proc.wait()
     return proc.returncode
 
