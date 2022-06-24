@@ -17,7 +17,7 @@ def get_default_net():
 
 # pylint: disable=too-many-arguments
 def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net=None, publish=(), volumes=None,
-        workdir=None, use_cache=False, workspace=None, env_file=()):
+        workdir=None, use_cache=False, workspace=None, env_file=(), stdout_to_stderr=False):
 
     if not net:
         net = get_default_net()
@@ -26,15 +26,17 @@ def run(command, fqdn_image=None, environment=None, interactive=False, name=None
         return _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes,
                            workdir, use_cache, workspace, env_file)
 
-    return _run(command)
+    return _run(command, stdout_to_stderr=stdout_to_stderr)
 
 
-def _run(cmd_args):
+def _run(cmd_args, stdout_to_stderr=False):
     logger = logging.getLogger('skipper')
     cmd = [utils.get_runtime_command()]
     cmd.extend(cmd_args)
     logger.debug(' '.join(cmd))
-    proc = subprocess.Popen(cmd)
+    proc = (subprocess.Popen(cmd)
+            if not stdout_to_stderr else
+            subprocess.Popen(cmd, stdout=sys.stderr))
     proc.wait()
     return proc.returncode
 
