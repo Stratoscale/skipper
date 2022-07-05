@@ -338,7 +338,7 @@ class TestCLI(unittest.TestCase):
             mock.call(['build', '--network=host',
                        '-t', 'build-container-image', '-f',
                        'Dockerfile.build-container-image',
-                       SKIPPER_CONF_CONTAINER_CONTEXT]),
+                       SKIPPER_CONF_CONTAINER_CONTEXT, '--ulimit', 'nofile=65536:65536']),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net=None, publish=(), volumes=None, workdir=None,
                       use_cache=False, workspace=None, env_file=()),
@@ -1401,7 +1401,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_commands = [
             mock.call(['build', '--network=host', '-t', 'build-container-image', '-f',
-                       'Dockerfile.build-container-image', '.']),
+                       'Dockerfile.build-container-image', '.', '--ulimit', 'nofile=65536:65536']),
             mock.call(command, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net=None, publish=(), volumes=None, workdir=None, workspace=None,
                       use_cache=False, env_file=()),
@@ -1804,7 +1804,7 @@ class TestCLI(unittest.TestCase):
         )
         expected_commands = [
             mock.call(['build', '--network=host', '-t', 'build-container-image', '-f',
-                       'Dockerfile.build-container-image', '.']),
+                       'Dockerfile.build-container-image', '.', '--ulimit', 'nofile=65536:65536']),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net=None, publish=(), volumes=None, workdir=None, workspace=None,
                       use_cache=False, env_file=()),
