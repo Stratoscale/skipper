@@ -22,6 +22,8 @@ logger = None   # pylint: disable=invalid-name
 
 CONTAINER_RUNTIME_COMMAND = os.getenv("CONTAINER_RUNTIME_COMMAND")
 
+SKIPPER_ULIMIT = [['--ulimit', limit] for limit in os.environ.get('SKIPPER_ULIMITS', 'nofile=65536:65536').split(',')]
+
 
 def configure_logging(name, level):
     global logger   # pylint: disable=global-statement,invalid-name

@@ -408,12 +408,16 @@ def _prepare_build_container(registry, image, tag, git_revision, container_conte
         build_context = '.'
 
     command = ['build', '--network=host', '-t', tagged_image_name, '-f', docker_file, build_context]
+
+    for cmd_limit in utils.SKIPPER_ULIMIT:
+        command += cmd_limit
+
     if use_cache:
         cache_image = utils.generate_fqdn_image(registry, namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
         runner.run(['pull', cache_image])
         command.extend(['--cache-from', cache_image])
-    ret = runner.run(command)
-    if ret != 0:
+
+    if runner.run(command) != 0:
         exit('Failed to build image: %(image)s' % dict(image=image))
 
     if git_revision and not git.uncommitted_changes():
