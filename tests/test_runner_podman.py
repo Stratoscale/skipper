@@ -22,7 +22,18 @@ PROJECT_DIR = os.path.join(WORKDIR, PROJECT)
 ENV = ["KEY1=VAL1", "KEY2=VAL2"]
 
 
-@mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
+def mock_makedirs(param):
+    if param == '/usr/bin/nonexistentbinary':
+        raise OSError('Permission denied')
+
+    return True
+
+
+def mock_path_exists(param):
+    return param != '/usr/bin/nonexistentbinary'
+
+
+@mock.patch('os.path.exists', mock.MagicMock(autospec=True, side_effect=mock_path_exists))
 class TestRunnerPodman(unittest.TestCase):
 
     def setUp(self):
@@ -142,6 +153,51 @@ class TestRunnerPodman(unittest.TestCase):
         os_getuid_mock.return_value = USER_ID
         command = ['ls', '-l']
         runner.run(command, FQDN_IMAGE)
+        expected_nested_command = [
+            self.runtime, 'run',
+            '-t',
+            '-e', 'KEEP_CONTAINERS=True',
+            '--ulimit', 'nofile=65536:65536',
+            '--privileged',
+            '--net', get_default_net(),
+            '-e', 'SKIPPER_USERNAME=testuser',
+            '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
+            '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
+            '-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command()),
+            '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
+            '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw,shared' % dict(workdir=WORKDIR)),
+            '-v', get_volume_mapping('entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:rw'),
+            '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
+            '-v', get_volume_mapping('/var/lib/osmosis:/var/lib/osmosis:rw'),
+            '-w', PROJECT_DIR,
+            '--entrypoint', '/opt/skipper/skipper-entrypoint.sh',
+            FQDN_IMAGE,
+            ' '.join(command)
+        ]
+        assert not check_output_mock.called
+        popen_mock.assert_called_once_with(expected_nested_command)
+
+    @mock.patch('getpass.getuser', mock.MagicMock(autospec=True, return_value='testuser'))
+    @mock.patch('os.getcwd', mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch('os.path.expanduser', mock.MagicMock(autospec=True, return_value=HOME_DIR))
+    @mock.patch('os.getuid', autospec=True)
+    @mock.patch('subprocess.Popen', autospec=False)
+    @mock.patch('subprocess.check_output', autospec=False)
+    @mock.patch('pkg_resources.resource_filename', autospec=False)
+    @mock.patch('os.makedirs', mock.MagicMock(autospec=True, side_effect=mock_makedirs))
+    def test_run_non_existent_unauthorized_volume(self, resource_filename_mock,
+                                                  check_output_mock, popen_mock, os_getuid_mock):
+        resource_filename_mock.return_value = "entrypoint.sh"
+        popen_mock.return_value.stdout.readline.side_effect = ['aaa', 'bbb', 'ccc', '']
+        popen_mock.return_value.poll.return_value = -1
+        os_getuid_mock.return_value = USER_ID
+        command = ['ls', '-l']
+
+        runner.run(command, FQDN_IMAGE, volumes=["/usr/bin/nonexistentbinary:/usr/bin/nonexistentbinary"])
+
         expected_nested_command = [
             self.runtime, 'run',
             '-t',
