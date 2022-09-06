@@ -165,17 +165,21 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
                 volume = '/private' + volume
 
         # if part of host directory is empty, skipping this mount
-        if not volume.split(":")[0]:
+        host_path = volume.split(":")[0]
+        if not host_path:
             continue
 
-        create_vol_localpath_if_needed(volume)
-        docker_cmd += ['-v', volume]
+        if not create_vol_localpath_if_needed(host_path.strip()) and utils.get_runtime_command() == utils.PODMAN:
+            logging.warning("Mount source %s doesn't exist and it couldn't be created by skipper, "
+                            "this will cause Podman to fail, ignoring volume mount %s to prevent "
+                            "podman failure", host_path, volume)
+        else:
+            docker_cmd += ['-v', volume]
 
     return docker_cmd
 
 
-def create_vol_localpath_if_needed(volume):
-    host_path = volume.split(":")[0].strip()
+def create_vol_localpath_if_needed(host_path):
     # We have couple of special case mounts
     # 1. gitconfig file - it is required by skipper but may not exists, we don't want
     # to create folder if it doesn't exist
@@ -196,7 +200,9 @@ def create_vol_localpath_if_needed(volume):
         except OSError:
             # If we have no permissions to create the directory, we'll just let
             # docker create it with root-privileges
-            pass
+            return False
+
+    return True
 
 
 @contextmanager
