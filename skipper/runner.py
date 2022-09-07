@@ -138,7 +138,7 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
 
     if utils.get_runtime_command() == utils.PODMAN:
         volumes.extend([
-            '%(workspace)s:%(workspace)s:rw,shared' % dict(workspace=workspace),
+            '%(workspace)s:%(workspace)s:rw' % dict(workspace=workspace),
             '%s:/opt/skipper/skipper-entrypoint.sh:rw' % utils.get_extra_file("skipper-entrypoint.sh"),
         ])
         if os.path.exists('/var/run/docker.sock'):
