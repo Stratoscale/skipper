@@ -46,12 +46,12 @@ def _validate_port(matcher, port_forwarding):
 
 def _validate_port_range(start, end):
     if start and end and end < start:
-        raise click.BadParameter("Invalid port range: {0} should be bigger than {1}".format(start, end))
+        raise click.BadParameter(f"Invalid port range: {start} should be bigger than {end}")
 
 
 def _validate_port_out_of_range(port):
     if port and not 1 <= int(port) <= 65535:
-        raise click.BadParameter("Invalid port number: port {0} is out of range".format(port))
+        raise click.BadParameter(f"Invalid port number: port {port} is out of range")
 
 
 @click.group()
@@ -102,16 +102,16 @@ def build(ctx, images_to_build, container_context, cache):
     else:
         for image in images_to_build:
             if image not in valid_images:
-                utils.logger.warning('Image %(image)s is not valid for this project! Skipping...', dict(image=image))
+                utils.logger.warning('Image %s is not valid for this project! Skipping...', image)
                 continue
             valid_images_to_build[image] = valid_images[image]
 
     tag = git.get_hash()
     for image, dockerfile in six.iteritems(valid_images_to_build):
-        utils.logger.info('Building image: %(image)s', dict(image=image))
+        utils.logger.info('Building image: %s', image)
 
         if not os.path.exists(dockerfile):
-            utils.logger.warning('Dockerfile %(dockerfile)s does not exist! Skipping...', dict(dockerfile=dockerfile))
+            utils.logger.warning('Dockerfile %s does not exist! Skipping...', dockerfile)
             continue
 
         fqdn_image = image + ':' + tag
@@ -121,7 +121,7 @@ def build(ctx, images_to_build, container_context, cache):
             build_context = ctx.obj['container_context']
         else:
             build_context = os.path.dirname(dockerfile)
-        command = ['build', '--network=host', '--build-arg', 'TAG={}'.format(tag),
+        command = ['build', '--network=host', '--build-arg', f'TAG={tag}',
                    '-f', dockerfile, '-t', fqdn_image, build_context]
         if cache:
             cache_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
@@ -130,7 +130,7 @@ def build(ctx, images_to_build, container_context, cache):
         ret = runner.run(command)
 
         if ret != 0:
-            utils.logger.error('Failed to build image: %(image)s', dict(image=image))
+            utils.logger.error('Failed to build image: %s', image)
             return ret
 
         if cache:
@@ -158,7 +158,7 @@ def push(ctx, namespace, force, pbr, image):
     if pbr:
         # Format = pbr_version.short_hash
         # pylint: disable=protected-access
-        tag_to_push = "{}.{}".format(packaging._get_version_from_git().replace('dev', ''), tag[:8])
+        tag_to_push = f"{packaging._get_version_from_git().replace('dev', '')}.{tag[:8]}"
     image_name = image + ':' + tag
 
     ret = _push(ctx, force, image, image_name, namespace, tag_to_push)
@@ -169,11 +169,11 @@ def push(ctx, namespace, force, pbr, image):
 
 def _push(ctx, force, image, image_name, namespace, tag):
     fqdn_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace, image, tag)
-    utils.logger.debug("Adding tag %(tag)s", dict(tag=fqdn_image))
+    utils.logger.debug("Adding tag %s", fqdn_image)
     command = ['tag', image_name, fqdn_image]
     ret = runner.run(command)
     if ret != 0:
-        utils.logger.error('Failed to tag image: %(tag)s as fqdn', dict(tag=image_name, fqdn=fqdn_image))
+        utils.logger.error('Failed to tag image: %s as fqdn: %s', image_name, fqdn_image)
         sys.exit(ret)
     repo_name = utils.generate_fqdn_image(None, namespace, image, tag=None)
     images_info = utils.get_remote_images_info([repo_name], ctx.obj['registry'],
@@ -181,19 +181,19 @@ def _push(ctx, force, image, image_name, namespace, tag):
     tags = [info[-1] for info in images_info]
     if tag in tags:
         if not force:
-            utils.logger.info("Image %(image)s is already in registry %(registry)s, not pushing",
-                              dict(image=fqdn_image, registry=ctx.obj['registry']))
+            utils.logger.info("Image %s is already in registry %s, not pushing",
+                              fqdn_image, ctx.obj['registry'])
         else:
-            utils.logger.warning("Image %(image)s is already in registry %(registry)s, pushing anyway",
-                                 dict(image=fqdn_image, registry=ctx.obj['registry']))
+            utils.logger.warning("Image %s is already in registry %s, pushing anyway",
+                                 fqdn_image, ctx.obj['registry'])
             _push_to_registry(ctx.obj['registry'], fqdn_image)
     else:
         _push_to_registry(ctx.obj['registry'], fqdn_image)
-    utils.logger.debug("Removing tag %(tag)s", dict(tag=fqdn_image))
+    utils.logger.debug("Removing tag %s", fqdn_image)
     command = ['rmi', fqdn_image]
     ret = runner.run(command)
     if ret != 0:
-        utils.logger.warning('Failed to remove image tag: %(tag)s', dict(tag=fqdn_image))
+        utils.logger.warning('Failed to remove image tag: %s', fqdn_image)
     return ret
 
 
@@ -208,7 +208,7 @@ def images(ctx, remote):
 
     valid_images = ctx.obj.get('containers') or utils.get_images_from_dockerfiles()
     images_names = valid_images.keys()
-    utils.logger.info("Expected images: %(images)s\n", dict(images=", ".join(images_names)))
+    utils.logger.info("Expected images: %s\n", ", ".join(images_names))
     images_info = utils.get_local_images_info(images_names)
     if remote:
         _validate_global_params(ctx, 'registry')
@@ -216,7 +216,7 @@ def images(ctx, remote):
             images_info += utils.get_remote_images_info(images_names, ctx.obj['registry'],
                                                         ctx.obj.get('username'), ctx.obj.get('password'))
         except Exception as exp:
-            raise click.exceptions.ClickException('Got unknow error from remote registry %(error)s' % dict(error=exp.message))
+            raise click.exceptions.ClickException(f'Got unknown error from remote registry {exp}')
 
     print(tabulate.tabulate(images_info, headers=['REGISTRY', 'IMAGE', 'TAG'], tablefmt='grid'))
 
@@ -240,7 +240,7 @@ def rmi(ctx, remote, image, tag):
         utils.delete_local_image(image, tag)
 
 
-@cli.command(context_settings=dict(ignore_unknown_options=True))
+@cli.command(context_settings={"ignore_unknown_options": True})
 @click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False, envvar='SKIPPER_INTERACTIVE')
 @click.option('-n', '--name', help='Container name', default=None)
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
@@ -276,7 +276,7 @@ def run(ctx, interactive, name, env, publish, cache, command):
                       env_file=ctx.obj.get('env_file'))
 
 
-@cli.command(context_settings=dict(ignore_unknown_options=True))
+@cli.command(context_settings={"ignore_unknown_options": True})
 @click.option('-i', '--interactive', help='Interactive mode', is_flag=True, default=False, envvar='SKIPPER_INTERACTIVE')
 @click.option('-n', '--name', help='Container name', default=None)
 @click.option('-e', '--env', multiple=True, help='Environment variables to pass the container')
@@ -369,11 +369,11 @@ def completion():
 
 
 def _push_to_registry(registry, fqdn_image):
-    utils.logger.debug("Pushing to registry %(registry)s", dict(registry=registry))
+    utils.logger.debug("Pushing to registry %s", registry)
     command = ['push', fqdn_image]
     ret = runner.run(command)
     if ret != 0:
-        utils.logger.error('Failed to push image: %(tag)s', dict(tag=fqdn_image))
+        utils.logger.error('Failed to push image: %s', fqdn_image)
         sys.exit(ret)
 
 
@@ -399,24 +399,23 @@ def _prepare_build_container(registry, image, tag, git_revision, container_conte
         tagged_image_name = image + ':' + tag
 
         if utils.local_image_exist(image, tag):
-            utils.logger.info("Using build container: %(image_name)s", dict(image_name=tagged_image_name))
+            utils.logger.info("Using build container: %s", tagged_image_name)
             return tagged_image_name
 
         if utils.remote_image_exist(registry, image, tag, username, password):
             fqdn_image = utils.generate_fqdn_image(registry, None, image, tag)
-            utils.logger.info("Using build container: %(fqdn_image)s", dict(fqdn_image=fqdn_image))
+            utils.logger.info("Using build container: %s", fqdn_image)
             return fqdn_image
 
         if not git_revision:
-            raise click.exceptions.ClickException(
-                "Couldn't find build image %(image)s with tag %(tag)s" % dict(image=image, tag=tag))
+            raise click.exceptions.ClickException(f"Couldn't find build image {image} with tag {tag}")
 
     else:
         tagged_image_name = image
         utils.logger.info("No build container tag was provided")
 
     docker_file = utils.image_to_dockerfile(image)
-    utils.logger.info("Building image using docker file: %(docker_file)s", dict(docker_file=docker_file))
+    utils.logger.info("Building image using docker file: %s", docker_file)
     if container_context is not None:
         build_context = container_context
     else:
@@ -433,10 +432,10 @@ def _prepare_build_container(registry, image, tag, git_revision, container_conte
         command.extend(['--cache-from', cache_image])
 
     if runner_run(command) != 0:
-        exit('Failed to build image: %(image)s' % dict(image=image))
+        sys.exit(f'Failed to build image: {image}')
 
     if git_revision and not git.uncommitted_changes():
-        utils.logger.info("Tagging image with git revision: %(tag)s", dict(tag=tag))
+        utils.logger.info("Tagging image with git revision: %s", tag)
         runner_run(['tag', image, tagged_image_name])
 
     if use_cache:
@@ -456,7 +455,7 @@ def _validate_global_params(ctx, *params):
 def _validate_project_image(image):
     project_images = utils.get_images_from_dockerfiles()
     if image not in project_images:
-        raise click.BadParameter("'%s' is not an image of this project, try %s" % (image, project_images), param_hint='image')
+        raise click.BadParameter(f"'{image}' is not an image of this project, try {project_images}", param_hint='image')
 
 
 def _expend_env(ctx, extra_env):
@@ -466,7 +465,7 @@ def _expend_env(ctx, extra_env):
     if isinstance(env, dict):
         for key, value in six.iteritems(env):
             utils.logger.debug("Adding %s=%s to environment", key, value)
-            environment.append("{}={}".format(key, value))
+            environment.append(f"{key}={value}")
     elif isinstance(env, list):
         for item in env:
             if '=' in item:
@@ -476,8 +475,8 @@ def _expend_env(ctx, extra_env):
                 # if the items is just a name of environment variable, try to get it
                 # from the host's environment variables
                 if item in os.environ:
-                    environment.append('{}={}'.format(item, os.environ[item]))
+                    environment.append(f'{item}={os.environ[item]}')
     else:
-        raise TypeError('Type {} not supported for key env, use dict or list instead'.format(type(env)))
+        raise TypeError(f'Type {type(env)} not supported for key env, use dict or list instead')
 
     return environment + list(extra_env)
