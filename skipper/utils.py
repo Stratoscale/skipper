@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import subprocess
-import shutil
+from shutil import which
 from six.moves import http_client
 import requests
 from requests_bearer import HttpBearerAuth
@@ -151,7 +151,7 @@ def dockerfile_to_image(dockerfile):
 
 def is_tool(name):
     """Check whether `name` is on PATH and marked as executable."""
-    return shutil.which(name) is not None
+    return which(name) is not None
 
 
 def get_runtime_command():
@@ -173,7 +173,7 @@ def get_extra_file(filename):
 def run_container_command(args):
     cmd = [get_runtime_command()]
     cmd.extend(args)
-    return str(subprocess.check_output(cmd).decode().strip())
+    return str(subprocess.check_output(cmd).strip())
 
 
 def create_path_and_add_data(full_path, data, is_file):
