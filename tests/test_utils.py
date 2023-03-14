@@ -8,7 +8,7 @@ from skipper import utils
 
 class TestUtils(unittest.TestCase):
 
-    @mock.patch('skipper.utils.find_executable', autospec=False)
+    @mock.patch('skipper.utils.which', autospec=False)
     def test_get_runtime_command(self, find_executable_mock):
         utils.CONTAINER_RUNTIME_COMMAND = None
         find_executable_mock.side_effect = "done"

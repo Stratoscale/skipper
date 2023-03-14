@@ -5,6 +5,9 @@ from six.moves import http_client
 import click
 import six
 from click import testing
+from shutil import which
+from requests import HTTPError
+
 from skipper import cli
 from skipper import config, utils
 
@@ -295,7 +298,7 @@ class TestCLI(unittest.TestCase):
                                                                             return_value={
                                                                                 'image1': '/home/user/work/project/Dockerfile.image1',
                                                                                 'image2': '/home/user/work/project/Dockerfile.image2'}))
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
@@ -317,7 +320,7 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT_NO_TAG))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
@@ -461,7 +464,7 @@ class TestCLI(unittest.TestCase):
                                                                             return_value={
                                                                                 'image1': '/home/user/work/project/Dockerfile.image1',
                                                                                 'image2': '/home/user/work/project/Dockerfile.image2'}))
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
@@ -482,7 +485,7 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.abspath',
                 mock.MagicMock(autospec=True, return_value='/home/user/work/project/app1/Dockerfile'))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
@@ -677,7 +680,7 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
@@ -1039,7 +1042,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('requests.get', autospec=True)
     def test_rmi_remote_fail(self, requests_get_mock, requests_delete_mock, requests_bearer_auth_mock):
         requests_get_mock.side_effect = [mock.Mock(headers={'Docker-Content-Digest': 'digest'})]
-        requests_delete_mock.side_effect = [mock.Mock(ok=False)]
+        requests_delete_mock.side_effect = HTTPError()
         result = self._invoke_cli(
             global_params=self.global_params,
             subcmd='rmi',
@@ -1130,7 +1133,7 @@ class TestCLI(unittest.TestCase):
         )
         self.assertIsInstance(ret.exception, click.exceptions.ClickException)
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1150,7 +1153,7 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=())
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1172,7 +1175,7 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=())
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists',
                 mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(
@@ -1203,7 +1206,7 @@ class TestCLI(unittest.TestCase):
                                                         use_cache=False,
                                                         env_file=(ENV_FILE_PATH,))
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists',
                 mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(
@@ -1234,7 +1237,7 @@ class TestCLI(unittest.TestCase):
                                                         use_cache=False,
                                                         env_file=tuple(ENV_FILES))
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1256,7 +1259,7 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=())
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('os.environ', {})
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_LIST))
@@ -1279,7 +1282,7 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=())
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('os.environ', {'key2': 'value2'})
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_LIST))
@@ -1302,7 +1305,7 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=())
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV_WRONG_TYPE))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1582,7 +1585,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual("Invalid port number: port 121111111 is out of range", result.exception.message)
         self.assertEqual(-1, result.exit_code)
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_VOLUMES))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1601,7 +1604,7 @@ class TestCLI(unittest.TestCase):
                                                         volumes=['volume1', 'volume2'], workspace=None,
                                                         workdir=None, use_cache=False, env_file=())
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_SHELL_INTERPOLATION))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1617,7 +1620,7 @@ class TestCLI(unittest.TestCase):
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=['KEY=10'],
                                                         interactive=False, name=None, net=None, publish=(),
-                                                        volumes=['/bin/cat:/cat'], workspace=None,
+                                                        volumes=[f'{which("cat")}:/cat'], workspace=None,
                                                         workdir=None, use_cache=False, env_file=())
 
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_INVALID_SHELL_INTERPOLATION))
@@ -1632,7 +1635,7 @@ class TestCLI(unittest.TestCase):
                 subcmd_params=run_params
             )
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_WORKDIR))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1652,7 +1655,7 @@ class TestCLI(unittest.TestCase):
                                                         workdir='test-workdir', workspace=None, use_cache=False,
                                                         env_file=())
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_WORKSPACE))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1672,7 +1675,7 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, workspace="/test/workspace", use_cache=False,
                                                         env_file=())
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1693,7 +1696,7 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, use_cache=False, workspace=None,
                                                         env_file=())
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
@@ -1769,7 +1772,7 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=())
 
-    @mock.patch('__builtin__.open', mock.MagicMock(create=True))
+    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
