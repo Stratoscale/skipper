@@ -236,7 +236,6 @@ env:
 ````
 
 ### Shell Interpolation
-
 Skipper supports evaluating shell commands inside its configuration file using `$(command)` notation.
 e.g.
 
