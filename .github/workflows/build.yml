@@ -74,5 +74,5 @@ jobs:
         echo "$HOME/.local/bin" >> $GITHUB_PATH
     - name: Test usage
       run: |
-        skipper make clean
+        sudo skipper make clean
 
