@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import subprocess
-from distutils.spawn import find_executable
+import shutil
 from six.moves import http_client
 import requests
 from requests_bearer import HttpBearerAuth
@@ -58,7 +58,7 @@ def local_image_exist(image, tag):
 
 def remote_image_exist(registry, image, tag, username, password):
     urllib3.disable_warnings()
-    url = IMAGE_TAGS_URL % dict(registry=registry, image=image)
+    url = IMAGE_TAGS_URL % {"registry": registry, "image": image}
     headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
     response = requests.get(url=url, verify=False, headers=headers, auth=HttpBearerAuth(username, password))
 
@@ -95,7 +95,7 @@ def get_remote_images_info(images, registry, username, password):
 def get_remote_image_info(image, registry, username, password):
     urllib3.disable_warnings()
     image_info = []
-    url = IMAGE_TAGS_URL % dict(registry=registry, image=image)
+    url = IMAGE_TAGS_URL % {"registry": registry, "image": image}
     response = requests.get(url=url, verify=False, auth=HttpBearerAuth(username, password))
     info = response.json()
     if response.ok:
@@ -105,14 +105,14 @@ def get_remote_image_info(image, registry, username, password):
         if info['errors'][0]['code'] in ['NAME_UNKNOWN', 'NOT_FOUND']:
             pass
         else:
-            raise Exception(info)
+            raise RuntimeError(info)
 
     return image_info
 
 
 def get_image_digest(registry, image, tag, username, password):
     urllib3.disable_warnings()
-    url = MANIFEST_URL % dict(registry=registry, image=image, reference=tag)
+    url = MANIFEST_URL % {"registry": registry, "image": image, "reference": tag}
     headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
     response = requests.get(url=url, headers=headers, verify=False, auth=HttpBearerAuth(username, password))
     return response.headers['Docker-Content-Digest']
@@ -120,10 +120,9 @@ def get_image_digest(registry, image, tag, username, password):
 
 def delete_image_from_registry(registry, image, tag, username, password):
     digest = get_image_digest(registry, image, tag, username, password)
-    url = MANIFEST_URL % dict(registry=registry, image=image, reference=digest)
+    url = MANIFEST_URL % {"registry": registry, "image": image, "reference": digest}
     response = requests.delete(url=url, verify=False, auth=HttpBearerAuth(username, password))
-    if not response.ok:
-        raise Exception(response.content)
+    response.raise_for_status()
 
 
 def delete_local_image(image, tag):
@@ -152,7 +151,7 @@ def dockerfile_to_image(dockerfile):
 
 def is_tool(name):
     """Check whether `name` is on PATH and marked as executable."""
-    return find_executable(name) is not None
+    return shutil.which(name) is not None
 
 
 def get_runtime_command():
@@ -163,12 +162,12 @@ def get_runtime_command():
         elif is_tool(PODMAN):
             CONTAINER_RUNTIME_COMMAND = PODMAN
         else:
-            raise Exception("Nor %s nor %s are installed" % (PODMAN, DOCKER))
+            raise RuntimeError(f"Nor {PODMAN} nor {DOCKER} are installed")
     return CONTAINER_RUNTIME_COMMAND
 
 
 def get_extra_file(filename):
-    return pkg_resources.resource_filename("skipper", "data/%s" % filename)
+    return pkg_resources.resource_filename("skipper", f"data/{filename}")
 
 
 def run_container_command(args):
@@ -188,7 +187,9 @@ def create_path_and_add_data(full_path, data, is_file):
 
 def set_remote_registry_login_info(registry, ctx_object):
     try:
-        docker_config = json.load(open('/'.join([os.path.expanduser('~'), '.docker/config.json'])))
+        with open('/'.join([os.path.expanduser('~'), '.docker/config.json'])) as docker_file:
+            docker_config = json.load(docker_file)
+
         auth = docker_config.get('auths', {}).get(registry, {}).get('auth')
         if auth:
             username, password = base64.b64decode(auth).decode().split(r':')

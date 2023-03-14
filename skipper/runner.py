@@ -1,3 +1,4 @@
+# pylint: disable=consider-using-with
 import getpass
 import grp
 import logging
@@ -12,7 +13,7 @@ from skipper import utils
 def get_default_net():
     # The host networking driver only works on Linux hosts, and is not supported on Docker Desktop for Mac,
     # Docker Desktop for Windows, or Docker EE for Windows Server.
-    return 'host' if sys.platform != 'darwin' and sys.platform != 'win32' else 'bridge'
+    return 'host' if sys.platform not in ('darwin', 'win32') else 'bridge'
 
 
 # pylint: disable=too-many-arguments
@@ -78,15 +79,15 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
 
     user = getpass.getuser()
     user_id = os.getuid()
-    cmd += ['-e', 'SKIPPER_USERNAME=%(user)s' % dict(user=user)]
-    cmd += ['-e', 'SKIPPER_UID=%(user_id)s' % dict(user_id=user_id)]
-    cmd += ['-e', 'HOME=%(homedir)s' % dict(homedir=homedir)]
-    cmd += ['-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command())]
+    cmd += ['-e', f'SKIPPER_USERNAME={user}']
+    cmd += ['-e', f'SKIPPER_UID={user_id}']
+    cmd += ['-e', f'HOME={homedir}']
+    cmd += ['-e', f'CONTAINER_RUNTIME_COMMAND={utils.get_runtime_command()}']
 
     if utils.get_runtime_command() == "docker":
         try:
             docker_gid = grp.getgrnam('docker').gr_gid
-            cmd += ['-e', 'SKIPPER_DOCKER_GID=%(docker_gid)s' % dict(docker_gid=docker_gid)]
+            cmd += ['-e', f'SKIPPER_DOCKER_GID={docker_gid}']
         except KeyError:
             pass
 
@@ -111,7 +112,7 @@ def handle_workdir(cmd, cwd, workdir):
     if workdir:
         cmd += ['-w', workdir]
     else:
-        cmd += ['-w', '%(workdir)s' % dict(workdir=cwd)]
+        cmd += ['-w', cwd]
     return cmd
 
 
@@ -128,9 +129,9 @@ def handle_networking(cmd, publish, net):
 
 def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
     volumes = volumes or []
-    volumes.extend(['%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=homedir),
-                    '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=homedir),
-                    '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=homedir)])
+    volumes.extend([f'{homedir}/.netrc:{homedir}/.netrc:ro',
+                    f'{homedir}/.gitconfig:{homedir}/.gitconfig:ro',
+                    f'{homedir}/.docker/config.json:{homedir}/.docker/config.json:ro'])
 
     # required for docker login (certificates)
     if os.path.exists('/etc/docker'):
@@ -138,8 +139,8 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
 
     if utils.get_runtime_command() == utils.PODMAN:
         volumes.extend([
-            '%(workspace)s:%(workspace)s:rw' % dict(workspace=workspace),
-            '%s:/opt/skipper/skipper-entrypoint.sh:rw' % utils.get_extra_file("skipper-entrypoint.sh"),
+            f'{workspace}:{workspace}:rw',
+            f'{utils.get_extra_file("skipper-entrypoint.sh")}:/opt/skipper/skipper-entrypoint.sh:rw',
         ])
         if os.path.exists('/var/run/docker.sock'):
             volumes.append('/var/run/docker.sock:/var/run/docker.sock:rw')
@@ -147,9 +148,9 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
             volumes.append('/var/lib/osmosis:/var/lib/osmosis:rw')
     else:
         volumes.extend([
-            '%(workspace)s:%(workspace)s:rw' % dict(workspace=workspace),
+            f'{workspace}:{workspace}:rw',
             '/var/run/docker.sock:/var/run/docker.sock:rw',
-            '%s:/opt/skipper/skipper-entrypoint.sh' % utils.get_extra_file("skipper-entrypoint.sh"),
+            f'{utils.get_extra_file("skipper-entrypoint.sh")}:/opt/skipper/skipper-entrypoint.sh',
             ])
         # Will fail on Mac
         if os.path.exists('/var/lib/osmosis'):
@@ -157,7 +158,7 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
 
     for volume in volumes:
         if ":" not in volume:
-            raise ValueError("Volume entry is badly-formatted - %s" % volume)
+            raise ValueError(f"Volume entry is badly-formatted - {volume}")
 
         # For OSX, map anything in /var/lib or /etc to /private
         if sys.platform == 'darwin':
@@ -218,17 +219,17 @@ def _network(net):
 
 
 def _create_network(net):
-    logging.debug("Creating network %(net)s", dict(net=net))
+    logging.debug("Creating network %s", net)
     utils.run_container_command(['network', 'create', net])
 
 
 @retry(delay=0.1, tries=10)
 def _destroy_network(net):
-    logging.debug("Deleting network %(net)s", dict(net=net))
+    logging.debug("Deleting network %s", net)
     utils.run_container_command(['network', 'rm', net])
 
 
 def _network_exists(net):
-    cmd = ['network', 'ls', "-f", "NAME=%s" % net]
+    cmd = ['network', 'ls', "-f", f"NAME={net}"]
     result = utils.run_container_command(cmd)
     return net in result
