@@ -142,11 +142,15 @@ def generate_fqdn_image(registry, namespace, image, tag='latest'):
 
 
 def image_to_dockerfile(image):
-    return 'Dockerfile.' + image
+    prefixes = ['Docker', 'Container']
+    docker_files = [file for file in [prefix + "file." + image for prefix in prefixes] if os.path.exists(file)]
+    if len(docker_files) > 1:
+        logger.warning('Found more than one dockerfile for %s. Using %s', image, docker_files[0])
+    return docker_files[0] if len(docker_files) else None
 
 
 def dockerfile_to_image(dockerfile):
-    return dockerfile.replace('Dockerfile.', '')
+    return dockerfile.split('.', 1)[-1]
 
 
 def is_tool(name):

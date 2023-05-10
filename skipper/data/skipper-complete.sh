@@ -88,9 +88,9 @@ __contains_word () {
 
 
 _get_images_from_dockerfiles() {
-    local dockerfiles=$( ls Dockerfile.* )	
-    for dockerfile in $dockerfiles; do 
-        echo ${dockerfile##*.}; 
+    local dockerfiles=$( find * -type f -regex "\(Docker\|Container\)file\..*" )
+    for dockerfile in $dockerfiles; do
+        echo ${dockerfile##*.};
     done
 }
 
@@ -156,7 +156,7 @@ _skipper_completion() {
         if [[ $cur == -* ]]; then
             COMPREPLY=( $(compgen -W "${OPTS[RUN]}" -- $cur) )
         else
-            if [[ $prev == -f ]]; then 
+            if [[ $prev == -f ]]; then
                 COMPREPLY=( $(compgen -f -X '!*[mM]akefile' -- $cur) )
             else
                 makefile=$(_get_makefile ${COMP_WORDS[*]})
@@ -172,12 +172,12 @@ _skipper_completion() {
                                command sed -nf <(_make_target_extract_script $mode "$cur") ) )
             fi
         fi
-    
+
     else
         if [[ $cur == -* ]]; then
             COMPREPLY=( $(compgen -W "${OPTS[GLOBAL]}" -- $cur) )
         else
-            COMPREPLY=( $(compgen -W "$COMMANDS" -- $cur) ) 
+            COMPREPLY=( $(compgen -W "$COMMANDS" -- $cur) )
         fi
     fi
 

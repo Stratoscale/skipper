@@ -111,7 +111,7 @@ def build(ctx, images_to_build, container_context, cache):
         utils.logger.info('Building image: %s', image)
 
         if not os.path.exists(dockerfile):
-            utils.logger.warning('Dockerfile %s does not exist! Skipping...', dockerfile)
+            utils.logger.warning('File %s does not exist! Skipping...', dockerfile)
             continue
 
         fqdn_image = image + ':' + tag
@@ -415,6 +415,9 @@ def _prepare_build_container(registry, image, tag, git_revision, container_conte
         utils.logger.info("No build container tag was provided")
 
     docker_file = utils.image_to_dockerfile(image)
+    if docker_file is None:
+        sys.exit(f'Could not find any dockerfile for {image}')
+
     utils.logger.info("Building image using docker file: %s", docker_file)
     if container_context is not None:
         build_context = container_context
