@@ -1393,6 +1393,7 @@ class TestCLI(unittest.TestCase):
                                                         env_file=())
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=''))
+    @mock.patch('skipper.utils.image_to_dockerfile', mock.MagicMock(autospec=True, side_effect=lambda x: 'Dockerfile.'+x))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_run_without_build_container_tag(self, skipper_runner_run_mock):
         global_params = self.global_params[:-2]
@@ -1414,6 +1415,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=''))
+    @mock.patch('skipper.utils.image_to_dockerfile', mock.MagicMock(autospec=True, side_effect=lambda x: 'Dockerfile.'+x))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_run_without_build_container_tag_cached(self, skipper_runner_run_mock):
         global_params = self.global_params[:-2]
@@ -1796,6 +1798,7 @@ class TestCLI(unittest.TestCase):
                                                         env_file=())
 
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=''))
+    @mock.patch('skipper.utils.image_to_dockerfile', mock.MagicMock(autospec=True, side_effect=lambda x: 'Dockerfile.'+x))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_make_without_build_container_tag(self, skipper_runner_run_mock):
         global_params = self.global_params[:-2]
