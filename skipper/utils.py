@@ -151,7 +151,13 @@ def dockerfile_to_image(dockerfile):
 
 def is_tool(name):
     """Check whether `name` is on PATH and marked as executable."""
-    return which(name) is not None
+    full_path = which(name)
+    if full_path is None:
+        return False
+    if not os.path.islink(full_path):
+        return True
+    actual_path = os.readlink(full_path)
+    return os.path.basename(actual_path) == name
 
 
 def get_runtime_command():
