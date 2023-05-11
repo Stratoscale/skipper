@@ -91,6 +91,9 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
         except KeyError:
             pass
 
+    if utils.get_runtime_command() == "podman":
+        cmd += ['--group-add', 'keep-groups']
+
     if use_cache:
         cmd += ['-e', 'SKIPPER_USE_CACHE_IMAGE=True']
 
