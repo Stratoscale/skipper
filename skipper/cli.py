@@ -106,7 +106,7 @@ def build(ctx, images_to_build, container_context, cache):
                 continue
             valid_images_to_build[image] = valid_images[image]
 
-    tag = git.get_hash()
+    tag = git.get_hash().decode('utf-8')
     for image, dockerfile in six.iteritems(valid_images_to_build):
         utils.logger.info('Building image: %s', image)
 
