@@ -1680,7 +1680,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
-    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
+    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=b'1234567\n'))
     @mock.patch('skipper.git.uncommitted_changes', mock.MagicMock(return_value=True))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_config_including_git_revision_with_uncommitted_changes(self, skipper_runner_run_mock):
@@ -1701,7 +1701,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
     @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
-    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
+    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=b'1234567\n'))
     @mock.patch('skipper.git.uncommitted_changes', mock.MagicMock(return_value=False))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_config_including_git_revision_without_uncommitted_changes(self, skipper_runner_run_mock):
