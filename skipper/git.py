@@ -18,6 +18,7 @@ def get_hash(short=False):
 
     return subprocess.check_output(git_command).strip().decode('utf-8')
 
+
 def uncommitted_changes():
     """Return True is there are uncommitted changes."""
     return subprocess.call(['git', 'diff', '--quiet', 'HEAD']) != 0
