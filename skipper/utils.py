@@ -40,7 +40,7 @@ def configure_logging(name, level):
 
 
 def get_images_from_dockerfiles():
-    dockerfiles = glob.glob(image_to_dockerfile('*'))
+    dockerfiles = glob.glob("Containerfile.*") + glob.glob("Dockerfile.*")
     images = {dockerfile_to_image(dockerfile): dockerfile for dockerfile in dockerfiles}
     return images
 
