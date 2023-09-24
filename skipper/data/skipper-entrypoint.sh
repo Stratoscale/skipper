@@ -2,11 +2,7 @@
 
 if ! [ -z "${SKIPPER_DOCKER_GID}" ];then
 
-  if [ ${SKIPPER_USERNAME} == root ]; then
-      HOME_DIR=/root
-  else
-      HOME_DIR=/home/${SKIPPER_USERNAME}
-  fi
+  HOME_DIR=${HOME}
 
   SKIP_HOME_DIR_PARAM=""
 
