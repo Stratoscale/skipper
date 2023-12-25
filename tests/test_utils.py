@@ -13,18 +13,18 @@ class TestUtils(unittest.TestCase):
         utils.CONTAINER_RUNTIME_COMMAND = None
         find_executable_mock.side_effect = "done"
         res = utils.get_runtime_command()
-        self.assertEquals(res, utils.DOCKER)
+        self.assertEqual(res, utils.DOCKER)
         find_executable_mock.side_effect = [None, "done"]
         utils.CONTAINER_RUNTIME_COMMAND = None
         res = utils.get_runtime_command()
-        self.assertEquals(res, utils.PODMAN)
+        self.assertEqual(res, utils.PODMAN)
         with self.assertRaises(Exception):
             find_executable_mock.side_effect = [None, None]
             utils.CONTAINER_RUNTIME_COMMAND = None
             utils.get_runtime_command()
         utils.CONTAINER_RUNTIME_COMMAND = utils.DOCKER
         res = utils.get_runtime_command()
-        self.assertEquals(res, utils.DOCKER)
+        self.assertEqual(res, utils.DOCKER)
 
     @mock.patch('skipper.utils.open', autospec=False)
     @mock.patch('skipper.utils.os.makedirs', autospec=True)
