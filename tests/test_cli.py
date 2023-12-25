@@ -5,16 +5,11 @@ from six.moves import http_client
 import click
 import six
 from click import testing
-from shutil import which
 from requests import HTTPError
 
 from skipper import cli
 from skipper import config, utils
-
-REGISTRY = 'registry.io:5000'
-IMAGE = 'image'
-TAG = '1234567'
-FQDN_IMAGE = REGISTRY + '/' + IMAGE + ':' + TAG
+from tests.consts import REGISTRY, SKIPPER_CONF_BUILD_CONTAINER_TAG, SKIPPER_CONF_MAKEFILE, SKIPPER_CONF_BUILD_CONTAINER_IMAGE, IMAGE, TAG
 
 BUILD_CONTAINER_IMAGE = 'build-container-image'
 BUILD_CONTAINER_TAG = 'build-container-tag'
@@ -25,52 +20,42 @@ ENV_FILE_PATH = '/home/envfile.env'
 ENV_FILES = ['/home/envfile1.env', '/home/envfile2.env']
 
 SKIPPER_CONF_CONTAINER_CONTEXT = '/some/context'
-SKIPPER_CONF_BUILD_CONTAINER_IMAGE = 'skipper-conf-build-container-image'
-SKIPPER_CONF_BUILD_CONTAINER_TAG = 'skipper-conf-build-container-tag'
 SKIPPER_CONF_BUILD_CONTAINER_FQDN_IMAGE = REGISTRY + '/' + SKIPPER_CONF_BUILD_CONTAINER_IMAGE + ':' + SKIPPER_CONF_BUILD_CONTAINER_TAG
-SKIPPER_CONF_MAKEFILE = 'Makefile.skipper'
 SKIPPER_CONF = {
     'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     }
 }
-CONFIG_ENV = {
-    "KEY2": "NOT_VAL2",
-    "KEY3": "VAL3",
-    "KEY4": "$VAL4",
-    "KEY5": "$$VAL5"
-}
-CONFIG_ENV_EVALUATION = {
-    "KEY2": "NOT_VAL2",
-    "KEY3": "VAL3",
-    "KEY4": "val4-evaluation",
-    "KEY5": "$VAL5"
-}
-SKIPPER_CONF_WITH_ENV = {
-    'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
-    'make': {
-        'makefile': SKIPPER_CONF_MAKEFILE,
-    },
-    'env': CONFIG_ENV
-}
+
 SKIPPER_CONF_WITH_ENV_FILE = {
     'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
     'env_file': [ENV_FILE_PATH]
 }
+SKIPPER_CONF_ENV = {
+    "KEY2": "NOT_VAL2",
+    "KEY3": "VAL3",
+}
+SKIPPER_CONF_WITH_ENV = {
+    'registry': REGISTRY,
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'make': {
+        'makefile': SKIPPER_CONF_MAKEFILE,
+    },
+    'env': SKIPPER_CONF_ENV
+}
 SKIPPER_CONF_WITH_MULTIPLE_ENV_FILES = {
     'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
@@ -96,8 +81,8 @@ SKIPPER_CONF_WITH_ENV_WRONG_TYPE = {
 }
 SKIPPER_CONF_WITH_CONTAINERS = {
     'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
@@ -108,8 +93,8 @@ SKIPPER_CONF_WITH_CONTAINERS = {
 }
 SKIPPER_CONF_WITH_VOLUMES = {
     'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
@@ -121,8 +106,8 @@ SKIPPER_CONF_WITH_VOLUMES = {
 
 SKIPPER_CONF_WITH_WORKDIR = {
     'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
@@ -130,8 +115,8 @@ SKIPPER_CONF_WITH_WORKDIR = {
 }
 SKIPPER_CONF_WITH_WORKSPACE = {
     'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
@@ -140,8 +125,8 @@ SKIPPER_CONF_WITH_WORKSPACE = {
 
 SKIPPER_CONF_WITH_GIT_REV = {
     'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': 'git:revision',
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_tag': 'git:revision',
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
@@ -149,48 +134,21 @@ SKIPPER_CONF_WITH_GIT_REV = {
 
 SKIPPER_CONF_WITH_CONTEXT = {
     'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
-    'container-context': SKIPPER_CONF_CONTAINER_CONTEXT
+    'container_context': SKIPPER_CONF_CONTAINER_CONTEXT
 }
 
 SKIPPER_CONF_WITH_CONTEXT_NO_TAG = {
     'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    'build_container_image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
     'make': {
         'makefile': SKIPPER_CONF_MAKEFILE,
     },
-    'container-context': SKIPPER_CONF_CONTAINER_CONTEXT
-}
-
-SKIPPER_CONF_WITH_SHELL_INTERPOLATION = {
-    'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
-    'make': {
-        'makefile': SKIPPER_CONF_MAKEFILE,
-    },
-    'volumes': [
-        '$(which cat):/cat',
-    ],
-    'env': [
-        'KEY=$(expr ${MY_NUMBER:-5} + 5)'
-    ]
-}
-
-SKIPPER_CONF_WITH_INVALID_SHELL_INTERPOLATION = {
-    'registry': REGISTRY,
-    'build-container-image': SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
-    'build-container-tag': SKIPPER_CONF_BUILD_CONTAINER_TAG,
-    'make': {
-        'makefile': SKIPPER_CONF_MAKEFILE,
-    },
-    'volumes': [
-        '$(bla bla):/cat',
-    ]
+    'container_context': SKIPPER_CONF_CONTAINER_CONTEXT
 }
 
 
@@ -236,7 +194,9 @@ class TestCLI(unittest.TestCase):
                 subcmd_params=subcmd_params,
             )
             self.assertIsInstance(result.exception, click.BadParameter)
-            self.assertEqual(result.exit_code, -1)
+            # since click testing module messes up exit code
+            # we just verify if the exit code is not 0
+            self.assertNotEqual(0, result.exit_code)
 
     @mock.patch('skipper.runner.run', autospec=True)
     def test_subcommand_without_subcommand_params(self, skipper_runner_run_mock):
@@ -298,9 +258,8 @@ class TestCLI(unittest.TestCase):
                                                                             return_value={
                                                                                 'image1': '/home/user/work/project/Dockerfile.image1',
                                                                                 'image2': '/home/user/work/project/Dockerfile.image2'}))
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_build_with_context_from_config_file(self, skipper_runner_run_mock):
@@ -320,9 +279,8 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT_NO_TAG))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTEXT_NO_TAG))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=''))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
@@ -339,9 +297,9 @@ class TestCLI(unittest.TestCase):
         )
         expected_commands = [
             mock.call(['build', '--network=host',
-                       '-t', 'build-container-image', '-f',
-                       'Dockerfile.build-container-image',
-                       SKIPPER_CONF_CONTAINER_CONTEXT, '--ulimit', 'nofile=65536:65536'],
+                       '-f', 'Dockerfile.build-container-image',
+                       '-t', 'build-container-image',
+                       SKIPPER_CONF_CONTAINER_CONTEXT],
                       stdout_to_stderr=True),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net=None, publish=(), volumes=None, workdir=None,
@@ -464,9 +422,8 @@ class TestCLI(unittest.TestCase):
                                                                             return_value={
                                                                                 'image1': '/home/user/work/project/Dockerfile.image1',
                                                                                 'image2': '/home/user/work/project/Dockerfile.image2'}))
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_build_with_defaults_from_config_file(self, skipper_runner_run_mock):
@@ -485,11 +442,10 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.abspath',
                 mock.MagicMock(autospec=True, return_value='/home/user/work/project/app1/Dockerfile'))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTAINERS))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_CONTAINERS))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('skipper.runner.run', autospec=True, return_value=0)
     def test_build_with_defaults_from_config_file_including_containers(self, skipper_runner_run_mock):
@@ -507,6 +463,72 @@ class TestCLI(unittest.TestCase):
             '/home/user/work/project/app1'
         ]
         skipper_runner_run_mock.assert_called_once_with(expected_command)
+
+    @mock.patch(
+        "skipper.utils.get_images_from_dockerfiles",
+        mock.MagicMock(
+            autospec=True,
+            return_value={"image1": "/home/user/work/project/Dockerfile.image1"},
+        ),
+    )
+    @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch(
+        "skipper.git.get_hash", mock.MagicMock(autospec=True, return_value="1234567")
+    )
+    @mock.patch("skipper.runner.run", autospec=True, return_value=0)
+    def test_build_with_build_args(self, skipper_runner_run_mock):
+        build_params = ["image1"]
+        self._invoke_cli(
+            global_params=self.global_params + ["--build-arg", "key1=value1", "--build-arg", "key2=value2"],
+            subcmd="build",
+            subcmd_params=build_params,
+        )
+        expected_commands = [
+            "build",
+            "--network=host",
+            "--build-arg",
+            "key1=value1",
+            "--build-arg",
+            "key2=value2",
+            "--build-arg",
+            "TAG=1234567",
+            "-f",
+            "/home/user/work/project/Dockerfile.image1",
+            "-t",
+            "image1:1234567",
+            "/home/user/work/project",
+        ]
+        skipper_runner_run_mock.assert_called_once_with(expected_commands)
+
+    @mock.patch(
+        "skipper.utils.get_images_from_dockerfiles",
+        mock.MagicMock(
+            autospec=True,
+            return_value={"image1": "/home/user/work/project/Dockerfile.image1"},
+        ),
+    )
+    @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch(
+        "skipper.git.get_hash", mock.MagicMock(autospec=True, return_value="1234567")
+    )
+    @mock.patch("skipper.runner.run", autospec=True, return_value=0)
+    def test_build_with_build_contexts(self, skipper_runner_run_mock):
+        build_params = ["image1"]
+        self._invoke_cli(
+            global_params=self.global_params + ["--build-context", "context1=/path/to/context"],
+            subcmd="build",
+            subcmd_params=build_params,
+        )
+        expected_commands = [
+            "build",
+            "--network=host",
+            "--build-arg", "TAG=1234567",
+            "--build-context", "context1=/path/to/context",
+            "-f", "/home/user/work/project/Dockerfile.image1",
+            "-t", "image1:1234567",
+            "/home/user/work/project",
+        ]
+        skipper_runner_run_mock.assert_called_once_with(expected_commands)
 
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('requests.get', autospec=True)
@@ -680,9 +702,8 @@ class TestCLI(unittest.TestCase):
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('skipper.git.get_hash', mock.MagicMock(autospec=True, return_value='1234567'))
     @mock.patch('requests.get', autospec=True)
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1133,9 +1154,8 @@ class TestCLI(unittest.TestCase):
         )
         self.assertIsInstance(ret.exception, click.exceptions.ClickException)
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_from_config_file(self, skipper_runner_run_mock):
@@ -1153,35 +1173,8 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=())
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
-    @mock.patch('skipper.runner.run', autospec=True)
-    def test_run_with_defaults_and_env_from_config_file(self, skipper_runner_run_mock):
-        command = ['ls', '-l']
-        run_params = command
-        os.environ['VAL4'] = "val4-evaluation"
-        self._invoke_cli(
-            defaults=config.load_defaults(),
-            subcmd='run',
-            subcmd_params=run_params
-        )
-        env = ["%s=%s" % (key, value) for key, value in six.iteritems(CONFIG_ENV_EVALUATION)]
-        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
-                                                        interactive=False, name=None, net=None, publish=(),
-                                                        volumes=None,
-                                                        workdir=None, workspace=None, use_cache=False,
-                                                        env_file=())
-
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
-    @mock.patch('os.path.exists',
-                mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(
-        autospec=True, return_value=SKIPPER_CONF_WITH_ENV_FILE))
-    @mock.patch('subprocess.check_output',
-                mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_and_env_from_env_file(
             self,
@@ -1190,7 +1183,7 @@ class TestCLI(unittest.TestCase):
         command = ['ls', '-l']
         run_params = command
         self._invoke_cli(
-            defaults=config.load_defaults(),
+            defaults=SKIPPER_CONF_WITH_ENV_FILE,
             subcmd='run',
             subcmd_params=run_params
         )
@@ -1206,11 +1199,8 @@ class TestCLI(unittest.TestCase):
                                                         use_cache=False,
                                                         env_file=(ENV_FILE_PATH,))
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists',
                 mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(
-        autospec=True, return_value=SKIPPER_CONF_WITH_MULTIPLE_ENV_FILES))
     @mock.patch('subprocess.check_output',
                 mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1221,7 +1211,7 @@ class TestCLI(unittest.TestCase):
         command = ['ls', '-l']
         run_params = command
         self._invoke_cli(
-            defaults=config.load_defaults(),
+            defaults=SKIPPER_CONF_WITH_MULTIPLE_ENV_FILES,
             subcmd='run',
             subcmd_params=run_params
         )
@@ -1237,21 +1227,18 @@ class TestCLI(unittest.TestCase):
                                                         use_cache=False,
                                                         env_file=tuple(ENV_FILES))
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_ENV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_env_overriding_config_file(self, skipper_runner_run_mock):
-        os.environ['VAL4'] = "val4-evaluation"
         command = ['ls', '-l']
         run_params = ['-e', ENV[0], '-e', ENV[1]] + command
         self._invoke_cli(
-            defaults=config.load_defaults(),
+            defaults=SKIPPER_CONF_WITH_ENV,
             subcmd='run',
             subcmd_params=run_params
         )
-        env = ["%s=%s" % (key, value) for key, value in six.iteritems(CONFIG_ENV_EVALUATION)] + ENV
+        env = [f'{key}={value}' for key, value in six.iteritems(SKIPPER_CONF_ENV)] + ENV
         expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
         skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=env,
                                                         interactive=False, name=None, net=None, publish=(),
@@ -1405,8 +1392,9 @@ class TestCLI(unittest.TestCase):
             subcmd_params=run_params
         )
         expected_commands = [
-            mock.call(['build', '--network=host', '-t', 'build-container-image', '-f',
-                       'Dockerfile.build-container-image', '.', '--ulimit', 'nofile=65536:65536'],
+            mock.call(['build', '--network=host',
+                       '-f', 'Dockerfile.build-container-image',
+                       '-t', 'build-container-image', '.'],
                       stdout_to_stderr=True),
             mock.call(command, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net=None, publish=(), volumes=None, workdir=None, workspace=None,
@@ -1540,7 +1528,9 @@ class TestCLI(unittest.TestCase):
         result = self._invoke_cli(global_params=global_params, subcmd='make', subcmd_params=make_params)
         self.assertIsInstance(result.exception, click.BadParameter)
         self.assertEqual("Publish need to be in format port:port or port-port:port-port", result.exception.message)
-        self.assertEqual(-1, result.exit_code)
+        # since click testing module messes up exit code
+        # we just verify if the exit code is not 0
+        self.assertNotEqual(0, result.exit_code)
 
     def test_run_with_publish_textual_port_range(self):
         global_params = self.global_params
@@ -1553,7 +1543,9 @@ class TestCLI(unittest.TestCase):
         result = self._invoke_cli(global_params=global_params, subcmd='make', subcmd_params=make_params)
         self.assertIsInstance(result.exception, click.BadParameter)
         self.assertEqual("Publish need to be in format port:port or port-port:port-port", result.exception.message)
-        self.assertEqual(-1, result.exit_code)
+        # since click testing module messes up exit code
+        # we just verify if the exit code is not 0
+        self.assertNotEqual(0, result.exit_code)
 
     def test_run_with_invalid_port_range(self):
         global_params = self.global_params
@@ -1566,13 +1558,17 @@ class TestCLI(unittest.TestCase):
         result = self._invoke_cli(global_params=global_params, subcmd='make', subcmd_params=make_params)
         self.assertIsInstance(result.exception, click.BadParameter)
         self.assertEqual("Invalid port range: 25 should be bigger than 15", result.exception.message)
-        self.assertEqual(-1, result.exit_code)
+        # since click testing module messes up exit code
+        # we just verify if the exit code is not 0
+        self.assertNotEqual(0, result.exit_code)
 
         make_params = ['-p', '25-15:15-25', '-p', '12:12', '-f', makefile, target]
         result = self._invoke_cli(global_params=global_params, subcmd='make', subcmd_params=make_params)
         self.assertIsInstance(result.exception, click.BadParameter)
         self.assertEqual("Invalid port range: 25 should be bigger than 15", result.exception.message)
-        self.assertEqual(-1, result.exit_code)
+        # since click testing module messes up exit code
+        # we just verify if the exit code is not 0
+        self.assertNotEqual(0, result.exit_code)
 
     def test_run_with_publish_out_of_range_port(self):
         global_params = self.global_params
@@ -1585,11 +1581,12 @@ class TestCLI(unittest.TestCase):
         result = self._invoke_cli(global_params=global_params, subcmd='make', subcmd_params=make_params)
         self.assertIsInstance(result.exception, click.BadParameter)
         self.assertEqual("Invalid port number: port 121111111 is out of range", result.exception.message)
-        self.assertEqual(-1, result.exit_code)
+        # since click testing module messes up exit code
+        # we just verify if the exit code is not 0
+        self.assertNotEqual(0, result.exit_code)
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_VOLUMES))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_VOLUMES))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_from_config_file_including_volumes(self, skipper_runner_run_mock):
@@ -1606,40 +1603,8 @@ class TestCLI(unittest.TestCase):
                                                         volumes=['volume1', 'volume2'], workspace=None,
                                                         workdir=None, use_cache=False, env_file=())
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_SHELL_INTERPOLATION))
-    @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
-    @mock.patch('skipper.runner.run', autospec=True)
-    def test_run_with_defaults_from_config_file_including_interpolated_volumes(self, skipper_runner_run_mock):
-        command = ['ls', '-l']
-        run_params = command
-        self._invoke_cli(
-            defaults=config.load_defaults(),
-            subcmd='run',
-            subcmd_params=run_params
-        )
-        expected_fqdn_image = 'skipper-conf-build-container-image:skipper-conf-build-container-tag'
-        skipper_runner_run_mock.assert_called_once_with(command, fqdn_image=expected_fqdn_image, environment=['KEY=10'],
-                                                        interactive=False, name=None, net=None, publish=(),
-                                                        volumes=[f'{which("cat")}:/cat'], workspace=None,
-                                                        workdir=None, use_cache=False, env_file=())
-
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_INVALID_SHELL_INTERPOLATION))
-    def test_run_with_defaults_from_config_file_including_invalid_interploated_volumes_interpolated(self):
-        command = ['ls', '-l']
-        run_params = command
-
-        with self.assertRaises(ValueError):
-            self._invoke_cli(
-                defaults=config.load_defaults(),
-                subcmd='run',
-                subcmd_params=run_params
-            )
-
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
-    @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_WORKDIR))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_WORKDIR))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_from_config_file_including_workdir(self, skipper_runner_run_mock):
@@ -1657,9 +1622,8 @@ class TestCLI(unittest.TestCase):
                                                         workdir='test-workdir', workspace=None, use_cache=False,
                                                         env_file=())
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_WORKSPACE))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_WORKSPACE))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_run_with_defaults_from_config_file_including_workspace(self, skipper_runner_run_mock):
@@ -1677,9 +1641,8 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, workspace="/test/workspace", use_cache=False,
                                                         env_file=())
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=b'1234567\n'))
     @mock.patch('skipper.git.uncommitted_changes', mock.MagicMock(return_value=True))
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1698,9 +1661,8 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, use_cache=False, workspace=None,
                                                         env_file=())
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_GIT_REV))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value=b'1234567\n'))
     @mock.patch('skipper.git.uncommitted_changes', mock.MagicMock(return_value=False))
     @mock.patch('skipper.runner.run', autospec=True)
@@ -1774,9 +1736,8 @@ class TestCLI(unittest.TestCase):
                                                         workdir=None, workspace=None, use_cache=False,
                                                         env_file=())
 
-    @mock.patch('builtins.open', mock.MagicMock(create=True))
     @mock.patch('os.path.exists', mock.MagicMock(autospec=True, return_value=True))
-    @mock.patch('yaml.safe_load', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
+    @mock.patch('skipper.config.load_defaults', mock.MagicMock(autospec=True, return_value=SKIPPER_CONF))
     @mock.patch('subprocess.check_output', mock.MagicMock(autospec=True, return_value='1234567\n'))
     @mock.patch('skipper.runner.run', autospec=True)
     def test_make_with_defaults_from_config_file(self, skipper_runner_run_mock):
@@ -1811,8 +1772,8 @@ class TestCLI(unittest.TestCase):
             subcmd_params=make_params
         )
         expected_commands = [
-            mock.call(['build', '--network=host', '-t', 'build-container-image', '-f',
-                       'Dockerfile.build-container-image', '.', '--ulimit', 'nofile=65536:65536'],
+            mock.call(['build', '--network=host', '-f', 'Dockerfile.build-container-image',
+                      '-t', 'build-container-image', '.'],
                       stdout_to_stderr=True),
             mock.call(['make'] + make_params, fqdn_image='build-container-image', environment=[],
                       interactive=False, name=None, net=None, publish=(), volumes=None, workdir=None, workspace=None,

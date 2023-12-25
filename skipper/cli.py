@@ -12,11 +12,10 @@ import tabulate
 from pkg_resources import get_distribution
 from pbr import packaging
 
-from skipper import git
+from skipper import git, builder
 from skipper import runner
 from skipper import utils
-
-DOCKER_TAG_FOR_CACHE = "cache"
+from skipper.builder import BuildOptions, Image
 
 
 def _validate_publish(ctx, param, value):
@@ -54,6 +53,7 @@ def _validate_port_out_of_range(port):
         raise click.BadParameter(f"Invalid port number: port {port} is out of range")
 
 
+# pylint: disable=too-many-arguments
 @click.group()
 @click.option('-v', '--verbose', help='Increase verbosity', is_flag=True, default=False)
 @click.option('--registry', help='URL of the docker registry')
@@ -61,8 +61,20 @@ def _validate_port_out_of_range(port):
 @click.option('--build-container-tag', help='Tag of the build container')
 @click.option('--build-container-net', help='Network to connect the build container')
 @click.option('--env-file', multiple=True, help='Environment variable file(s) to load')
+@click.option('--build-arg', multiple=True, help='Build arguments to pass to the container build', envvar='SKIPPER_BUILD_ARGS')
+@click.option('--build-context', multiple=True, help='Build contexts to pass to the container build')
 @click.pass_context
-def cli(ctx, registry, build_container_image, build_container_tag, build_container_net, verbose, env_file):
+def cli(
+        ctx,
+        registry,
+        build_container_image,
+        build_container_tag,
+        build_container_net,
+        verbose,
+        env_file,
+        build_arg,
+        build_context,
+):
     """
     Easily dockerize your Git repository
     """
@@ -73,13 +85,15 @@ def cli(ctx, registry, build_container_image, build_container_tag, build_contain
     ctx.obj['build_container_image'] = build_container_image
     ctx.obj['build_container_net'] = build_container_net
     ctx.obj['git_revision'] = build_container_tag == 'git:revision'
-    ctx.obj['build_container_tag'] = git.get_hash() if ctx.obj['git_revision'] else build_container_tag
+    ctx.obj['build_container_tag'] = (git.get_hash() if ctx.obj['git_revision'] else build_container_tag)
     ctx.obj['env'] = ctx.default_map.get('env', {})
     ctx.obj['containers'] = ctx.default_map.get('containers')
     ctx.obj['volumes'] = ctx.default_map.get('volumes')
     ctx.obj['workdir'] = ctx.default_map.get('workdir')
     ctx.obj['workspace'] = ctx.default_map.get('workspace', None)
     ctx.obj['container_context'] = ctx.default_map.get('container_context')
+    ctx.obj['build_args'] = build_arg
+    ctx.obj['build_contexts'] = build_context
     utils.set_remote_registry_login_info(registry, ctx.obj)
 
 
@@ -94,49 +108,27 @@ def build(ctx, images_to_build, container_context, cache):
     """
     utils.logger.debug("Executing build command")
 
-    valid_images = ctx.obj.get('containers') or utils.get_images_from_dockerfiles()
-    valid_images = {image: os.path.abspath(dockerfile) for image, dockerfile in six.iteritems(valid_images)}
-    valid_images_to_build = {}
-    if not images_to_build:
-        valid_images_to_build = valid_images
-    else:
-        for image in images_to_build:
-            if image not in valid_images:
-                utils.logger.warning('Image %s is not valid for this project! Skipping...', image)
-                continue
-            valid_images_to_build[image] = valid_images[image]
-
+    valid_images_to_build = _get_images_to_build(ctx, images_to_build)
     tag = git.get_hash()
-    for image, dockerfile in six.iteritems(valid_images_to_build):
-        utils.logger.info('Building image: %s', image)
+    build_args = (ctx.obj.get('build_args', ()) + (f'TAG={tag}',))
+    build_contexts = ctx.obj.get('build_contexts', ())
 
-        if not os.path.exists(dockerfile):
-            utils.logger.warning('File %s does not exist! Skipping...', dockerfile)
-            continue
+    for image, dockerfile in valid_images_to_build.items():
+        utils.logger.info("Building image: %s", image)
 
-        fqdn_image = image + ':' + tag
-        if container_context is not None:
-            build_context = container_context
-        elif ctx.obj['container_context']:
-            build_context = ctx.obj['container_context']
-        else:
-            build_context = os.path.dirname(dockerfile)
-        command = ['build', '--network=host', '--build-arg', f'TAG={tag}',
-                   '-f', dockerfile, '-t', fqdn_image, build_context]
-        if cache:
-            cache_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
-            runner.run(['pull', cache_image])
-            command.extend(['--cache-from', cache_image])
-        ret = runner.run(command)
+        main_context = container_context or ctx.obj.get('container_context') or os.path.dirname(dockerfile)
+        options = BuildOptions(
+            Image(name=image, tag=tag, dockerfile=dockerfile),
+            main_context,
+            build_contexts,
+            build_args,
+            cache,
+        )
 
+        ret = builder.build(options, runner.run, utils.logger)
         if ret != 0:
-            utils.logger.error('Failed to build image: %s', image)
+            utils.logger.error("Failed to build image: %s", options.image)
             return ret
-
-        if cache:
-            cache_image = utils.generate_fqdn_image(ctx.obj['registry'], namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
-            runner.run(['tag', fqdn_image, cache_image])
-            runner.run(['push', cache_image])
 
     return 0
 
@@ -254,26 +246,29 @@ def run(ctx, interactive, name, env, publish, cache, command):
     """
     utils.logger.debug("Executing run command")
     _validate_global_params(ctx, 'build_container_image')
-    build_container = _prepare_build_container(ctx.obj['registry'],
-                                               ctx.obj['build_container_image'],
-                                               ctx.obj['build_container_tag'],
-                                               ctx.obj['git_revision'],
-                                               ctx.obj['container_context'],
-                                               ctx.obj.get('username'),
-                                               ctx.obj.get('password'),
-                                               cache)
-    return runner.run(list(command),
-                      fqdn_image=build_container,
-                      environment=_expend_env(ctx, env),
-                      interactive=interactive,
-                      name=name,
-                      net=ctx.obj['build_container_net'],
-                      publish=publish,
-                      volumes=ctx.obj.get('volumes'),
-                      workdir=ctx.obj.get('workdir'),
-                      use_cache=cache,
-                      workspace=ctx.obj.get('workspace'),
-                      env_file=ctx.obj.get('env_file'))
+    ctx.obj['use_cache'] = cache
+
+    build_container = _prepare_build_container(
+        BuildOptions.from_context_obj(ctx.obj),
+        ctx.obj.get('git_revision'),
+        ctx.obj.get('username'),
+        ctx.obj.get('password'),
+    )
+
+    return runner.run(
+        list(command),
+        fqdn_image=build_container,
+        environment=_expend_env(ctx, env),
+        interactive=interactive,
+        name=name,
+        net=ctx.obj['build_container_net'],
+        publish=publish,
+        volumes=ctx.obj.get('volumes'),
+        workdir=ctx.obj.get('workdir'),
+        use_cache=cache,
+        workspace=ctx.obj.get('workspace'),
+        env_file=ctx.obj.get('env_file'),
+    )
 
 
 @cli.command(context_settings={"ignore_unknown_options": True})
@@ -291,27 +286,30 @@ def make(ctx, interactive, name, env, makefile, cache, publish, make_params):
     """
     utils.logger.debug("Executing make command")
     _validate_global_params(ctx, 'build_container_image')
-    build_container = _prepare_build_container(ctx.obj['registry'],
-                                               ctx.obj['build_container_image'],
-                                               ctx.obj['build_container_tag'],
-                                               ctx.obj['git_revision'],
-                                               ctx.obj['container_context'],
-                                               ctx.obj.get('username'),
-                                               ctx.obj.get('password'),
-                                               cache)
+    ctx.obj['use_cache'] = cache
+
+    build_container = _prepare_build_container(
+        BuildOptions.from_context_obj(ctx.obj),
+        ctx.obj.get('git_revision'),
+        ctx.obj.get('username'),
+        ctx.obj.get('password'),
+    )
+
     command = ['make', '-f', makefile] + list(make_params)
-    return runner.run(command,
-                      fqdn_image=build_container,
-                      environment=_expend_env(ctx, env),
-                      interactive=interactive,
-                      name=name,
-                      net=ctx.obj['build_container_net'],
-                      publish=publish,
-                      volumes=ctx.obj.get('volumes'),
-                      workdir=ctx.obj.get('workdir'),
-                      use_cache=cache,
-                      workspace=ctx.obj.get('workspace'),
-                      env_file=ctx.obj.get('env_file'))
+    return runner.run(
+        command,
+        fqdn_image=build_container,
+        environment=_expend_env(ctx, env),
+        interactive=interactive,
+        name=name,
+        net=ctx.obj['build_container_net'],
+        publish=publish,
+        volumes=ctx.obj.get('volumes'),
+        workdir=ctx.obj.get('workdir'),
+        use_cache=cache,
+        workspace=ctx.obj.get('workspace'),
+        env_file=ctx.obj.get('env_file'),
+    )
 
 
 @cli.command()
@@ -326,26 +324,29 @@ def shell(ctx, env, name, cache, publish):
     """
     utils.logger.debug("Starting a shell")
     _validate_global_params(ctx, 'build_container_image')
-    build_container = _prepare_build_container(ctx.obj['registry'],
-                                               ctx.obj['build_container_image'],
-                                               ctx.obj['build_container_tag'],
-                                               ctx.obj['git_revision'],
-                                               ctx.obj['container_context'],
-                                               ctx.obj.get('username'),
-                                               ctx.obj.get('password'),
-                                               cache)
-    return runner.run(['bash'],
-                      fqdn_image=build_container,
-                      environment=_expend_env(ctx, env),
-                      interactive=True,
-                      name=name,
-                      net=ctx.obj['build_container_net'],
-                      publish=publish,
-                      volumes=ctx.obj.get('volumes'),
-                      workdir=ctx.obj.get('workdir'),
-                      use_cache=cache,
-                      workspace=ctx.obj.get('workspace'),
-                      env_file=ctx.obj.get('env_file'))
+    ctx.obj['use_cache'] = cache
+
+    build_container = _prepare_build_container(
+        BuildOptions.from_context_obj(ctx.obj),
+        ctx.obj.get('git_revision'),
+        ctx.obj.get('username'),
+        ctx.obj.get('password'),
+    )
+
+    return runner.run(
+        ['bash'],
+        fqdn_image=build_container,
+        environment=_expend_env(ctx, env),
+        interactive=True,
+        name=name,
+        net=ctx.obj['build_container_net'],
+        publish=publish,
+        volumes=ctx.obj.get('volumes'),
+        workdir=ctx.obj.get('workdir'),
+        use_cache=cache,
+        workspace=ctx.obj.get('workspace'),
+        env_file=ctx.obj.get('env_file'),
+    )
 
 
 @cli.command()
@@ -377,7 +378,12 @@ def _push_to_registry(registry, fqdn_image):
         sys.exit(ret)
 
 
-def _prepare_build_container(registry, image, tag, git_revision, container_context, username, password, use_cache):
+def _prepare_build_container(
+        options: BuildOptions,
+        git_revision: bool,
+        username: str,
+        password: str,
+):
     def runner_run(command):
         """
         All output generated by the container runtime during this stage should
@@ -392,61 +398,34 @@ def _prepare_build_container(registry, image, tag, git_revision, container_conte
         without having the build process output be included in their VERSION
         env var.
         """
+        utils.logger.debug("Running command: %s", command)
         return runner.run(command, stdout_to_stderr=True)
 
-    if tag is not None:
+    image = options.image
 
-        tagged_image_name = image + ':' + tag
+    if image.tag:
+        if utils.local_image_exist(image.name, image.tag):
+            utils.logger.info('Using build container: %s', image.name)
+            return image.local
 
-        if utils.local_image_exist(image, tag):
-            utils.logger.info("Using build container: %s", tagged_image_name)
-            return tagged_image_name
-
-        if utils.remote_image_exist(registry, image, tag, username, password):
-            fqdn_image = utils.generate_fqdn_image(registry, None, image, tag)
-            utils.logger.info("Using build container: %s", fqdn_image)
-            return fqdn_image
+        if image.registry and utils.remote_image_exist(image.registry, image.name, image.tag, username, password):
+            utils.logger.info('Using build container: %s', image.fqdn)
+            return image.fqdn
 
         if not git_revision:
-            raise click.exceptions.ClickException(f"Couldn't find build image {image} with tag {tag}")
-
+            raise click.exceptions.ClickException(f"Couldn't find build image {image.name} with tag {image.tag}")
     else:
-        tagged_image_name = image
-        utils.logger.info("No build container tag was provided")
+        utils.logger.info('No build container tag was provided')
 
-    docker_file = utils.image_to_dockerfile(image)
-    if docker_file is None:
-        sys.exit(f'Could not find any dockerfile for {image}')
+    if not image.dockerfile:
+        sys.exit(f'Could not find any dockerfile for {image.name}')
 
-    utils.logger.info("Building image using docker file: %s", docker_file)
-    if container_context is not None:
-        build_context = container_context
-    else:
-        build_context = '.'
+    utils.logger.info('Building image using docker file: %s', image.dockerfile)
 
-    command = ['build', '--network=host', '-t', tagged_image_name, '-f', docker_file, build_context]
-
-    for cmd_limit in utils.SKIPPER_ULIMIT:
-        command += cmd_limit
-
-    if use_cache:
-        cache_image = utils.generate_fqdn_image(registry, namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
-        runner_run(['pull', cache_image])
-        command.extend(['--cache-from', cache_image])
-
-    if runner_run(command) != 0:
+    if builder.build(options, runner_run, utils.logger) != 0:
         sys.exit(f'Failed to build image: {image}')
 
-    if git_revision and not git.uncommitted_changes():
-        utils.logger.info("Tagging image with git revision: %s", tag)
-        runner_run(['tag', image, tagged_image_name])
-
-    if use_cache:
-        cache_image = utils.generate_fqdn_image(registry, namespace=None, image=image, tag=DOCKER_TAG_FOR_CACHE)
-        runner_run(['tag', image, cache_image])
-        runner_run(['push', cache_image])
-
-    return image
+    return image.local
 
 
 def _validate_global_params(ctx, *params):
@@ -483,3 +462,23 @@ def _expend_env(ctx, extra_env):
         raise TypeError(f'Type {type(env)} not supported for key env, use dict or list instead')
 
     return environment + list(extra_env)
+
+
+def _get_images_to_build(ctx, images_to_build):
+    valid_images = ctx.obj.get('containers') or utils.get_images_from_dockerfiles()
+    valid_images = {
+        image: os.path.abspath(dockerfile) for image, dockerfile in valid_images.items()
+    }
+    valid_images_to_build = {}
+    if not images_to_build:
+        valid_images_to_build = valid_images
+    else:
+        for image in images_to_build:
+            if image not in valid_images:
+                utils.logger.warning("Image %s is not valid for this project! Skipping...", image)
+                continue
+            if not os.path.exists(valid_images[image]):
+                utils.logger.warning("Dockerfile %s does not exist! Skipping...", valid_images[image])
+                continue
+            valid_images_to_build[image] = valid_images[image]
+    return valid_images_to_build
