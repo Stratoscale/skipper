@@ -24,13 +24,13 @@ def load_defaults():
 
 def _normalize_config(config, normalized_config):
     for key, value in six.iteritems(config):
+        normalized_key = key.replace('-', '_')
         if isinstance(value, dict):
-            normalized_config[key] = {}
-            _normalize_config(value, normalized_config[key])
+            normalized_config[normalized_key] = {}
+            _normalize_config(value, normalized_config[normalized_key])
         elif isinstance(value, list):
-            normalized_config[key] = [_interpolate_env_vars(x) for x in value]
+            normalized_config[normalized_key] = [_interpolate_env_vars(x) for x in value]
         else:
-            normalized_key = key.replace('-', '_')
             normalized_config[normalized_key] = _interpolate_env_vars(value)
 
 
