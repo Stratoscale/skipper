@@ -17,7 +17,7 @@ def load_defaults():
             config = yaml.safe_load(confile)
             containers = config.pop('containers', None)
         _normalize_config(config, defaults)
-        if containers is not None:
+        if containers:
             defaults['containers'] = containers
     return defaults
 

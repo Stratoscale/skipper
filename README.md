@@ -50,7 +50,25 @@ Skipper can serve as your primary tool for your daily development tasks:
   --build-container-tag         Tag of the build container
   --build-container-net         Network to connect the build container (default: net=host)
   --env-file                    Environment variables file/s to pass to the container
+  --build-args                  Set build-time variables for the container
+  --build-context               Additional build contexts when running the build command, give them a name, and then access them inside a Dockerfile
   --help                        Show this message and exit.
+```
+
+### [Build context explained](https://www.docker.com/blog/dockerfiles-now-support-multiple-build-contexts/)
+Skipper allows you to add additional build contexts when running the build command, give them a name, and then access them inside a Dockerfile.
+The build context can be one of the following:
+* Local directory – e.g. `--build-context project2=../path/to/project2/src`
+* Git repository – e.g. `--build-context qemu-src=https://github.com/qemu/qemu.git`
+* HTTP URL to a tarball – e.g. `--build-context src=https://example.org/releases/src.tar`
+* Docker image – Define with a `docker-image://` prefix, e.g. `--build-context alpine=docker-image://alpine:3.15`
+
+On the Dockerfile side, you can reference the build context on all commands that accept the “from” parameter. Here’s how that might look:
+
+```dockerfile
+FROM [name]
+COPY --from=[name] ...
+RUN --mount=from=[name] …
 ```
 
 ### Build
@@ -154,6 +172,16 @@ build-container-image: development
 build-container-tag: latest
 container-context: /path/to/context/dir
 
+build-arg:
+  - VAR1=value1
+  - VAR2=value2
+
+build-context:
+  - context1=/path/to/context/dir # Local directory
+  - qemu-src=https://github.com/qemu/qemu.git # Remote git repository
+  - src=https://example.org/releases/src.tar # Remote tar file
+  - alpine=docker-image://alpine:3.15 # Remote docker image
+
 make: 
     makefile: Makefile.arm32
 containers:
@@ -162,6 +190,12 @@ containers:
 env:
     VAR: value
 env_file: path/to/env_file.env
+```
+
+```yaml
+# Use the git revision as the build container tag
+# Allows to use the same build container unless the git revision changes
+build-container-tag: 'git:revision'
 ```
 
 Using the above configuration file, we now can run a simplified version of the make command described above:
