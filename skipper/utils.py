@@ -183,7 +183,10 @@ def get_extra_file(filename):
 def run_container_command(args):
     cmd = [get_runtime_command()]
     cmd.extend(args)
-    return str(subprocess.check_output(cmd).strip())
+    output = subprocess.check_output(cmd)
+    if isinstance(output, bytes):
+        output = output.decode('utf-8')
+    return output.strip()
 
 
 def create_path_and_add_data(full_path, data, is_file):
