@@ -138,22 +138,22 @@ def handle_networking(cmd, publish, net):
 def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
     volumes = volumes or []
     volumes.extend([f'{homedir}/.netrc:{homedir}/.netrc:ro',
-                    f'{homedir}/.gitconfig:{homedir}/.gitconfig:ro',
-                    f'{homedir}/.docker/config.json:{homedir}/.docker/config.json:ro'])
+                    f'{homedir}/.gitconfig:{homedir}/.gitconfig:ro'])
+
+    # required for docker buildkit and credentials
+    _add_path_if_exists(f'{homedir}/.docker', f'{homedir}/.docker', 'rw', volumes)
 
     # required for docker login (certificates)
-    if os.path.exists('/etc/docker'):
-        volumes.append('/etc/docker:/etc/docker:ro')
+    _add_path_if_exists('/etc/docker', '/etc/docker', 'ro', volumes)
 
     if utils.get_runtime_command() == utils.PODMAN:
         volumes.extend([
             f'{workspace}:{workspace}:rw',
             f'{utils.get_extra_file("skipper-entrypoint.sh")}:/opt/skipper/skipper-entrypoint.sh:rw',
         ])
-        if os.path.exists('/var/run/docker.sock'):
-            volumes.append('/var/run/docker.sock:/var/run/docker.sock:rw')
-        if os.path.exists('/var/lib/osmosis'):
-            volumes.append('/var/lib/osmosis:/var/lib/osmosis:rw')
+
+        _add_path_if_exists('/var/run/docker.sock', '/var/run/docker.sock', 'rw', volumes)
+        _add_path_if_exists('/var/lib/osmosis', '/var/lib/osmosis', 'rw', volumes)
     else:
         volumes.extend([
             f'{workspace}:{workspace}:rw',
@@ -161,8 +161,7 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
             f'{utils.get_extra_file("skipper-entrypoint.sh")}:/opt/skipper/skipper-entrypoint.sh',
             ])
         # Will fail on Mac
-        if os.path.exists('/var/lib/osmosis'):
-            volumes.append('/var/lib/osmosis:/var/lib/osmosis:rw')
+        _add_path_if_exists('/var/lib/osmosis', '/var/lib/osmosis', 'rw', volumes)
 
     for volume in volumes:
         if ":" not in volume:
@@ -196,8 +195,6 @@ def create_vol_localpath_if_needed(host_path):
     # 2. .docker/config.json - if it is required and doesn't exists we want to create is as file with {} as data
     if ".gitconfig" in host_path and not os.path.exists(host_path):
         utils.create_path_and_add_data(full_path=host_path, data="", is_file=True)
-    elif "docker/config.json" in host_path and not os.path.exists(host_path):
-        utils.create_path_and_add_data(full_path=host_path, data="{}", is_file=True)
     elif not os.path.exists(host_path):
         # If the local directory of a mount entry doesn't exist, docker will by
         # default create a directory in that path. Docker runs in systemd context,
@@ -212,6 +209,11 @@ def create_vol_localpath_if_needed(host_path):
             return False
 
     return True
+
+
+def _add_path_if_exists(source, target, permissions, volumes):
+    if os.path.exists(source):
+        volumes.append(f'{source}:{target}:{permissions}')
 
 
 @contextmanager

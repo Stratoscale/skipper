@@ -92,7 +92,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -138,7 +138,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -185,7 +185,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -241,8 +241,7 @@ class TestRunner(unittest.TestCase):
                 homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(
                 homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(
-                homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -299,9 +298,8 @@ class TestRunner(unittest.TestCase):
                 homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(
                 homedir=HOME_DIR),
-            '-v',
-            '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(
-                      homedir=HOME_DIR),
+            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(
+                homedir=HOME_DIR)),
             '-v', '/etc/docker:/etc/docker:ro',
             '-v', '%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR),
             '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
@@ -350,7 +348,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -395,7 +393,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -444,7 +442,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -499,7 +497,6 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),
-            '-v', '%(homedir)s/.docker/config.json:%(homedir)s/.docker/config.json:ro' % dict(homedir=HOME_DIR),
             '-v', '%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR),
             '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
             '-v', 'entrypoint.sh:/opt/skipper/skipper-entrypoint.sh',
@@ -508,9 +505,9 @@ class TestRunner(unittest.TestCase):
             FQDN_IMAGE,
             ' '.join(command)
         ]
-        calls = [mock.call(full_path="%(homedir)s/.docker/config.json" % dict(homedir=HOME_DIR),
-                           data="{}", is_file=True),
-                 mock.call(full_path="/home/adir/.gitconfig", data="", is_file=True)]
+        calls = [
+            mock.call(full_path="/home/adir/.gitconfig", data="", is_file=True)
+        ]
         create_path_and_add_data_mock.assert_has_calls(calls, any_order=True)
         popen_mock.assert_called_once_with(expected_nested_command)
 
