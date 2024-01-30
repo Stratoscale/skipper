@@ -3,7 +3,6 @@
 if ! [ -z "${SKIPPER_DOCKER_GID}" ];then
 
   HOME_DIR=${HOME}
-
   SKIP_HOME_DIR_PARAM=""
 
   # if home directory already exists, useradd should not try to create it
@@ -29,8 +28,13 @@ if ! [ -z "${SKIPPER_DOCKER_GID}" ];then
      usermod -G root ${SKIPPER_USERNAME}
   fi
 
-
-  su -m ${SKIPPER_USERNAME} -c "$@"
+  if ! which sudo > /dev/null; then
+    su -m ${SKIPPER_USERNAME} -c "$@"
+  else
+    # for debian dsitros (maybe for others too) -m flag resets the PATH variable
+    # so we need to use sudo -E to preserve the PATH
+    sudo -sE -u ${SKIPPER_USERNAME} "$@"
+  fi
 else
   bash -c "$@"
 fi

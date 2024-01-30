@@ -11,7 +11,7 @@ pylint:
 	PYLINTHOME=reports/ pylint skipper
 
 tests:
-	py.test --cov=skipper --cov-report=term-missing tests
+	py.test --cov=skipper --cov-report=term-missing
 
 install:
 	pip install -U .
