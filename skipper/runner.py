@@ -137,7 +137,9 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
                     f'{homedir}/.gitconfig:{homedir}/.gitconfig:ro'])
 
     # required for docker buildkit and credentials
-    _add_path_if_exists(f'{homedir}/.docker', f'{homedir}/.docker', 'rw', volumes)
+    docker_folder = f'{homedir}/.docker'
+    if not any(f'{docker_folder}:{docker_folder}' in volume for volume in volumes):
+        _add_path_if_exists(docker_folder, docker_folder, 'rw', volumes)
 
     # required for docker login (certificates)
     _add_path_if_exists('/etc/docker', '/etc/docker', 'ro', volumes)
