@@ -28,9 +28,8 @@ if ! [ -z "${SKIPPER_DOCKER_GID}" ];then
      usermod -G root ${SKIPPER_USERNAME}
   fi
 
-  if [ ${SKIPPER_USE_SUDO} == "true" ]; then
-    usermod -aG sudo ${SKIPPER_USERNAME}
-    sudo -sE -u ${SKIPPER_USERNAME} $@
+  if [ "$SKIPPER_USE_SUDO" == "true" ]; then
+    sudo -sE -u ${SKIPPER_USERNAME} "$@"
   else 
     su -m ${SKIPPER_USERNAME} -c "$@"
   fi
