@@ -42,11 +42,28 @@ export LANG="en_US.UTF-8"
 
 ## Note for Linux Users with Docker
 
-If you run on Linux and use Docker without sudo, Skipper will create a dedicated user inside the build container with both root and docker groups. Commands are executed on behalf of this user.
+## Running Skipper on Linux without sudo
 
-To preserve the environment (e.g., PATH), Skipper uses the `su` command with the `-m` flag. However, on Debian distros, even with the `-m` flag specified, the PATH variable may be reset. As a workaround, Skipper attempts to use `sudo -sE` (if installed) as an alternative to maintain the environment.
+If you are running Skipper on Linux without sudo, Skipper will create a dedicated user inside the build container with both root and docker groups. All commands will be executed on behalf of this user.
 
-If you prefer to use sudo, please install it in the build container. Additionally, it is required to disable `env_reset` with `secure_path` in `/etc/sudoers` Deafults.
+To preserve the environment, Skipper uses the `su` command with the `-m` flag. However, on Debian distros, the PATH variable may be reset even with the `-m` flag specified. To work around this issue, Skipper provides an alternative option using `sudo -sE`.
+
+To use `sudo -sE` as an alternative:
+
+1. Install `sudo` in the build container.
+2. Disable `env_reset` with `secure_path` in the `/etc/sudoers` defaults.
+3. Set the `SKIPPER_USE_SUDO` environment variable to `"true"`.
+
+```shell
+export SKIPPER_USE_SUDO="true"
+```
+
+```yaml
+# skipper.yaml
+
+env:
+    SKIPPER_USE_SUDO: "true"
+```
 
 **Note:** This information is crucial for a seamless experience when using Skipper with Docker on Linux.
 

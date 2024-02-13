@@ -28,9 +28,8 @@ if ! [ -z "${SKIPPER_DOCKER_GID}" ];then
      usermod -G root ${SKIPPER_USERNAME}
   fi
 
-  if sudo -l -U ${SKIPPER_USERNAME} 2> /dev/null; then
-    # for debian distros (maybe for others too) -m flag resets the PATH variable
-    # so we need to use sudo -E to preserve the PATH
+  if [ ${SKIPPER_USE_SUDO} == "true" ]; then
+    usermod -aG sudo ${SKIPPER_USERNAME}
     sudo -sE -u ${SKIPPER_USERNAME} $@
   else 
     su -m ${SKIPPER_USERNAME} -c "$@"
