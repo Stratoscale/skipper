@@ -35,6 +35,8 @@ def _normalize_config(config, normalized_config):
 
 
 def _interpolate_env_vars(key):
+    if not key or isinstance(key, bool):
+        return key
     for match in findall(r'\$\(.+\)', key):
         output = check_output("echo " + match, shell=True).strip().decode("utf-8")
         if not output:
