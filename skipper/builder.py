@@ -9,7 +9,7 @@ DOCKER_TAG_FOR_CACHE = "cache"
 
 class Image:
     """
-    A class to represent an image with attributes like registry, name, tag, namespace.
+    A class to represent an image with attributes like registry, name, tag, namespace .
     """
 
     def __init__(self, name, tag, dockerfile=None, registry=None, namespace=None):
