@@ -1,4 +1,5 @@
 [report]
+xml = coverage.xml
 exclude_lines =
     def __repr__
     if __name__

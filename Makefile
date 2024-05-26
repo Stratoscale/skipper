@@ -6,13 +6,12 @@ build:
 pep8:
 	pep8 skipper tests
 
-pylint:
+lint:
 	mkdir -p reports
 	PYLINTHOME=reports/ pylint skipper
 
 tests:
-	py.test --cov=skipper --cov-report=term-missing
-
+	py.test --cov=skipper --cov-report=html --cov-report=term --cov-report=xml
 install:
 	pip install -U .
 
