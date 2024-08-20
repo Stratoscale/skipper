@@ -8,6 +8,7 @@ from contextlib import contextmanager
 import sys
 from retry import retry
 from skipper import utils
+from skipper.utils import DOCKER_CONFIG
 
 
 def get_default_net():
@@ -17,6 +18,7 @@ def get_default_net():
 
 
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net=None, publish=(), volumes=None,
         workdir=None, use_cache=False, workspace=None, env_file=(), stdout_to_stderr=False):
 
@@ -44,7 +46,9 @@ def _run(cmd_args, stdout_to_stderr=False):
 
 
 # pylint: disable=too-many-locals
+# pylint: disable=too-many-branches
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 def _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes, workdir, use_cache, workspace, env_file):
     cwd = os.getcwd()
     if workspace is None:
@@ -86,6 +90,12 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
     cmd += ['-e', f'CONTAINER_RUNTIME_COMMAND={utils.get_runtime_command()}']
 
     if utils.get_runtime_command() == "docker":
+        if not utils.is_environment_variable_defined('DOCKER_CONFIG', environment):
+            cmd += ['-e', f'DOCKER_CONFIG={DOCKER_CONFIG}']
+
+        if not utils.is_environment_variable_defined('DOCKER_CONTEXT', environment):
+            cmd += ['-e', 'DOCKER_CONTEXT=default']
+
         try:
             docker_gid = grp.getgrnam('docker').gr_gid
             cmd += ['-e', f'SKIPPER_DOCKER_GID={docker_gid}']
@@ -136,12 +146,12 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
     volumes.extend([f'{homedir}/.netrc:{homedir}/.netrc:ro',
                     f'{homedir}/.gitconfig:{homedir}/.gitconfig:ro'])
 
-    # required for docker buildkit and credentials
-    docker_folder = f'{homedir}/.docker'
-    if not any(f'{docker_folder}:{docker_folder}' in volume for volume in volumes):
-        _add_path_if_exists(docker_folder, docker_folder, 'rw', volumes)
+    # required for docker credentials
+    docker_config_folder = f'{homedir}/.docker/config.json'
+    if not any(f'{docker_config_folder}:' in volume for volume in volumes):
+        _add_path_if_exists(docker_config_folder, f'{DOCKER_CONFIG}/config.json', 'rw', volumes)
 
-    # required for docker login (certificates)
+    # required for docker certificates
     _add_path_if_exists('/etc/docker', '/etc/docker', 'ro', volumes)
 
     if utils.get_runtime_command() == utils.PODMAN:
