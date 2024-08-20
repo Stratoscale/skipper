@@ -5,6 +5,7 @@ import mock
 from skipper import utils
 from skipper import runner
 from skipper.runner import get_default_net
+from skipper.utils import DOCKER_CONFIG
 
 USER_ID = 1000
 GROUP_ID = 2000
@@ -32,6 +33,7 @@ def get_volume_mapping(volume_mapping):
     return volume_mapping
 
 
+@mock.patch('skipper.runner._network_exists', mock.MagicMock(autospec=True, return_value=True))
 class TestRunner(unittest.TestCase):
 
     NET_LS = 'NETWORK ID          NAME                DRIVER              SCOPE\n' \
@@ -89,10 +91,13 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command()),
+            '-e', 'DOCKER_CONFIG=/opt/.docker',
+            '-e', 'DOCKER_CONTEXT=default',
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
+                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -135,10 +140,13 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command()),
+            '-e', 'DOCKER_CONFIG=/opt/.docker',
+            '-e', 'DOCKER_CONTEXT=default',
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
+                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -182,10 +190,13 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command()),
+            '-e', 'DOCKER_CONFIG=/opt/.docker',
+            '-e', 'DOCKER_CONTEXT=default',
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
+                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -236,12 +247,15 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command()),
+            '-e', 'DOCKER_CONFIG=/opt/.docker',
+            '-e', 'DOCKER_CONTEXT=default',
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(
                 homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(
                 homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
+                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -293,13 +307,15 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command()),
+            '-e', 'DOCKER_CONFIG=/opt/.docker',
+            '-e', 'DOCKER_CONTEXT=default',
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(
                 homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(
                 homedir=HOME_DIR),
-            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(
-                homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
+                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
             '-v', '/etc/docker:/etc/docker:ro',
             '-v', '%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR),
             '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
@@ -345,10 +361,13 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command()),
+            '-e', 'DOCKER_CONFIG=/opt/.docker',
+            '-e', 'DOCKER_CONTEXT=default',
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
+                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -390,10 +409,13 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command()),
+            '-e', 'DOCKER_CONFIG=/opt/.docker',
+            '-e', 'DOCKER_CONTEXT=default',
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
+                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -439,10 +461,13 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command()),
+            '-e', 'DOCKER_CONFIG=/opt/.docker',
+            '-e', 'DOCKER_CONTEXT=default',
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker:%(homedir)s/.docker:rw' % dict(homedir=HOME_DIR)),
+            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
+                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -494,6 +519,8 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_UID=%(user_uid)s' % dict(user_uid=USER_ID),
             '-e', 'HOME=%(homedir)s' % dict(homedir=HOME_DIR),
             '-e', 'CONTAINER_RUNTIME_COMMAND=%(runtime_command)s' % dict(runtime_command=utils.get_runtime_command()),
+            '-e', 'DOCKER_CONFIG=/opt/.docker',
+            '-e', 'DOCKER_CONTEXT=default',
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', '%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR),

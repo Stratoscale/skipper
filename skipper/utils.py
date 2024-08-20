@@ -21,6 +21,7 @@ PODMAN = "podman"
 logger = None   # pylint: disable=invalid-name
 
 CONTAINER_RUNTIME_COMMAND = os.getenv("CONTAINER_RUNTIME_COMMAND")
+DOCKER_CONFIG = "/opt/.docker"
 
 SKIPPER_ULIMIT = [['--ulimit', limit] for limit in os.environ.get('SKIPPER_ULIMITS', 'nofile=65536:65536').split(',')]
 
@@ -211,3 +212,7 @@ def set_remote_registry_login_info(registry, ctx_object):
     except Exception:  # pylint: disable=broad-except
         #  Ignore failure and just continue
         pass
+
+
+def is_environment_variable_defined(name, environment):
+    return any(name in env_var for env_var in environment)

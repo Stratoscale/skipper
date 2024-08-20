@@ -16,3 +16,4 @@ venv
 MANIFEST
 reports
 **/RCS/**
+.venv
