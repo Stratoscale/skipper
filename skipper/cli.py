@@ -137,21 +137,23 @@ def build(ctx, images_to_build, container_context, cache):
 @click.option('--namespace', help='Namespace to push into')
 @click.option('--force', help="Push image even if it's already in the registry", is_flag=True, default=False)
 @click.option('--pbr', help="Use PBR to tag the image", is_flag=True, default=False)
+@click.option('--tag', help="Tag to push", default=None)
 @click.argument('image')
 @click.pass_context
-def push(ctx, namespace, force, pbr, image):
+def push(ctx, namespace, force, pbr, tag, image):
     """
     Push a container
     """
     utils.logger.debug("Executing push command")
     _validate_global_params(ctx, 'registry')
-    tag = git.get_hash()
-    tag_to_push = tag
-    if pbr:
+    image_tag = git.get_hash()
+    tag_to_push = tag or image_tag
+    if not tag and pbr:
         # Format = pbr_version.short_hash
         # pylint: disable=protected-access
         tag_to_push = f"{packaging._get_version_from_git().replace('dev', '')}.{tag[:8]}"
-    image_name = image + ':' + tag
+
+    image_name = image + ':' + image_tag
 
     ret = _push(ctx, force, image, image_name, namespace, tag_to_push)
     if ret != 0:
