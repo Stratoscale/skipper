@@ -4,8 +4,7 @@ import mock
 from skipper import utils
 from skipper import runner
 from skipper.runner import get_default_net
-from skipper.utils import PODMAN, DOCKER_CONFIG
-from tests.test_runner import get_volume_mapping
+from tests.test_runner import get_volume_mapping, get_docker_config_volume
 
 USER_ID = 1000
 GROUP_ID = 2000
@@ -86,8 +85,7 @@ class TestRunnerPodman(unittest.TestCase):
             '--group-add', 'keep-groups',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:rw'),
@@ -129,8 +127,7 @@ class TestRunnerPodman(unittest.TestCase):
             '--group-add', 'keep-groups',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:rw'),
@@ -172,8 +169,7 @@ class TestRunnerPodman(unittest.TestCase):
             '--group-add', 'keep-groups',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:rw'),
@@ -219,8 +215,7 @@ class TestRunnerPodman(unittest.TestCase):
             '--group-add', 'keep-groups',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:rw'),
@@ -264,8 +259,7 @@ class TestRunnerPodman(unittest.TestCase):
             '--group-add', 'keep-groups',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('entrypoint.sh:/opt/skipper/skipper-entrypoint.sh:rw'),

@@ -33,6 +33,13 @@ def get_volume_mapping(volume_mapping):
     return volume_mapping
 
 
+def get_docker_config_volume():
+    suffix = runner.get_docker_config_volume_suffix()
+    return get_volume_mapping(
+        f'{HOME_DIR}{suffix}:{DOCKER_CONFIG}{suffix}:rw'
+    )
+
+
 @mock.patch('skipper.runner._network_exists', mock.MagicMock(autospec=True, return_value=True))
 class TestRunner(unittest.TestCase):
 
@@ -96,8 +103,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -145,8 +151,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -195,8 +200,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -254,8 +258,7 @@ class TestRunner(unittest.TestCase):
                 homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(
                 homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -314,8 +317,7 @@ class TestRunner(unittest.TestCase):
                 homedir=HOME_DIR),
             '-v', '%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(
                 homedir=HOME_DIR),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', '/etc/docker:/etc/docker:ro',
             '-v', '%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR),
             '-v', '/var/run/docker.sock:/var/run/docker.sock:rw',
@@ -366,8 +368,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -414,8 +415,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
@@ -466,8 +466,7 @@ class TestRunner(unittest.TestCase):
             '-e', 'SKIPPER_DOCKER_GID=978',
             '-v', get_volume_mapping('%(homedir)s/.netrc:%(homedir)s/.netrc:ro' % dict(homedir=HOME_DIR)),
             '-v', get_volume_mapping('%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro' % dict(homedir=HOME_DIR)),
-            '-v', get_volume_mapping('%(homedir)s/.docker/config.json:%(docker_config)s/config.json:rw' % dict(
-                homedir=HOME_DIR, docker_config=DOCKER_CONFIG)),
+            '-v', get_docker_config_volume(),
             '-v', get_volume_mapping('/etc/docker:/etc/docker:ro'),
             '-v', get_volume_mapping('%(workdir)s:%(workdir)s:rw' % dict(workdir=WORKDIR)),
             '-v', get_volume_mapping('/var/run/docker.sock:/var/run/docker.sock:rw'),
