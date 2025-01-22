@@ -147,9 +147,10 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
                     f'{homedir}/.gitconfig:{homedir}/.gitconfig:ro'])
 
     # required for docker credentials
-    docker_config_folder = f'{homedir}/.docker/config.json'
-    if not any(f'{docker_config_folder}:' in volume for volume in volumes):
-        _add_path_if_exists(docker_config_folder, f'{DOCKER_CONFIG}/config.json', 'rw', volumes)
+    suffix = get_docker_config_volume_suffix()
+    docker_config_volume = f'{homedir}{suffix}'
+    if not any(f'{docker_config_volume}:' in volume for volume in volumes):
+        _add_path_if_exists(docker_config_volume, f'{DOCKER_CONFIG}{suffix}', 'rw', volumes)
 
     # required for docker certificates
     _add_path_if_exists('/etc/docker', '/etc/docker', 'ro', volumes)
@@ -251,3 +252,10 @@ def _network_exists(net):
     cmd = ['network', 'ls', "-f", f"NAME={net}"]
     result = utils.run_container_command(cmd)
     return net in result
+
+
+def get_docker_config_volume_suffix():
+    if sys.platform == "darwin":
+        return '/config.json'
+
+    return ''
