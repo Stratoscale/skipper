@@ -2,6 +2,7 @@
 import getpass
 import grp
 import logging
+import re
 import os
 import subprocess
 from contextlib import contextmanager
@@ -251,7 +252,7 @@ def _destroy_network(net):
 def _network_exists(net):
     cmd = ['network', 'ls', "-f", f"NAME={net}"]
     result = utils.run_container_command(cmd)
-    return net in result
+    return bool(re.search(rf'\b{net}\b', result))
 
 
 def get_docker_config_volume_suffix():
