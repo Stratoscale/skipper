@@ -57,6 +57,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
     homedir = os.path.expanduser('~')
     cmd = ['run']
     if interactive:
+        utils.logger.info("Running in interactive mode")
         cmd += ['-i']
         cmd += ['-e', 'SKIPPER_INTERACTIVE=True']
     if name:

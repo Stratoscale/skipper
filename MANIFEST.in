@@ -1,0 +1,2 @@
+include skipper/data/*
+recursive-include skipper/data *

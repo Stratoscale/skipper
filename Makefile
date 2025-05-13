@@ -1,26 +1,30 @@
-all: pep8 pylint tests build
+PACKAGE_NAME := strato_skipper
+
+all: lint tests build
 
 build:
-	python setup.py sdist
+	rm -rf build/$(PACKAGE_NAME)-*.whl
+	uv build --wheel --out-dir $(PWD)/build/ .
+	rm -rf dist *.egg-info build/lib build/bdist*
 
-pep8:
-	pep8 skipper tests
+lint:
+	ruff check --preview skipper tests
 
-pylint:
-	mkdir -p reports
-	PYLINTHOME=reports/ pylint skipper
+lint-fix:
+	ruff check --preview skipper tests --fix
 
 tests:
-	py.test --cov=skipper --cov-report=term-missing
+	pytest --cov=skipper --cov-report=term-missing -v tests
 
 install:
-	pip install -U .
+	uv pip install -U .
+	rm -rf dist *.egg-info build/lib build/bdist*
 
 uninstall:
-	pip uninstall -y strato-skipper
+	uv pip uninstall -y strato-skipper
 
 clean:
 	rm -rf build dist *egg-info .tox tests/__pycache__ reports
 	find -name *.pyc -delete
 
-.PHONY: build pep8 pylint tests install uninstall clean
+.PHONY: build lint lint-fix tests install uninstall clean

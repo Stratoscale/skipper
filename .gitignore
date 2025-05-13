@@ -17,3 +17,5 @@ MANIFEST
 reports
 **/RCS/**
 .venv
+**.mypy_cache**
+uv.lock
