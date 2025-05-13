@@ -1,14 +1,12 @@
 import os
 import unittest
-
-import mock
+from unittest import mock
 
 from skipper import utils
 
 
 class TestUtils(unittest.TestCase):
-
-    @mock.patch('skipper.utils.which', autospec=False)
+    @mock.patch("skipper.utils.which", autospec=False)
     def test_get_runtime_command(self, find_executable_mock):
         utils.CONTAINER_RUNTIME_COMMAND = None
         find_executable_mock.side_effect = "done"
@@ -26,9 +24,9 @@ class TestUtils(unittest.TestCase):
         res = utils.get_runtime_command()
         self.assertEqual(res, utils.DOCKER)
 
-    @mock.patch('skipper.utils.open', autospec=False)
-    @mock.patch('skipper.utils.os.makedirs', autospec=True)
-    @mock.patch('skipper.utils.os.path.exists', autospec=True)
+    @mock.patch("skipper.utils.open", autospec=False)
+    @mock.patch("skipper.utils.os.makedirs", autospec=True)
+    @mock.patch("skipper.utils.os.path.exists", autospec=True)
     def test_create_path_and_add_data(self, path_exists_mock, makedir_mock, open_mock):
         test_dir = "/home/test"
         test_file = os.path.join(test_dir, "test_file.txt")

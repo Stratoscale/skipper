@@ -1,0 +1,51 @@
+[build-system]
+requires = [
+    "setuptools",
+    "setuptools-git-versioning",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["skipper*"]
+
+[tool.setuptools-git-versioning]
+enabled = true
+
+[tool.distutils.bdist_wheel]
+universal = true
+
+[project]
+name = "strato-skipper"
+dynamic = ["version"]
+description = "Easily dockerize your Git repository"
+readme = "README.md"
+requires-python = ">=3"
+license = {text = "Apache-2"}
+authors = [
+    {name = "Adir Gabai", email = "adir@stratoscale.com"}
+]
+dependencies = [
+    "PyYAML>=3.11",
+    "click>=6.7",
+    "requests>=2.6.0",
+    "tabulate>=0.7.5",
+    "six>=1.10.0",
+    "urllib3>=1.22",
+    "requests-bearer==0.5.1",
+    "retry",
+    "setuptools",
+    "pbr"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+
+[project.scripts]
+skipper = "skipper.main:main"
+
+[tool.pep8]
+max-line-length = 145

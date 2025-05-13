@@ -1,9 +1,18 @@
-FROM python:3.11
+FROM python:3.12
 
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-COPY dev-requirements.txt /tmp/dev-requirements.txt
-RUN pip install -r /tmp/dev-requirements.txt
+ENV VIRTUAL_ENV=/opt/venv
+# Add virtual environment bin directory to PATH and link to /usr/local/bin
+RUN rm -rf /usr/local/sbin && ln -sf ${VIRTUAL_ENV}/bin /usr/local/sbin
 
-RUN rm /tmp/*requirements.txt
+ENV PYTHONPATH=${VIRTUAL_ENV}/lib/python3.12/site-packages
+ENV UV_LINK_MODE=copy
+
+WORKDIR /tmp
+
+RUN uv venv ${VIRTUAL_ENV} --system --system-site-packages
+
+COPY pyproject.toml pyproject.toml
+
+RUN uv pip install -r pyproject.toml --all-extras

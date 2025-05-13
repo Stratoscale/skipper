@@ -67,9 +67,7 @@ class Image:
         :return: image Fully Qualified Domain Name
         """
         if not self.__fqdn:
-            self.__fqdn = utils.generate_fqdn_image(
-                self.registry, self.namespace, self.name, self.tag
-            )
+            self.__fqdn = utils.generate_fqdn_image(self.registry, self.namespace, self.name, self.tag)
         return self.__fqdn
 
     @property
