@@ -26,6 +26,7 @@ jobs:
       run: |
         skipper make all
     - name: Publish distribution to PyPI
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.pypi_password }}
+        packages-dir: build
