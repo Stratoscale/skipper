@@ -10,7 +10,10 @@ import click
 import six
 import tabulate
 from pbr import packaging
-from importlib.metadata import version as get_distribution
+try:
+    from importlib.metadata import version as get_distribution
+except ImportError:
+    from importlib_metadata import version as get_distribution
 
 from skipper import builder, git, runner, utils
 from skipper.builder import BuildOptions, Image

@@ -9,7 +9,10 @@ from six.moves import http_client
 import requests
 from requests_bearer import HttpBearerAuth
 import urllib3
-from importlib.resources import files
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 
 
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
