@@ -1987,8 +1987,7 @@ class TestCLI(unittest.TestCase):
     @mock.patch("skipper.cli.get_distribution", autospec=True)
     def test_version(self, get_dist_mock, echo_mock):
         expected_version = "1.2.3"
-        get_dist_mock.return_value = mock.MagicMock()
-        get_dist_mock.return_value.version = expected_version
+        get_dist_mock.return_value = expected_version
 
         self._invoke_cli(
             subcmd="version",
@@ -2020,6 +2019,11 @@ class TestCLI(unittest.TestCase):
             env_file=(),
         )
 
+    @mock.patch("builtins.open", mock.mock_open(read_data="completion-script-content"))
+    @mock.patch("skipper.utils.get_extra_file", mock.MagicMock(autospec=True, return_value="/path/to/complete.sh"))
+    def test_completion(self):
+        result = self._invoke_cli(global_params=None, subcmd="completion")
+        self.assertEqual(result.exit_code, 0)
 
     def _invoke_cli(self, defaults=None, global_params=None, subcmd=None, subcmd_params=None):
         self.assertFalse(subcmd is None and subcmd_params is not None, "No sub-command was provided!")
