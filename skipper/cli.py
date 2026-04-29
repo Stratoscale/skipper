@@ -10,7 +10,10 @@ import click
 import six
 import tabulate
 from pbr import packaging
-from pkg_resources import get_distribution
+try:
+    from importlib.metadata import version as get_distribution
+except ImportError:
+    from importlib_metadata import version as get_distribution
 
 from skipper import builder, git, runner, utils
 from skipper.builder import BuildOptions, Image
@@ -91,6 +94,7 @@ def cli(
     ctx.obj["env"] = ctx.default_map.get("env", {})
     ctx.obj["containers"] = ctx.default_map.get("containers")
     ctx.obj["volumes"] = ctx.default_map.get("volumes")
+    ctx.obj["entrypoint"] = ctx.default_map.get("entrypoint")
     ctx.obj["workdir"] = ctx.default_map.get("workdir")
     ctx.obj["workspace"] = ctx.default_map.get("workspace", None)
     ctx.obj["container_context"] = ctx.default_map.get("container_context")
@@ -269,6 +273,7 @@ def run(ctx, interactive, name, env, publish, cache, command):
         net=ctx.obj["build_container_net"],
         publish=publish,
         volumes=ctx.obj.get("volumes"),
+        entrypoint=ctx.obj.get("entrypoint"),
         workdir=ctx.obj.get("workdir"),
         use_cache=cache,
         workspace=ctx.obj.get("workspace"),
@@ -310,6 +315,7 @@ def make(ctx, interactive, name, env, makefile, cache, publish, make_params):
         net=ctx.obj["build_container_net"],
         publish=publish,
         volumes=ctx.obj.get("volumes"),
+        entrypoint=ctx.obj.get("entrypoint"),
         workdir=ctx.obj.get("workdir"),
         use_cache=cache,
         workspace=ctx.obj.get("workspace"),
@@ -347,6 +353,7 @@ def shell(ctx, env, name, cache, publish):
         net=ctx.obj["build_container_net"],
         publish=publish,
         volumes=ctx.obj.get("volumes"),
+        entrypoint=ctx.obj.get("entrypoint"),
         workdir=ctx.obj.get("workdir"),
         use_cache=cache,
         workspace=ctx.obj.get("workspace"),
@@ -360,7 +367,7 @@ def version():
     output skipper version
     """
     utils.logger.debug("printing skipper version")
-    click.echo(get_distribution("strato-skipper").version)  # pylint: disable=no-member
+    click.echo(get_distribution("strato-skipper"))  # pylint: disable=no-member
 
 
 @cli.command()

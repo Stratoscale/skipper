@@ -21,14 +21,14 @@ def get_default_net():
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net=None, publish=(), volumes=None,
-        workdir=None, use_cache=False, workspace=None, env_file=(), stdout_to_stderr=False):
+        entrypoint=None, workdir=None, use_cache=False, workspace=None, env_file=(), stdout_to_stderr=False):
 
     if not net:
         net = get_default_net()
 
     if fqdn_image is not None:
         return _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes,
-                           workdir, use_cache, workspace, env_file)
+                           entrypoint, workdir, use_cache, workspace, env_file)
 
     return _run(command, stdout_to_stderr=stdout_to_stderr)
 
@@ -50,7 +50,7 @@ def _run(cmd_args, stdout_to_stderr=False):
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
-def _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes, workdir, use_cache, workspace, env_file):
+def _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes, entrypoint, workdir, use_cache, workspace, env_file):
     cwd = os.getcwd()
     if workspace is None:
         workspace = os.path.dirname(cwd)
@@ -114,7 +114,7 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
 
     cmd = handle_workdir(cmd, cwd, workdir)
 
-    cmd += ['--entrypoint', '/opt/skipper/skipper-entrypoint.sh']
+    cmd += ['--entrypoint', entrypoint or '/opt/skipper/skipper-entrypoint.sh']
     cmd += [fqdn_image]
     cmd += [' '.join(command)]
 

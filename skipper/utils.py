@@ -9,7 +9,10 @@ from six.moves import http_client
 import requests
 from requests_bearer import HttpBearerAuth
 import urllib3
-import pkg_resources
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 
 
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
@@ -178,7 +181,7 @@ def get_runtime_command():
 
 
 def get_extra_file(filename):
-    return pkg_resources.resource_filename("skipper", f"data/{filename}")
+    return str(files("skipper").joinpath(f"data/{filename}"))
 
 
 def run_container_command(args):
