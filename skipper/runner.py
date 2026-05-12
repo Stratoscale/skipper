@@ -70,6 +70,13 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
     else:
         cmd += ['--rm']
 
+    # Run a real init (tini on docker, catatonit on podman) as PID-1 inside the
+    # build container so SIGTERM from `docker stop` (e.g. Jenkins pipeline
+    # cancellation) propagates to user commands and orphaned children are
+    # reaped. Without this, bash inside skipper-entrypoint.sh swallows SIGTERM
+    # and long-running children survive as host-visible zombies.
+    cmd += ['--init']
+
     for cmd_limit in utils.SKIPPER_ULIMIT:
         cmd += cmd_limit
 
