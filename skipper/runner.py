@@ -21,14 +21,14 @@ def get_default_net():
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net=None, publish=(), volumes=None,
-        workdir=None, use_cache=False, workspace=None, env_file=(), stdout_to_stderr=False):
+        workdir=None, use_cache=False, workspace=None, env_file=(), stdout_to_stderr=False, init=False):
 
     if not net:
         net = get_default_net()
 
     if fqdn_image is not None:
         return _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes,
-                           workdir, use_cache, workspace, env_file)
+                           workdir, use_cache, workspace, env_file, init)
 
     return _run(command, stdout_to_stderr=stdout_to_stderr)
 
@@ -50,7 +50,7 @@ def _run(cmd_args, stdout_to_stderr=False):
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
-def _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes, workdir, use_cache, workspace, env_file):
+def _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes, workdir, use_cache, workspace, env_file, init=False):
     cwd = os.getcwd()
     if workspace is None:
         workspace = os.path.dirname(cwd)
@@ -69,6 +69,13 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
         cmd += ['-e', 'KEEP_CONTAINERS=True']
     else:
         cmd += ['--rm']
+
+    if init:
+        # Opt-in: run a real init (tini on docker, catatonit on podman) as
+        # PID-1 inside the build container so SIGTERM from `docker stop`
+        # propagates to user commands and orphaned children are reaped.
+        # Off by default to preserve existing behaviour for all consumers.
+        cmd += ['--init']
 
     for cmd_limit in utils.SKIPPER_ULIMIT:
         cmd += cmd_limit

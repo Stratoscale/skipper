@@ -113,6 +113,16 @@ SKIPPER_CONF_WITH_VOLUMES = {
     ],
 }
 
+SKIPPER_CONF_WITH_INIT = {
+    "registry": REGISTRY,
+    "build_container_image": SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
+    "build_container_tag": SKIPPER_CONF_BUILD_CONTAINER_TAG,
+    "make": {
+        "makefile": SKIPPER_CONF_MAKEFILE,
+    },
+    "init": True,
+}
+
 SKIPPER_CONF_WITH_WORKDIR = {
     "registry": REGISTRY,
     "build_container_image": SKIPPER_CONF_BUILD_CONTAINER_IMAGE,
@@ -335,6 +345,7 @@ class TestCLI(unittest.TestCase):
                 workdir=None,
                 use_cache=False,
                 workspace=None,
+                init=False,
                 env_file=(),
             ),
         ]
@@ -1107,6 +1118,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1139,6 +1151,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1177,6 +1190,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1247,6 +1261,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1275,6 +1290,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1303,6 +1319,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1338,6 +1355,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1361,6 +1379,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
         del os.environ["SKIPPER_INTERACTIVE"]
@@ -1384,6 +1403,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1406,6 +1426,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1444,6 +1465,7 @@ class TestCLI(unittest.TestCase):
                 workdir=None,
                 workspace=None,
                 use_cache=False,
+                init=False,
                 env_file=(),
             ),
         ]
@@ -1472,6 +1494,7 @@ class TestCLI(unittest.TestCase):
                 workdir=None,
                 workspace=None,
                 use_cache=True,
+                init=False,
                 env_file=(),
             ),
         ]
@@ -1498,6 +1521,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1528,6 +1552,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1558,6 +1583,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1588,6 +1614,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1680,6 +1707,32 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             workdir=None,
             use_cache=False,
+            init=False,
+            env_file=(),
+        )
+
+    @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch("skipper.config.load_defaults", mock.MagicMock(autospec=True, return_value=SKIPPER_CONF_WITH_INIT))
+    @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567\n"))
+    @mock.patch("skipper.runner.run", autospec=True)
+    def test_run_with_defaults_from_config_file_including_init(self, skipper_runner_run_mock):
+        command = ["ls", "-l"]
+        run_params = command
+        self._invoke_cli(defaults=config.load_defaults(), subcmd="run", subcmd_params=run_params)
+        expected_fqdn_image = "skipper-conf-build-container-image:skipper-conf-build-container-tag"
+        skipper_runner_run_mock.assert_called_once_with(
+            command,
+            fqdn_image=expected_fqdn_image,
+            environment=[],
+            interactive=False,
+            name=None,
+            net=None,
+            publish=(),
+            volumes=None,
+            workspace=None,
+            workdir=None,
+            use_cache=False,
+            init=True,
             env_file=(),
         )
 
@@ -1704,6 +1757,7 @@ class TestCLI(unittest.TestCase):
             workdir="test-workdir",
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1728,6 +1782,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace="/test/workspace",
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1753,6 +1808,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             use_cache=False,
             workspace=None,
+            init=False,
             env_file=(),
         )
 
@@ -1778,6 +1834,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1802,6 +1859,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1826,6 +1884,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1850,6 +1909,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1876,6 +1936,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
@@ -1915,6 +1976,7 @@ class TestCLI(unittest.TestCase):
                 workdir=None,
                 workspace=None,
                 use_cache=False,
+                init=False,
                 env_file=(),
             ),
         ]
@@ -1940,6 +2002,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             workspace=None,
             use_cache=False,
+            init=False,
             env_file=(),
         )
 
