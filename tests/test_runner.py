@@ -76,6 +76,50 @@ class TestRunner(unittest.TestCase):
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
     @mock.patch("pkg_resources.resource_filename", autospec=False)
+    def test_run_nested_with_init(
+        self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
+    ):
+        resource_filename_mock.return_value = "entrypoint.sh"
+        check_output_mock.side_effect = [self.NET_LS, ""]
+        popen_mock.return_value.stdout.readline.side_effect = [""]
+        popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
+        os_getuid_mock.return_value = USER_ID
+        runner.run(["pwd"], FQDN_IMAGE, init=True)
+        nested_command = popen_mock.call_args[0][0]
+        assert "--init" in nested_command, nested_command
+
+    @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch("getpass.getuser", mock.MagicMock(autospec=True, return_value="testuser"))
+    @mock.patch("os.getcwd", mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch("os.path.expanduser", mock.MagicMock(autospec=True, return_value=HOME_DIR))
+    @mock.patch("os.getuid", autospec=True)
+    @mock.patch("grp.getgrnam", autospec=True)
+    @mock.patch("subprocess.Popen", autospec=False)
+    @mock.patch("subprocess.check_output", autospec=False)
+    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    def test_run_nested_without_init_by_default(
+        self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
+    ):
+        resource_filename_mock.return_value = "entrypoint.sh"
+        check_output_mock.side_effect = [self.NET_LS, ""]
+        popen_mock.return_value.stdout.readline.side_effect = [""]
+        popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
+        os_getuid_mock.return_value = USER_ID
+        runner.run(["pwd"], FQDN_IMAGE)
+        nested_command = popen_mock.call_args[0][0]
+        assert "--init" not in nested_command, nested_command
+
+    @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch("getpass.getuser", mock.MagicMock(autospec=True, return_value="testuser"))
+    @mock.patch("os.getcwd", mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch("os.path.expanduser", mock.MagicMock(autospec=True, return_value=HOME_DIR))
+    @mock.patch("os.getuid", autospec=True)
+    @mock.patch("grp.getgrnam", autospec=True)
+    @mock.patch("subprocess.Popen", autospec=False)
+    @mock.patch("subprocess.check_output", autospec=False)
+    @mock.patch("pkg_resources.resource_filename", autospec=False)
     def test_run_simple_command_nested_network_exist(
         self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
     ):
@@ -93,7 +137,6 @@ class TestRunner(unittest.TestCase):
             "-t",
             "-e",
             "KEEP_CONTAINERS=True",
-            "--init",
             "--ulimit",
             "nofile=65536:65536",
             "--privileged",
@@ -164,7 +207,6 @@ class TestRunner(unittest.TestCase):
             "-t",
             "-e",
             "KEEP_CONTAINERS=True",
-            "--init",
             "--ulimit",
             "nofile=65536:65536",
             "--privileged",
@@ -235,7 +277,6 @@ class TestRunner(unittest.TestCase):
             "-t",
             "-e",
             "KEEP_CONTAINERS=True",
-            "--init",
             "--ulimit",
             "nofile=65536:65536",
             "--privileged",
@@ -310,7 +351,6 @@ class TestRunner(unittest.TestCase):
             "-t",
             "-e",
             "KEEP_CONTAINERS=True",
-            "--init",
             "--ulimit",
             "nofile=65536:65536",
             "--privileged",
@@ -383,7 +423,6 @@ class TestRunner(unittest.TestCase):
             "-t",
             "-e",
             "KEEP_CONTAINERS=True",
-            "--init",
             "--ulimit",
             "nofile=65536:65536",
             "--privileged",
@@ -462,7 +501,6 @@ class TestRunner(unittest.TestCase):
             "-t",
             "-e",
             "KEEP_CONTAINERS=True",
-            "--init",
             "--ulimit",
             "nofile=65536:65536",
             "--privileged",
@@ -536,7 +574,6 @@ class TestRunner(unittest.TestCase):
             "-t",
             "-e",
             "KEEP_CONTAINERS=True",
-            "--init",
             "--ulimit",
             "nofile=65536:65536",
             "--privileged",
@@ -609,7 +646,6 @@ class TestRunner(unittest.TestCase):
             "-t",
             "-e",
             "KEEP_CONTAINERS=True",
-            "--init",
             "--ulimit",
             "nofile=65536:65536",
             "--privileged",
@@ -696,7 +732,6 @@ class TestRunner(unittest.TestCase):
             "-t",
             "-e",
             "KEEP_CONTAINERS=True",
-            "--init",
             "--ulimit",
             "nofile=65536:65536",
             "--privileged",
