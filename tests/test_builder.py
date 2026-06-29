@@ -138,6 +138,28 @@ class TestBuilder(TestCase):
         self.assertEqual(0, result)
         runner.run.assert_has_calls(expected_cmds)
 
+    def test_build_with_allow_local_skips_cache_pull(self):
+        """When allow_local=True, the cache pull must not be issued even if use_cache=True."""
+
+        runner = mock.MagicMock()
+        runner.run.return_value = 0
+
+        options = BuildOptions(
+            image=Image(
+                name="test",
+                tag="test",
+                dockerfile="test",
+            ),
+            container_context=(),
+            use_cache=True,
+            allow_local=True,
+        )
+
+        builder.build(options, runner.run, logging.getLogger())
+
+        calls = [str(c) for c in runner.run.call_args_list]
+        self.assertFalse(any("pull" in c and "cache" in c for c in calls), "cache pull must not run when allow_local=True")
+
     def test_build_with_options_from_context(self):
         """Testing the 'build' function with options from context."""
 
@@ -202,6 +224,37 @@ class TestBuilder(TestCase):
         result = builder.build(options, runner.run, logging.getLogger())
         self.assertEqual(1, result)
         runner.run.assert_called_once()
+
+    def test_build_with_allow_local(self):
+        """Testing the 'build' function with allow_local=True adds --pull never."""
+
+        runner = mock.MagicMock()
+        runner.run.return_value = 0
+
+        options = BuildOptions(
+            image=Image(
+                name="test",
+                tag="test",
+                dockerfile="test",
+            ),
+            container_context=(),
+            allow_local=True,
+        )
+        expected_cmd = [
+            "build",
+            "--network=host",
+            "--pull",
+            "never",
+            "-f",
+            options.image.dockerfile,
+            "-t",
+            options.image.local,
+            ".",
+        ]
+
+        result = builder.build(options, runner.run, logging.getLogger())
+        self.assertEqual(0, result)
+        runner.run.assert_called_once_with(expected_cmd)
 
     def test_build_fail_without_image_name(self):
         """Testing the 'build' function when the image name is not specified."""

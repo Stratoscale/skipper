@@ -112,6 +112,7 @@ class BuildOptions:
         build_contexts=None,
         build_args=None,
         use_cache=False,
+        allow_local=False,
     ):
         """
         Constructs all the necessary attributes for the build options.
@@ -127,6 +128,7 @@ class BuildOptions:
         self.build_contexts = [ctx for ctx in build_contexts if ctx] if build_contexts else []
         self.build_args = [arg for arg in build_args if arg] if build_args else []
         self.use_cache = use_cache
+        self.allow_local = allow_local
 
     @classmethod
     def from_context_obj(cls, ctx_obj):
@@ -145,6 +147,7 @@ class BuildOptions:
             build_contexts=ctx_obj.get("build_contexts"),
             build_args=ctx_obj.get("build_args"),
             use_cache=ctx_obj.get("use_cache"),
+            allow_local=ctx_obj.get("allow_local", False),
         )
 
 
@@ -158,6 +161,9 @@ def build(options: BuildOptions, runner: Callable, logger: Logger) -> int:
     :return: A return code representing the success or failure of the build
     """
     cmd = ["build", "--network=host"]
+
+    if options.allow_local:
+        cmd += ["--pull", "never"]
 
     for arg in options.build_args:
         cmd += ["--build-arg", arg]
@@ -174,7 +180,8 @@ def build(options: BuildOptions, runner: Callable, logger: Logger) -> int:
     ]
 
     if options.use_cache:
-        runner(["pull", options.image.cache_fqdn])
+        if not options.allow_local:
+            runner(["pull", options.image.cache_fqdn])
         cmd.extend(["--cache-from", options.image.cache_fqdn])
 
     ret = runner(cmd)

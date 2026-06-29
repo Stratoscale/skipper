@@ -21,14 +21,14 @@ def get_default_net():
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 def run(command, fqdn_image=None, environment=None, interactive=False, name=None, net=None, publish=(), volumes=None,
-        workdir=None, use_cache=False, workspace=None, env_file=(), stdout_to_stderr=False):
+        workdir=None, use_cache=False, workspace=None, env_file=(), stdout_to_stderr=False, allow_local=False):
 
     if not net:
         net = get_default_net()
 
     if fqdn_image is not None:
         return _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes,
-                           workdir, use_cache, workspace, env_file)
+                           workdir, use_cache, workspace, env_file, allow_local=allow_local)
 
     return _run(command, stdout_to_stderr=stdout_to_stderr)
 
@@ -50,12 +50,15 @@ def _run(cmd_args, stdout_to_stderr=False):
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
-def _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes, workdir, use_cache, workspace, env_file):
+def _run_nested(fqdn_image, environment, command, interactive, name, net, publish, volumes,
+                workdir, use_cache, workspace, env_file, allow_local=False):
     cwd = os.getcwd()
     if workspace is None:
         workspace = os.path.dirname(cwd)
     homedir = os.path.expanduser('~')
     cmd = ['run']
+    if allow_local:
+        cmd += ['--pull', 'never']
     if interactive:
         utils.logger.info("Running in interactive mode")
         cmd += ['-i']

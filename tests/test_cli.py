@@ -244,6 +244,38 @@ class TestCLI(unittest.TestCase):
 
     @mock.patch(
         "skipper.utils.get_images_from_dockerfiles",
+        mock.MagicMock(
+            autospec=True,
+            return_value={
+                "image1": "/home/user/work/project/Dockerfile.image1",
+                "image2": "/home/user/work/project/Dockerfile.image2",
+            },
+        ),
+    )
+    @mock.patch("skipper.git.get_hash", mock.MagicMock(autospec=True, return_value="1234567"))
+    @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch("skipper.runner.run", autospec=True, return_value=0)
+    def test_build_existing_image_with_allow_local(self, skipper_runner_run_mock):
+        global_params = self.global_params + ["--allow-local"]
+        build_params = ["image1"]
+        self._invoke_cli(global_params=global_params, subcmd="build", subcmd_params=build_params)
+        expected_command = [
+            "build",
+            "--network=host",
+            "--pull",
+            "never",
+            "--build-arg",
+            "TAG=1234567",
+            "-f",
+            "/home/user/work/project/Dockerfile.image1",
+            "-t",
+            "image1:1234567",
+            "/home/user/work/project",
+        ]
+        skipper_runner_run_mock.assert_called_once_with(expected_command)
+
+    @mock.patch(
+        "skipper.utils.get_images_from_dockerfiles",
         mock.MagicMock(autospec=True, return_value={"image1": "/home/user/work/project/Dockerfile.image1"}),
     )
     @mock.patch("skipper.git.get_hash", mock.MagicMock(autospec=True, return_value="1234567"))
@@ -336,6 +368,7 @@ class TestCLI(unittest.TestCase):
                 use_cache=False,
                 workspace=None,
                 env_file=(),
+                allow_local=False,
             ),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
@@ -1108,6 +1141,30 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
+        )
+
+    @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567\n"))
+    @mock.patch("skipper.runner.run", autospec=True)
+    def test_run_with_allow_local(self, skipper_runner_run_mock):
+        command = ["ls", "-l"]
+        global_params = self.global_params + ["--allow-local"]
+        self._invoke_cli(global_params=global_params, subcmd="run", subcmd_params=command)
+        expected_image_name = "build-container-image:build-container-tag"
+        skipper_runner_run_mock.assert_called_once_with(
+            command,
+            fqdn_image=expected_image_name,
+            environment=[],
+            interactive=False,
+            name=None,
+            net=None,
+            publish=(),
+            volumes=None,
+            workdir=None,
+            workspace=None,
+            use_cache=False,
+            env_file=(),
+            allow_local=True,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value=""))
@@ -1140,6 +1197,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value=""))
@@ -1178,6 +1236,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
@@ -1201,6 +1260,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(ENV_FILE_PATH,),
+            allow_local=False,
         )
 
     @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
@@ -1224,6 +1284,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=tuple(ENV_FILES),
+            allow_local=False,
         )
 
     @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
@@ -1248,6 +1309,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("builtins.open", mock.MagicMock(create=True))
@@ -1276,6 +1338,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("builtins.open", mock.MagicMock(create=True))
@@ -1304,6 +1367,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("builtins.open", mock.MagicMock(create=True))
@@ -1339,6 +1403,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567\n"))
@@ -1362,6 +1427,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
         del os.environ["SKIPPER_INTERACTIVE"]
 
@@ -1385,6 +1451,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567\n"))
@@ -1407,6 +1474,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value=""))
@@ -1445,6 +1513,7 @@ class TestCLI(unittest.TestCase):
                 workspace=None,
                 use_cache=False,
                 env_file=(),
+                allow_local=False,
             ),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
@@ -1473,6 +1542,7 @@ class TestCLI(unittest.TestCase):
                 workspace=None,
                 use_cache=True,
                 env_file=(),
+                allow_local=False,
             ),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
@@ -1499,6 +1569,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567"))
@@ -1529,6 +1600,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567"))
@@ -1559,6 +1631,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567"))
@@ -1589,6 +1662,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     def test_run_with_publish_textual_port(self):
@@ -1681,6 +1755,7 @@ class TestCLI(unittest.TestCase):
             workdir=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
@@ -1705,6 +1780,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
@@ -1729,6 +1805,7 @@ class TestCLI(unittest.TestCase):
             workspace="/test/workspace",
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
@@ -1754,6 +1831,7 @@ class TestCLI(unittest.TestCase):
             use_cache=False,
             workspace=None,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
@@ -1779,6 +1857,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567\n"))
@@ -1803,6 +1882,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567\n"))
@@ -1827,6 +1907,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567\n"))
@@ -1851,6 +1932,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
@@ -1877,6 +1959,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value=""))
@@ -1916,6 +1999,7 @@ class TestCLI(unittest.TestCase):
                 workspace=None,
                 use_cache=False,
                 env_file=(),
+                allow_local=False,
             ),
         ]
         skipper_runner_run_mock.assert_has_calls(expected_commands)
@@ -1941,6 +2025,7 @@ class TestCLI(unittest.TestCase):
             workspace=None,
             use_cache=False,
             env_file=(),
+            allow_local=False,
         )
 
     @mock.patch("click.echo", autospec=True)

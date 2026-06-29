@@ -65,6 +65,7 @@ def _validate_port_out_of_range(port):
     "--build-arg", multiple=True, help="Build arguments to pass to the container build", envvar="SKIPPER_BUILD_ARGS"
 )
 @click.option("--build-context", multiple=True, help="Build contexts to pass to the container build")
+@click.option("--allow-local", help="Use local images only, never pull from registry", is_flag=True, default=False)
 @click.pass_context
 def cli(
     ctx,
@@ -76,6 +77,7 @@ def cli(
     env_file,
     build_arg,
     build_context,
+    allow_local,
 ):
     """
     Easily dockerize your Git repository
@@ -96,6 +98,7 @@ def cli(
     ctx.obj["container_context"] = ctx.default_map.get("container_context")
     ctx.obj["build_args"] = build_arg
     ctx.obj["build_contexts"] = build_context
+    ctx.obj["allow_local"] = allow_local
     utils.set_remote_registry_login_info(registry, ctx.obj)
 
 
@@ -125,6 +128,7 @@ def build(ctx, images_to_build, container_context, cache):
             build_contexts,
             build_args,
             cache,
+            allow_local=ctx.obj.get("allow_local", False),
         )
 
         ret = builder.build(options, runner.run, utils.logger)
@@ -273,6 +277,7 @@ def run(ctx, interactive, name, env, publish, cache, command):
         use_cache=cache,
         workspace=ctx.obj.get("workspace"),
         env_file=ctx.obj.get("env_file"),
+        allow_local=ctx.obj.get("allow_local", False),
     )
 
 
@@ -314,6 +319,7 @@ def make(ctx, interactive, name, env, makefile, cache, publish, make_params):
         use_cache=cache,
         workspace=ctx.obj.get("workspace"),
         env_file=ctx.obj.get("env_file"),
+        allow_local=ctx.obj.get("allow_local", False),
     )
 
 
@@ -351,6 +357,7 @@ def shell(ctx, env, name, cache, publish):
         use_cache=cache,
         workspace=ctx.obj.get("workspace"),
         env_file=ctx.obj.get("env_file"),
+        allow_local=ctx.obj.get("allow_local", False),
     )
 
 
