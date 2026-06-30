@@ -62,7 +62,7 @@ class TestRunnerPodman(unittest.TestCase):
     @mock.patch("os.getuid", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_simple_command_nested_network_exist(
         self, resource_filename_mock, check_output_mock, popen_mock, os_getuid_mock
     ):
@@ -125,7 +125,7 @@ class TestRunnerPodman(unittest.TestCase):
     @mock.patch("os.getuid", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=True)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_simple_command_nested_network_not_exist(
         self, resource_filename_mock, check_output_mock, popen_mock, os_getuid_mock
     ):
@@ -188,7 +188,7 @@ class TestRunnerPodman(unittest.TestCase):
     @mock.patch("os.getuid", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_complex_command_nested(self, resource_filename_mock, check_output_mock, popen_mock, os_getuid_mock):
         resource_filename_mock.return_value = "entrypoint.sh"
         popen_mock.return_value.stdout.readline.side_effect = ["aaa", "bbb", "ccc", ""]
@@ -249,7 +249,7 @@ class TestRunnerPodman(unittest.TestCase):
     @mock.patch("os.getuid", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     @mock.patch("os.makedirs", mock.MagicMock(autospec=True, side_effect=mock_makedirs))
     def test_run_non_existent_unauthorized_volume(
         self, resource_filename_mock, check_output_mock, popen_mock, os_getuid_mock
@@ -315,7 +315,7 @@ class TestRunnerPodman(unittest.TestCase):
     @mock.patch("os.getuid", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_complex_command_nested_with_env(
         self, resource_filename_mock, check_output_mock, popen_mock, os_getuid_mock
     ):

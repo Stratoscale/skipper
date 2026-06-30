@@ -10,7 +10,7 @@ import click
 import six
 import tabulate
 from pbr import packaging
-from pkg_resources import get_distribution
+from importlib.metadata import version as get_version
 
 from skipper import builder, git, runner, utils
 from skipper.builder import BuildOptions, Image
@@ -367,7 +367,7 @@ def version():
     output skipper version
     """
     utils.logger.debug("printing skipper version")
-    click.echo(get_distribution("strato-skipper").version)  # pylint: disable=no-member
+    click.echo(get_version("strato-skipper"))
 
 
 @cli.command()

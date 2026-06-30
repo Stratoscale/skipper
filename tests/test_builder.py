@@ -157,8 +157,11 @@ class TestBuilder(TestCase):
 
         builder.build(options, runner.run, logging.getLogger())
 
-        calls = [str(c) for c in runner.run.call_args_list]
-        self.assertFalse(any("pull" in c and "cache" in c for c in calls), "cache pull must not run when allow_local=True")
+        self.assertNotIn(
+            mock.call(["pull", options.image.cache_fqdn]),
+            runner.run.call_args_list,
+            "cache pull must not run when allow_local=True",
+        )
 
     def test_build_with_options_from_context(self):
         """Testing the 'build' function with options from context."""

@@ -47,3 +47,7 @@ class TestUtils(unittest.TestCase):
         utils.create_path_and_add_data(test_file, "", True)
         makedir_mock.assert_not_called()
         open_mock.assert_called_once_with(test_file, "w")
+
+    def test_get_extra_file(self):
+        path = utils.get_extra_file("skipper-entrypoint.sh")
+        self.assertTrue(path.endswith(os.path.join("skipper", "data", "skipper-entrypoint.sh")))

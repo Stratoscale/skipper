@@ -75,7 +75,7 @@ class TestRunner(unittest.TestCase):
     @mock.patch("grp.getgrnam", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_simple_command_nested_network_exist(
         self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
     ):
@@ -145,7 +145,7 @@ class TestRunner(unittest.TestCase):
     @mock.patch("grp.getgrnam", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_simple_command_nested_network_not_exist(
         self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
     ):
@@ -215,7 +215,7 @@ class TestRunner(unittest.TestCase):
     @mock.patch("grp.getgrnam", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_simple_command_nested_with_env(
         self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
     ):
@@ -289,7 +289,7 @@ class TestRunner(unittest.TestCase):
     @mock.patch("grp.getgrnam", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_simple_command_nested_with_env_file(
         self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
     ):
@@ -361,7 +361,7 @@ class TestRunner(unittest.TestCase):
     @mock.patch("grp.getgrnam", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_simple_command_nested_with_multiple_env_files(
         self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
     ):
@@ -435,7 +435,7 @@ class TestRunner(unittest.TestCase):
     @mock.patch("grp.getgrnam", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_simple_command_nested_interactive(
         self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
     ):
@@ -512,7 +512,7 @@ class TestRunner(unittest.TestCase):
     )
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_complex_command_nested(
         self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
     ):
@@ -582,7 +582,7 @@ class TestRunner(unittest.TestCase):
     @mock.patch("grp.getgrnam", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_complex_command_nested_with_env(
         self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
     ):
@@ -659,7 +659,7 @@ class TestRunner(unittest.TestCase):
     @mock.patch("grp.getgrnam", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_complex_command_nested_with_special_case_verification(
         self,
         resource_filename_mock,
@@ -740,7 +740,7 @@ class TestRunner(unittest.TestCase):
     @mock.patch("grp.getgrnam", autospec=True)
     @mock.patch("subprocess.Popen", autospec=False)
     @mock.patch("subprocess.check_output", autospec=False)
-    @mock.patch("pkg_resources.resource_filename", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
     def test_run_nested_with_allow_local(
         self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
     ):
@@ -803,6 +803,29 @@ class TestRunner(unittest.TestCase):
             command[0],
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
+
+    @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch("getpass.getuser", mock.MagicMock(autospec=True, return_value="testuser"))
+    @mock.patch("os.getcwd", mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch("os.path.expanduser", mock.MagicMock(autospec=True, return_value=HOME_DIR))
+    @mock.patch("os.getuid", autospec=True)
+    @mock.patch("grp.getgrnam", autospec=True)
+    @mock.patch("subprocess.Popen", autospec=False)
+    @mock.patch("subprocess.check_output", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=True)
+    def test_run_nested_with_use_cache(
+        self, get_extra_file_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
+    ):
+        get_extra_file_mock.return_value = "entrypoint.sh"
+        check_output_mock.side_effect = [self.NET_LS, ""]
+        popen_mock.return_value.stdout.readline.side_effect = ["aaa", "bbb", "ccc", ""]
+        popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
+        os_getuid_mock.return_value = USER_ID
+        runner.run(["pwd"], FQDN_IMAGE, use_cache=True)
+        nested_command = popen_mock.call_args[0][0]
+        self.assertIn("-e", nested_command)
+        self.assertIn("SKIPPER_USE_CACHE_IMAGE=True", nested_command)
 
     def test_handle_volumes_bind_mount_with_bad_volume_mount(self):
         docker_cmd = ["docker", "run"]

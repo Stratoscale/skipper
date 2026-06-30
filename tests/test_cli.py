@@ -2029,11 +2029,10 @@ class TestCLI(unittest.TestCase):
         )
 
     @mock.patch("click.echo", autospec=True)
-    @mock.patch("skipper.cli.get_distribution", autospec=True)
-    def test_version(self, get_dist_mock, echo_mock):
+    @mock.patch("skipper.cli.get_version", autospec=True)
+    def test_version(self, get_version_mock, echo_mock):
         expected_version = "1.2.3"
-        get_dist_mock.return_value = mock.MagicMock()
-        get_dist_mock.return_value.version = expected_version
+        get_version_mock.return_value = expected_version
 
         self._invoke_cli(
             subcmd="version",
