@@ -34,7 +34,8 @@ dependencies = [
     "requests-bearer==0.5.1",
     "retry",
     "setuptools",
-    "pbr"
+    "pbr",
+    'importlib_metadata; python_version < "3.8"'
 ]
 
 [project.optional-dependencies]

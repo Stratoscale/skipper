@@ -23,7 +23,7 @@ jobs:
         python-version: 3.x
     - name: Install dependencies
       run: |
-        pip install --user strato-skipper
+        pip install --user "setuptools<81" strato-skipper
         mkdir -p ~/.docker
         echo "{}" > ~/.docker/config.json
         touch ${HOME}/.gitconfig
