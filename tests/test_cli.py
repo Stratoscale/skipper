@@ -1050,14 +1050,14 @@ class TestCLI(unittest.TestCase):
         url = "https://%(registry)s/v2/%(image)s/manifests/%(reference)s" % dict(
             registry=REGISTRY, image=IMAGE, reference=TAG
         )
-        headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
+        headers = {"Accept": utils.MANIFEST_ACCEPT}
         requests_get_mock.assert_called_once_with(
             url=url, headers=headers, verify=False, auth=requests_bearer_auth_mock()
         )
         url = "https://%(registry)s/v2/%(image)s/manifests/%(reference)s" % dict(
             registry=REGISTRY, image=IMAGE, reference="digest"
         )
-        requests_delete_mock.assert_called_once_with(url=url, verify=False, auth=requests_bearer_auth_mock())
+        requests_delete_mock.assert_called_once_with(url=url, verify=False)
 
     @mock.patch("skipper.utils.HttpBearerAuth", autospec=True)
     @mock.patch("glob.glob", mock.MagicMock(autospec=True, return_value=["Dockerfile." + IMAGE]))
@@ -1072,14 +1072,14 @@ class TestCLI(unittest.TestCase):
         url = "https://%(registry)s/v2/%(image)s/manifests/%(reference)s" % dict(
             registry=REGISTRY, image=IMAGE, reference=TAG
         )
-        headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
+        headers = {"Accept": utils.MANIFEST_ACCEPT}
         requests_get_mock.assert_called_once_with(
             url=url, headers=headers, verify=False, auth=requests_bearer_auth_mock()
         )
         url = "https://%(registry)s/v2/%(image)s/manifests/%(reference)s" % dict(
             registry=REGISTRY, image=IMAGE, reference="digest"
         )
-        requests_delete_mock.assert_called_once_with(url=url, verify=False, auth=requests_bearer_auth_mock())
+        requests_delete_mock.assert_called_once_with(url=url, verify=False)
 
     @mock.patch("glob.glob", mock.MagicMock(autospec=True, return_value=["Dockerfile." + IMAGE]))
     def test_validate_project_image(self):
@@ -1087,6 +1087,18 @@ class TestCLI(unittest.TestCase):
             global_params=self.global_params, subcmd="rmi", subcmd_params=["-r", "non-project-image", TAG]
         )
         self.assertIsInstance(result.exception, click.BadParameter)
+
+    @mock.patch("skipper.utils.delete_image_from_registry", autospec=True)
+    @mock.patch("glob.glob", mock.MagicMock(autospec=True, return_value=["Dockerfile." + IMAGE]))
+    def test_rmi_remote_accepts_namespaced_image_from_config(self, delete_image_from_registry_mock):
+        result = self._invoke_cli(
+            defaults={"containers": {"foo/bar": "Dockerfile.foo"}},
+            global_params=self.global_params,
+            subcmd="rmi",
+            subcmd_params=["-r", "foo/bar", TAG],
+        )
+        self.assertIsNone(result.exception)
+        delete_image_from_registry_mock.assert_called_once()
 
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567\n"))
     @mock.patch("skipper.runner.run", autospec=True)
@@ -1944,11 +1956,10 @@ class TestCLI(unittest.TestCase):
         )
 
     @mock.patch("click.echo", autospec=True)
-    @mock.patch("skipper.cli.get_distribution", autospec=True)
-    def test_version(self, get_dist_mock, echo_mock):
+    @mock.patch("skipper.cli.package_version", autospec=True)
+    def test_version(self, package_version_mock, echo_mock):
         expected_version = "1.2.3"
-        get_dist_mock.return_value = mock.MagicMock()
-        get_dist_mock.return_value.version = expected_version
+        package_version_mock.return_value = expected_version
 
         self._invoke_cli(
             subcmd="version",

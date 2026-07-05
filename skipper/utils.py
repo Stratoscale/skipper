@@ -3,18 +3,24 @@ import glob
 import json
 import logging
 import os
+import re
 import subprocess
 from shutil import which
 from six.moves import http_client
 import requests
 from requests_bearer import HttpBearerAuth
 import urllib3
-import pkg_resources
 
 
 REGISTRY_BASE_URL = 'https://%(registry)s/v2/'
 IMAGE_TAGS_URL = REGISTRY_BASE_URL + '%(image)s/tags/list'
 MANIFEST_URL = REGISTRY_BASE_URL + '%(image)s/manifests/%(reference)s'
+MANIFEST_ACCEPT = ', '.join([
+    'application/vnd.docker.distribution.manifest.v2+json',
+    'application/vnd.docker.distribution.manifest.list.v2+json',
+    'application/vnd.oci.image.manifest.v1+json',
+    'application/vnd.oci.image.index.v1+json',
+])
 DOCKER = "docker"
 PODMAN = "podman"
 
@@ -103,8 +109,11 @@ def get_remote_image_info(image, registry, username, password):
         if info['tags']:
             image_info += [[registry, image, tag] for tag in info['tags']]
     else:
-        if info['errors'][0]['code'] in ['NAME_UNKNOWN', 'NOT_FOUND']:
+        error_code = info['errors'][0]['code']
+        if error_code in ['NAME_UNKNOWN', 'NOT_FOUND']:
             pass
+        elif error_code == 'BAD_REQUEST':
+            logger.warning("Skipping image %s: registry rejected the name (%s)", image, info['errors'][0].get('message'))
         else:
             raise RuntimeError(info)
 
@@ -114,15 +123,30 @@ def get_remote_image_info(image, registry, username, password):
 def get_image_digest(registry, image, tag, username, password):
     urllib3.disable_warnings()
     url = MANIFEST_URL % {"registry": registry, "image": image, "reference": tag}
-    headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
+    headers = {"Accept": MANIFEST_ACCEPT}
     response = requests.get(url=url, headers=headers, verify=False, auth=HttpBearerAuth(username, password))
+    response.raise_for_status()
     return response.headers['Docker-Content-Digest']
 
 
+def get_registry_token(www_authenticate, username, password):
+    params = dict(re.findall(r'(\w+)="([^"]+)"', www_authenticate[len("Bearer "):]))
+    realm = params.pop("realm")
+    response = requests.get(url=realm, params=params, verify=False, auth=(username, password))
+    response.raise_for_status()
+    return response.json()["token"]
+
+
 def delete_image_from_registry(registry, image, tag, username, password):
+    urllib3.disable_warnings()
     digest = get_image_digest(registry, image, tag, username, password)
     url = MANIFEST_URL % {"registry": registry, "image": image, "reference": digest}
-    response = requests.delete(url=url, verify=False, auth=HttpBearerAuth(username, password))
+    response = requests.delete(url=url, verify=False)
+    if response.status_code == http_client.UNAUTHORIZED:
+        challenge = response.headers.get("WWW-Authenticate", "")
+        if challenge.startswith("Bearer "):
+            token = get_registry_token(challenge, username, password)
+            response = requests.delete(url=url, headers={"Authorization": f"Bearer {token}"}, verify=False)
     response.raise_for_status()
 
 
@@ -178,7 +202,7 @@ def get_runtime_command():
 
 
 def get_extra_file(filename):
-    return pkg_resources.resource_filename("skipper", f"data/{filename}")
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", filename)
 
 
 def run_container_command(args):

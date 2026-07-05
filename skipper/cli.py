@@ -9,8 +9,11 @@ from re import compile as compile_expression
 import click
 import six
 import tabulate
+try:
+    from importlib.metadata import version as package_version
+except ImportError:  # Python < 3.8
+    from importlib_metadata import version as package_version
 from pbr import packaging
-from pkg_resources import get_distribution
 
 from skipper import builder, git, runner, utils
 from skipper.builder import BuildOptions, Image
@@ -227,7 +230,7 @@ def rmi(ctx, remote, image, tag):
     Delete an image from local docker or from registry
     """
     utils.logger.debug("Executing rmi command")
-    _validate_project_image(image)
+    _validate_project_image(image, ctx.obj.get("containers"))
     if remote:
         _validate_global_params(ctx, "registry")
         utils.delete_image_from_registry(
@@ -360,7 +363,7 @@ def version():
     output skipper version
     """
     utils.logger.debug("printing skipper version")
-    click.echo(get_distribution("strato-skipper").version)  # pylint: disable=no-member
+    click.echo(package_version("strato-skipper"))
 
 
 @cli.command()
@@ -439,8 +442,8 @@ def _validate_global_params(ctx, *params):
             raise click.BadParameter(str(ctx.obj[param]), param_hint=param)
 
 
-def _validate_project_image(image):
-    project_images = utils.get_images_from_dockerfiles()
+def _validate_project_image(image, containers=None):
+    project_images = containers or utils.get_images_from_dockerfiles()
     if image not in project_images:
         raise click.BadParameter(f"'{image}' is not an image of this project, try {project_images}", param_hint="image")
 
