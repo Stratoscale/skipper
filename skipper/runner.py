@@ -107,6 +107,12 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
     if utils.get_runtime_command() == "podman":
         cmd += ['--group-add', 'keep-groups']
 
+    # helm reads the docker config format but does not look at DOCKER_CONFIG, so point it at
+    # the credentials we mount - that way `helm push` to an OCI registry works off the same
+    # `docker login` as everything else.
+    if not utils.is_environment_variable_defined('HELM_REGISTRY_CONFIG', environment):
+        cmd += ['-e', f'HELM_REGISTRY_CONFIG={DOCKER_CONFIG}/config.json']
+
     if use_cache:
         cmd += ['-e', 'SKIPPER_USE_CACHE_IMAGE=True']
 

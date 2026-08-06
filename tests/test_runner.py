@@ -130,6 +130,8 @@ class TestRunner(unittest.TestCase):
             "DOCKER_CONTEXT=default",
             "-e",
             "SKIPPER_DOCKER_GID=978",
+            "-e",
+            "HELM_REGISTRY_CONFIG=/opt/.docker/config.json",
             "-v",
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
@@ -199,6 +201,8 @@ class TestRunner(unittest.TestCase):
             "DOCKER_CONTEXT=default",
             "-e",
             "SKIPPER_DOCKER_GID=978",
+            "-e",
+            "HELM_REGISTRY_CONFIG=/opt/.docker/config.json",
             "-v",
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
@@ -222,6 +226,29 @@ class TestRunner(unittest.TestCase):
             command[0],
         ]
         popen_mock.assert_called_once_with(expected_nested_command)
+
+    @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch("getpass.getuser", mock.MagicMock(autospec=True, return_value="testuser"))
+    @mock.patch("os.getcwd", mock.MagicMock(autospec=True, return_value=PROJECT_DIR))
+    @mock.patch("os.path.expanduser", mock.MagicMock(autospec=True, return_value=HOME_DIR))
+    @mock.patch("os.getuid", autospec=True)
+    @mock.patch("grp.getgrnam", autospec=True)
+    @mock.patch("subprocess.Popen", autospec=False)
+    @mock.patch("subprocess.check_output", autospec=False)
+    @mock.patch("skipper.utils.get_extra_file", autospec=False)
+    def test_run_nested_keeps_user_defined_helm_registry_config(
+        self, resource_filename_mock, check_output_mock, popen_mock, grp_getgrnam_mock, os_getuid_mock
+    ):
+        resource_filename_mock.return_value = "entrypoint.sh"
+        check_output_mock.side_effect = [self.NET_LS, ""]
+        popen_mock.return_value.stdout.readline.side_effect = ["aaa", "bbb", "ccc", ""]
+        popen_mock.return_value.poll.return_value = -1
+        grp_getgrnam_mock.return_value.gr_gid = 978
+        os_getuid_mock.return_value = USER_ID
+        runner.run(["pwd"], FQDN_IMAGE, ["HELM_REGISTRY_CONFIG=/elsewhere/config.json"])
+        nested_command = popen_mock.call_args.args[0]
+        self.assertIn("HELM_REGISTRY_CONFIG=/elsewhere/config.json", nested_command)
+        self.assertNotIn(f"HELM_REGISTRY_CONFIG={DOCKER_CONFIG}/config.json", nested_command)
 
     @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
     @mock.patch("getpass.getuser", mock.MagicMock(autospec=True, return_value="testuser"))
@@ -272,6 +299,8 @@ class TestRunner(unittest.TestCase):
             "DOCKER_CONTEXT=default",
             "-e",
             "SKIPPER_DOCKER_GID=978",
+            "-e",
+            "HELM_REGISTRY_CONFIG=/opt/.docker/config.json",
             "-v",
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
@@ -343,6 +372,8 @@ class TestRunner(unittest.TestCase):
             "DOCKER_CONTEXT=default",
             "-e",
             "SKIPPER_DOCKER_GID=978",
+            "-e",
+            "HELM_REGISTRY_CONFIG=/opt/.docker/config.json",
             "-v",
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
@@ -416,6 +447,8 @@ class TestRunner(unittest.TestCase):
             "DOCKER_CONTEXT=default",
             "-e",
             "SKIPPER_DOCKER_GID=978",
+            "-e",
+            "HELM_REGISTRY_CONFIG=/opt/.docker/config.json",
             "-v",
             "%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR),
             "-v",
@@ -489,6 +522,8 @@ class TestRunner(unittest.TestCase):
             "DOCKER_CONTEXT=default",
             "-e",
             "SKIPPER_DOCKER_GID=978",
+            "-e",
+            "HELM_REGISTRY_CONFIG=/opt/.docker/config.json",
             "-v",
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
@@ -561,6 +596,8 @@ class TestRunner(unittest.TestCase):
             "DOCKER_CONTEXT=default",
             "-e",
             "SKIPPER_DOCKER_GID=978",
+            "-e",
+            "HELM_REGISTRY_CONFIG=/opt/.docker/config.json",
             "-v",
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
@@ -636,6 +673,8 @@ class TestRunner(unittest.TestCase):
             "DOCKER_CONTEXT=default",
             "-e",
             "SKIPPER_DOCKER_GID=978",
+            "-e",
+            "HELM_REGISTRY_CONFIG=/opt/.docker/config.json",
             "-v",
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
@@ -721,6 +760,8 @@ class TestRunner(unittest.TestCase):
             "DOCKER_CONTEXT=default",
             "-e",
             "SKIPPER_DOCKER_GID=978",
+            "-e",
+            "HELM_REGISTRY_CONFIG=/opt/.docker/config.json",
             "-v",
             "%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR),
             "-v",
