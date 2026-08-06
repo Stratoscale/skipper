@@ -153,6 +153,10 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
     docker_config_volume = f'{homedir}/.docker{suffix}'
     if not any(f'{docker_config_volume}:' in volume for volume in volumes):
         _add_path_if_exists(docker_config_volume, f'{DOCKER_CONFIG}{suffix}', 'rw', volumes)
+        # The container keeps the host's HOME, so anything in it that looks up credentials
+        # the default way - a nested skipper, helm, oras - reads them from there rather than
+        # from DOCKER_CONFIG. Read-only: writes belong in the DOCKER_CONFIG copy above.
+        _add_path_if_exists(docker_config_volume, docker_config_volume, 'ro', volumes)
 
     # required for docker certificates
     _add_path_if_exists('/etc/docker', '/etc/docker', 'ro', volumes)

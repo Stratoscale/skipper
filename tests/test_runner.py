@@ -44,6 +44,18 @@ def get_docker_config_volume():
     return get_volume_mapping(f"{HOME_DIR}/.docker:{DOCKER_CONFIG}:rw")
 
 
+def get_docker_config_home_volume():
+    # The same credentials, kept at their host path because the container inherits HOME.
+    if sys.platform == "darwin":
+        return get_volume_mapping(f"{HOME_DIR}/.docker/config.json:{HOME_DIR}/.docker/config.json:ro")
+
+    return get_volume_mapping(f"{HOME_DIR}/.docker:{HOME_DIR}/.docker:ro")
+
+
+def get_docker_config_volume_args():
+    return ["-v", get_docker_config_volume(), "-v", get_docker_config_home_volume()]
+
+
 @mock.patch("skipper.runner._network_exists", mock.MagicMock(autospec=True, return_value=True))
 class TestRunner(unittest.TestCase):
     NET_LS = (
@@ -122,8 +134,7 @@ class TestRunner(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
@@ -192,8 +203,7 @@ class TestRunner(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
@@ -266,8 +276,7 @@ class TestRunner(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
@@ -338,8 +347,7 @@ class TestRunner(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
@@ -412,8 +420,7 @@ class TestRunner(unittest.TestCase):
             "%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR),
             "-v",
             "%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             "/etc/docker:/etc/docker:ro",
             "-v",
@@ -486,8 +493,7 @@ class TestRunner(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
@@ -559,8 +565,7 @@ class TestRunner(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
@@ -635,8 +640,7 @@ class TestRunner(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",

@@ -4,7 +4,7 @@ from unittest import mock
 
 from skipper import runner, utils
 from skipper.runner import get_default_net
-from tests.test_runner import get_docker_config_volume, get_volume_mapping
+from tests.test_runner import get_docker_config_volume_args, get_volume_mapping
 
 USER_ID = 1000
 GROUP_ID = 2000
@@ -97,8 +97,7 @@ class TestRunnerPodman(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
@@ -160,8 +159,7 @@ class TestRunnerPodman(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
@@ -221,8 +219,7 @@ class TestRunnerPodman(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
@@ -287,8 +284,7 @@ class TestRunnerPodman(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
@@ -354,8 +350,7 @@ class TestRunnerPodman(unittest.TestCase):
             get_volume_mapping("%(homedir)s/.netrc:%(homedir)s/.netrc:ro" % dict(homedir=HOME_DIR)),
             "-v",
             get_volume_mapping("%(homedir)s/.gitconfig:%(homedir)s/.gitconfig:ro" % dict(homedir=HOME_DIR)),
-            "-v",
-            get_docker_config_volume(),
+            *get_docker_config_volume_args(),
             "-v",
             get_volume_mapping("/etc/docker:/etc/docker:ro"),
             "-v",
