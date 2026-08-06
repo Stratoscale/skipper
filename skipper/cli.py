@@ -99,6 +99,7 @@ def cli(
     ctx.obj["container_context"] = ctx.default_map.get("container_context")
     ctx.obj["build_args"] = build_arg
     ctx.obj["build_contexts"] = build_context
+    ctx.obj["namespace"] = ctx.default_map.get("push", {}).get("namespace")
     utils.set_remote_registry_login_info(registry, ctx.obj)
 
 
@@ -450,6 +451,14 @@ def _validate_project_image(image, containers=None):
 
 def _expend_env(ctx, extra_env):
     environment = []
+    # The configured push destination, so a Makefile or script running in the container can
+    # target the same place as `skipper push` without repeating it. First in the list, so an
+    # explicit env entry still wins.
+    if ctx.obj.get("registry"):
+        environment.append(f"SKIPPER_REGISTRY={ctx.obj['registry']}")
+    if ctx.obj.get("namespace"):
+        environment.append(f"SKIPPER_NAMESPACE={ctx.obj['namespace']}")
+
     env = ctx.obj["env"]
     # env is allowed to be of type list and of type dict
     if isinstance(env, dict):

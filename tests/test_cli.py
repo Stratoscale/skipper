@@ -23,6 +23,8 @@ BUILD_CONTAINER_TAG = "build-container-tag"
 BUILD_CONTAINER_FQDN_IMAGE = REGISTRY + "/" + BUILD_CONTAINER_IMAGE + ":" + BUILD_CONTAINER_TAG
 
 ENV = ["KEY1=VAL1", "KEY2=VAL2"]
+# Injected by skipper itself from the configured registry / push namespace.
+SKIPPER_ENV = [f"SKIPPER_REGISTRY={REGISTRY}"]
 ENV_FILE_PATH = "/home/envfile.env"
 ENV_FILES = ["/home/envfile1.env", "/home/envfile2.env"]
 
@@ -326,7 +328,7 @@ class TestCLI(unittest.TestCase):
             mock.call(
                 ["make"] + make_params,
                 fqdn_image="build-container-image",
-                environment=[],
+                environment=SKIPPER_ENV,
                 interactive=False,
                 name=None,
                 net=None,
@@ -1110,7 +1112,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_image_name,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1142,7 +1144,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_image_name,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1180,7 +1182,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1203,7 +1205,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1226,7 +1228,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1241,6 +1243,15 @@ class TestCLI(unittest.TestCase):
     @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
     @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567\n"))
     @mock.patch("skipper.runner.run", autospec=True)
+    def test_run_exposes_configured_push_destination(self, skipper_runner_run_mock):
+        defaults = dict(SKIPPER_CONF, push={"namespace": "some-namespace"})
+        self._invoke_cli(defaults=defaults, subcmd="run", subcmd_params=["ls"])
+        environment = skipper_runner_run_mock.call_args.kwargs["environment"]
+        self.assertEqual(environment, [f"SKIPPER_REGISTRY={REGISTRY}", "SKIPPER_NAMESPACE=some-namespace"])
+
+    @mock.patch("os.path.exists", mock.MagicMock(autospec=True, return_value=True))
+    @mock.patch("subprocess.check_output", mock.MagicMock(autospec=True, return_value="1234567\n"))
+    @mock.patch("skipper.runner.run", autospec=True)
     def test_run_with_env_overriding_config_file(self, skipper_runner_run_mock):
         command = ["ls", "-l"]
         run_params = ["-e", ENV[0], "-e", ENV[1]] + command
@@ -1250,7 +1261,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=env,
+            environment=SKIPPER_ENV + env,
             interactive=False,
             name=None,
             net=None,
@@ -1278,7 +1289,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=env,
+            environment=SKIPPER_ENV + env,
             interactive=False,
             name=None,
             net=None,
@@ -1306,7 +1317,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=env,
+            environment=SKIPPER_ENV + env,
             interactive=False,
             name=None,
             net=None,
@@ -1341,7 +1352,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=ENV,
+            environment=SKIPPER_ENV + ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1364,7 +1375,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=True,
             name=None,
             net=None,
@@ -1387,7 +1398,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1409,7 +1420,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=True,
             name=None,
             net=None,
@@ -1447,7 +1458,7 @@ class TestCLI(unittest.TestCase):
             mock.call(
                 command,
                 fqdn_image="build-container-image",
-                environment=[],
+                environment=SKIPPER_ENV,
                 interactive=False,
                 name=None,
                 net=None,
@@ -1475,7 +1486,7 @@ class TestCLI(unittest.TestCase):
             mock.call(
                 command,
                 fqdn_image="build-container-image",
-                environment=[],
+                environment=SKIPPER_ENV,
                 interactive=False,
                 name=None,
                 net=None,
@@ -1501,7 +1512,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net="non-default-net",
@@ -1531,7 +1542,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             expected_command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net="non-default-net",
@@ -1561,7 +1572,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             expected_command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net="non-default-net",
@@ -1591,7 +1602,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             expected_command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net="non-default-net",
@@ -1683,7 +1694,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1707,7 +1718,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1731,7 +1742,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1756,7 +1767,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1781,7 +1792,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1805,7 +1816,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             expected_command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1829,7 +1840,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             expected_command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1853,7 +1864,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             expected_command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1879,7 +1890,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             expected_command,
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=False,
             name=None,
             net=None,
@@ -1918,7 +1929,7 @@ class TestCLI(unittest.TestCase):
             mock.call(
                 ["make"] + make_params,
                 fqdn_image="build-container-image",
-                environment=[],
+                environment=SKIPPER_ENV,
                 interactive=False,
                 name=None,
                 net=None,
@@ -1943,7 +1954,7 @@ class TestCLI(unittest.TestCase):
         skipper_runner_run_mock.assert_called_once_with(
             ["bash"],
             fqdn_image=expected_fqdn_image,
-            environment=[],
+            environment=SKIPPER_ENV,
             interactive=True,
             name=None,
             net=None,
