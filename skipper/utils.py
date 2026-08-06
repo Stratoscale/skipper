@@ -223,9 +223,17 @@ def create_path_and_add_data(full_path, data, is_file):
             _file.write(data)
 
 
+def get_docker_config_path():
+    # Same lookup docker itself does: DOCKER_CONFIG wins over ~/.docker. Inside a skipper
+    # container the home directory is the host's and is not mounted, while the credentials
+    # are mounted at DOCKER_CONFIG - so without this a nested skipper finds no login info.
+    config_dir = os.environ.get('DOCKER_CONFIG') or os.path.join(os.path.expanduser('~'), '.docker')
+    return os.path.join(config_dir, 'config.json')
+
+
 def set_remote_registry_login_info(registry, ctx_object):
     try:
-        with open('/'.join([os.path.expanduser('~'), '.docker/config.json'])) as docker_file:
+        with open(get_docker_config_path()) as docker_file:
             docker_config = json.load(docker_file)
 
         auth = docker_config.get('auths', {}).get(registry, {}).get('auth')

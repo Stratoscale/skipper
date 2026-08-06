@@ -1,3 +1,6 @@
+import base64
+import io
+import json
 import logging
 import os
 import unittest
@@ -102,3 +105,27 @@ class TestUtils(unittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             utils.get_remote_image_info("foo/bar", "registry", "user", "password")
+
+    @mock.patch.dict(os.environ, {"DOCKER_CONFIG": "/opt/.docker"})
+    def test_get_docker_config_path_prefers_docker_config_env(self):
+        self.assertEqual(utils.get_docker_config_path(), "/opt/.docker/config.json")
+
+    @mock.patch("skipper.utils.os.path.expanduser", autospec=True, return_value="/home/adir")
+    def test_get_docker_config_path_falls_back_to_homedir(self, _expanduser_mock):
+        with mock.patch.dict(os.environ):
+            os.environ.pop("DOCKER_CONFIG", None)
+            self.assertEqual(utils.get_docker_config_path(), "/home/adir/.docker/config.json")
+
+    @mock.patch.dict(os.environ, {"DOCKER_CONFIG": "/opt/.docker"})
+    @mock.patch("skipper.utils.open", autospec=False)
+    def test_set_remote_registry_login_info_reads_docker_config(self, open_mock):
+        auth = base64.b64encode(b"user:password").decode()
+        open_mock.return_value.__enter__.return_value = io.StringIO(
+            json.dumps({"auths": {"registry.io:5000": {"auth": auth}}})
+        )
+        ctx_object = {}
+
+        utils.set_remote_registry_login_info("registry.io:5000", ctx_object)
+
+        open_mock.assert_called_once_with("/opt/.docker/config.json")
+        self.assertEqual(ctx_object, {"username": "user", "password": "password"})

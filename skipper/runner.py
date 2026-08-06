@@ -150,7 +150,7 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
 
     # required for docker credentials
     suffix = get_docker_config_volume_suffix()
-    docker_config_volume = f'{homedir}{suffix}'
+    docker_config_volume = f'{homedir}/.docker{suffix}'
     if not any(f'{docker_config_volume}:' in volume for volume in volumes):
         _add_path_if_exists(docker_config_volume, f'{DOCKER_CONFIG}{suffix}', 'rw', volumes)
 

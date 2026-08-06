@@ -34,8 +34,14 @@ def get_volume_mapping(volume_mapping):
 
 
 def get_docker_config_volume():
-    suffix = runner.get_docker_config_volume_suffix()
-    return get_volume_mapping(f"{HOME_DIR}{suffix}:{DOCKER_CONFIG}{suffix}:rw")
+    # Spelled out instead of reusing the production expression, so that a change to the
+    # mounted path shows up as a test failure.
+    if sys.platform == "darwin":
+        # Only the credentials file: the rest of ~/.docker is host-specific state, and its
+        # cli-plugins are macOS binaries that the linux container cannot run.
+        return get_volume_mapping(f"{HOME_DIR}/.docker/config.json:{DOCKER_CONFIG}/config.json:rw")
+
+    return get_volume_mapping(f"{HOME_DIR}/.docker:{DOCKER_CONFIG}:rw")
 
 
 @mock.patch("skipper.runner._network_exists", mock.MagicMock(autospec=True, return_value=True))
