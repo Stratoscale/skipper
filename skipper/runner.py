@@ -91,11 +91,13 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
     cmd += ['-e', f'HOME={homedir}']
     cmd += ['-e', f'CONTAINER_RUNTIME_COMMAND={utils.get_runtime_command()}']
 
-    if utils.get_runtime_command() == "docker":
-        if not utils.is_environment_variable_defined('DOCKER_CONFIG', environment):
-            cmd += ['-e', f'DOCKER_CONFIG={DOCKER_CONFIG}']
+    # The host home mount below is read-only, so writers need this copy under any runtime.
+    caller_owns_docker_config = utils.is_environment_variable_defined('DOCKER_CONFIG', environment, env_file)
+    if not caller_owns_docker_config:
+        cmd += ['-e', f'DOCKER_CONFIG={DOCKER_CONFIG}']
 
-        if not utils.is_environment_variable_defined('DOCKER_CONTEXT', environment):
+    if utils.get_runtime_command() == "docker":
+        if not utils.is_environment_variable_defined('DOCKER_CONTEXT', environment, env_file):
             cmd += ['-e', 'DOCKER_CONTEXT=default']
 
         try:
@@ -106,6 +108,11 @@ def _run_nested(fqdn_image, environment, command, interactive, name, net, publis
 
     if utils.get_runtime_command() == "podman":
         cmd += ['--group-add', 'keep-groups']
+
+    # helm reads the docker config format but not DOCKER_CONFIG.
+    helm_config_defined = utils.is_environment_variable_defined('HELM_REGISTRY_CONFIG', environment, env_file)
+    if not caller_owns_docker_config and not helm_config_defined:
+        cmd += ['-e', f'HELM_REGISTRY_CONFIG={DOCKER_CONFIG}/config.json']
 
     if use_cache:
         cmd += ['-e', 'SKIPPER_USE_CACHE_IMAGE=True']
@@ -150,9 +157,10 @@ def handle_volumes_bind_mount(docker_cmd, homedir, volumes, workspace):
 
     # required for docker credentials
     suffix = get_docker_config_volume_suffix()
-    docker_config_volume = f'{homedir}{suffix}'
-    if not any(f'{docker_config_volume}:' in volume for volume in volumes):
-        _add_path_if_exists(docker_config_volume, f'{DOCKER_CONFIG}{suffix}', 'rw', volumes)
+    host_docker_config = f'{utils.get_docker_config_dir()}{suffix}'
+    if not any(f'{host_docker_config}:' in volume for volume in volumes):
+        _add_path_if_exists(host_docker_config, f'{DOCKER_CONFIG}{suffix}', 'rw', volumes)
+        _add_path_if_exists(host_docker_config, f'{homedir}/.docker{suffix}', 'ro', volumes)
 
     # required for docker certificates
     _add_path_if_exists('/etc/docker', '/etc/docker', 'ro', volumes)

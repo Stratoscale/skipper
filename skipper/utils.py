@@ -223,9 +223,17 @@ def create_path_and_add_data(full_path, data, is_file):
             _file.write(data)
 
 
+def get_docker_config_dir():
+    return os.environ.get('DOCKER_CONFIG') or os.path.join(os.path.expanduser('~'), '.docker')
+
+
+def get_docker_config_path():
+    return os.path.join(get_docker_config_dir(), 'config.json')
+
+
 def set_remote_registry_login_info(registry, ctx_object):
     try:
-        with open('/'.join([os.path.expanduser('~'), '.docker/config.json'])) as docker_file:
+        with open(get_docker_config_path()) as docker_file:
             docker_config = json.load(docker_file)
 
         auth = docker_config.get('auths', {}).get(registry, {}).get('auth')
@@ -238,5 +246,17 @@ def set_remote_registry_login_info(registry, ctx_object):
         pass
 
 
-def is_environment_variable_defined(name, environment):
-    return any(name in env_var for env_var in environment)
+def is_environment_variable_defined(name, environment, env_files=()):
+    if any(env_var.split('=', 1)[0] == name for env_var in environment):
+        return True
+
+    return any(_env_file_defines(name, env_file) for env_file in env_files)
+
+
+def _env_file_defines(name, path):
+    # An unreadable or missing env file is the runtime's to complain about, with its own message.
+    if not os.access(path, os.R_OK):
+        return False
+
+    with open(path) as env_file:
+        return any(line.split('=', 1)[0].strip() == name for line in env_file)
