@@ -321,6 +321,26 @@ env_file:
     - /path/to/env_file2.env
 ````
 
+### Variables set by Skipper
+
+For `shell`, `run` & `make` commands, Skipper exports the configured push destination into the
+container, so a Makefile or a script running inside it can target the same registry and namespace
+that `skipper push` uses, without repeating them:
+
+| Variable | Source |
+| --- | --- |
+| `SKIPPER_REGISTRY` | the `--registry` option or `registry` in the configuration file |
+| `SKIPPER_NAMESPACE` | `push.namespace` in the configuration file |
+
+````yaml
+registry: some-registry
+push:
+    namespace: some-namespace
+````
+
+Each variable is set only when its source is configured, and an `env` or `-e` entry of the same
+name takes precedence.
+
 ### Variable substitution
 
 Skipper uses the variable values from the shell environment in which skipper is run.
