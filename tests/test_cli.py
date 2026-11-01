@@ -842,7 +842,7 @@ class TestCLI(unittest.TestCase):
         subprocess_check_output_mock.assert_called_once_with(expected_command)
 
         expected_url = "https://%(registry)s/v2/my_image/tags/list" % dict(registry=REGISTRY)
-        requests_get_mock.assert_called_once_with(url=expected_url, auth=requests_bearer_auth_mock(), verify=False)
+        requests_get_mock.assert_called_once_with(url=expected_url, auth=requests_bearer_auth_mock(), verify=True)
 
         expected_images_results = [
             ["none", "my_image", "aaaaaaa"],
@@ -879,7 +879,7 @@ class TestCLI(unittest.TestCase):
         subprocess_check_output_mock.assert_called_once_with(expected_command)
 
         expected_url = "https://%(registry)s/v2/my_image/tags/list" % dict(registry=REGISTRY)
-        requests_get_mock.assert_called_once_with(url=expected_url, verify=False, auth=requests_bearer_auth_mock())
+        requests_get_mock.assert_called_once_with(url=expected_url, verify=True, auth=requests_bearer_auth_mock())
 
         expected_images_results = [
             ["registry.io:5000", "my_image", "latest"],
@@ -924,7 +924,7 @@ class TestCLI(unittest.TestCase):
         subprocess_check_output_mock.assert_called_once_with(expected_command)
 
         expected_url = "https://%(registry)s/v2/my_image/tags/list" % dict(registry=REGISTRY)
-        requests_get_mock.assert_called_once_with(url=expected_url, verify=False, auth=requests_bearer_auth_mock())
+        requests_get_mock.assert_called_once_with(url=expected_url, verify=True, auth=requests_bearer_auth_mock())
 
         expected_images_results = []
         tabulate_mock.assert_called_once_with(
@@ -967,7 +967,7 @@ class TestCLI(unittest.TestCase):
         subprocess_check_output_mock.assert_called_once_with(expected_command)
 
         expected_url = "https://%(registry)s/v2/my_image/tags/list" % dict(registry=REGISTRY)
-        requests_get_mock.assert_called_once_with(url=expected_url, verify=False, auth=requests_bearer_auth_mock())
+        requests_get_mock.assert_called_once_with(url=expected_url, verify=True, auth=requests_bearer_auth_mock())
 
         expected_images_results = [
             ["none", "my_image", "aaaaaaa"],
@@ -1011,7 +1011,7 @@ class TestCLI(unittest.TestCase):
         subprocess_check_output_mock.assert_called_once_with(expected_command)
 
         expected_url = "https://%(registry)s/v2/my_image/tags/list" % dict(registry=REGISTRY)
-        requests_get_mock.assert_called_once_with(url=expected_url, verify=False, auth=requests_bearer_auth_mock())
+        requests_get_mock.assert_called_once_with(url=expected_url, verify=True, auth=requests_bearer_auth_mock())
 
         self.assertIsInstance(result.exception, click.exceptions.ClickException)
 
@@ -1053,12 +1053,12 @@ class TestCLI(unittest.TestCase):
         )
         headers = {"Accept": utils.MANIFEST_ACCEPT}
         requests_get_mock.assert_called_once_with(
-            url=url, headers=headers, verify=False, auth=requests_bearer_auth_mock()
+            url=url, headers=headers, verify=True, auth=requests_bearer_auth_mock()
         )
         url = "https://%(registry)s/v2/%(image)s/manifests/%(reference)s" % dict(
             registry=REGISTRY, image=IMAGE, reference="digest"
         )
-        requests_delete_mock.assert_called_once_with(url=url, verify=False)
+        requests_delete_mock.assert_called_once_with(url=url, verify=True)
 
     @mock.patch("skipper.utils.HttpBearerAuth", autospec=True)
     @mock.patch("glob.glob", mock.MagicMock(autospec=True, return_value=["Dockerfile." + IMAGE]))
@@ -1075,12 +1075,12 @@ class TestCLI(unittest.TestCase):
         )
         headers = {"Accept": utils.MANIFEST_ACCEPT}
         requests_get_mock.assert_called_once_with(
-            url=url, headers=headers, verify=False, auth=requests_bearer_auth_mock()
+            url=url, headers=headers, verify=True, auth=requests_bearer_auth_mock()
         )
         url = "https://%(registry)s/v2/%(image)s/manifests/%(reference)s" % dict(
             registry=REGISTRY, image=IMAGE, reference="digest"
         )
-        requests_delete_mock.assert_called_once_with(url=url, verify=False)
+        requests_delete_mock.assert_called_once_with(url=url, verify=True)
 
     @mock.patch("glob.glob", mock.MagicMock(autospec=True, return_value=["Dockerfile." + IMAGE]))
     def test_validate_project_image(self):
