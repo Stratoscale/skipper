@@ -31,6 +31,12 @@ DOCKER_CONFIG = "/opt/.docker"
 
 SKIPPER_ULIMIT = [['--ulimit', limit] for limit in os.environ.get('SKIPPER_ULIMITS', 'nofile=65536:65536').split(',')]
 
+def _registry_verify():
+    # Registry calls carry credentials; verify TLS by default.
+    # Set SKIPPER_REGISTRY_INSECURE=1 only for a self-signed private registry.
+    return os.environ.get("SKIPPER_REGISTRY_INSECURE", "").lower() not in ("1", "true", "yes")
+
+
 
 def configure_logging(name, level):
     global logger   # pylint: disable=global-statement,invalid-name
@@ -67,7 +73,7 @@ def remote_image_exist(registry, image, tag, username, password):
     urllib3.disable_warnings()
     url = IMAGE_TAGS_URL % {"registry": registry, "image": image}
     headers = {"Accept": "application/vnd.docker.distribution.manifest.v2+json"}
-    response = requests.get(url=url, verify=False, headers=headers, auth=HttpBearerAuth(username, password))
+    response = requests.get(url=url, verify=_registry_verify(), headers=headers, auth=HttpBearerAuth(username, password))
 
     if response.status_code != http_client.OK:
         return False
@@ -103,7 +109,7 @@ def get_remote_image_info(image, registry, username, password):
     urllib3.disable_warnings()
     image_info = []
     url = IMAGE_TAGS_URL % {"registry": registry, "image": image}
-    response = requests.get(url=url, verify=False, auth=HttpBearerAuth(username, password))
+    response = requests.get(url=url, verify=_registry_verify(), auth=HttpBearerAuth(username, password))
     info = response.json()
     if response.ok:
         if info['tags']:
@@ -124,7 +130,7 @@ def get_image_digest(registry, image, tag, username, password):
     urllib3.disable_warnings()
     url = MANIFEST_URL % {"registry": registry, "image": image, "reference": tag}
     headers = {"Accept": MANIFEST_ACCEPT}
-    response = requests.get(url=url, headers=headers, verify=False, auth=HttpBearerAuth(username, password))
+    response = requests.get(url=url, headers=headers, verify=_registry_verify(), auth=HttpBearerAuth(username, password))
     response.raise_for_status()
     return response.headers['Docker-Content-Digest']
 
@@ -132,7 +138,7 @@ def get_image_digest(registry, image, tag, username, password):
 def get_registry_token(www_authenticate, username, password):
     params = dict(re.findall(r'(\w+)="([^"]+)"', www_authenticate[len("Bearer "):]))
     realm = params.pop("realm")
-    response = requests.get(url=realm, params=params, verify=False, auth=(username, password))
+    response = requests.get(url=realm, params=params, verify=_registry_verify(), auth=(username, password))
     response.raise_for_status()
     return response.json()["token"]
 
@@ -141,12 +147,12 @@ def delete_image_from_registry(registry, image, tag, username, password):
     urllib3.disable_warnings()
     digest = get_image_digest(registry, image, tag, username, password)
     url = MANIFEST_URL % {"registry": registry, "image": image, "reference": digest}
-    response = requests.delete(url=url, verify=False)
+    response = requests.delete(url=url, verify=_registry_verify())
     if response.status_code == http_client.UNAUTHORIZED:
         challenge = response.headers.get("WWW-Authenticate", "")
         if challenge.startswith("Bearer "):
             token = get_registry_token(challenge, username, password)
-            response = requests.delete(url=url, headers={"Authorization": f"Bearer {token}"}, verify=False)
+            response = requests.delete(url=url, headers={"Authorization": f"Bearer {token}"}, verify=_registry_verify())
     response.raise_for_status()
 
 
